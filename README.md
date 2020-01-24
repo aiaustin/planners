@@ -16,7 +16,8 @@ The original hierarchical task network, partial-order planner - used as the basi
 http://www.aiai.ed.ac.uk/project/nonlin/
 
 ## O-Plan: (1983-99)
-An AI planning , execution and plan repair system with extensive representations for temporal, resource and other constraints, support for plan execution monitoring and plan repair "on-the-fly". Runable as a web service. 
+An AI planning , execution and plan repair system with extensive representations for temporal, resource and other constraints, support for plan execution monitoring and plan repair "on-the-fly". Runable as a web service. Written in Common Lisp with User Interface and Web Service eements in Java.
+
 http://www.aiai.ed.ac.uk/project/oplan/
 
 ## I-X: (2000-present)
