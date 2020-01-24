@@ -24,7 +24,7 @@ An AI planning , execution and plan repair system with extensive representations
 
 http://www.aiai.ed.ac.uk/project/oplan/
 
-## I-X/I-Plan: (2000-2012)
+## I-X/I-Plan: (2000-2010)
 A portable cross-platform Java-based planning and collaboration support environment. Aid to multi-agent cooperative work and external services use. Plan representation based on the &lt;I-N-C-A&gt; conceptual model.  Written in Java.
 
 http://www.aiai.ed.ac.uk/project/ix/
