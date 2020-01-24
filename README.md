@@ -15,7 +15,7 @@ An early planning system whose search was directed by finding and debugging "app
 http://www.aiai.ed.ac.uk/project/early-planners/
 
 ## Nonlin: (1974-82)
-The original hierarchical task network, partial-order planner - used as the basis for text book descriptions of this type of technology (Russell & Norvig). Nonlin was created in 1975-1976 during the first year of the UK Science Research Council project entitled "Planning: a joint AI/OR Approach" whose Principal Investigator was Professor Bernard Meltzer. Lesley Daniel was the Operational Research researcher on the project. Nonlin continued to be developed in the 1982-3 period in joint work with Steve Vere at the NASA Jet Propulsion Laboratory (who created the DEVISER planner), and with Andrew Whiter at Systems Designers Ltd in the UK. Brian Drabble's Excalibur planner built on Nonlin by adding a qualitative process reasoner. Writen in POP2.
+The original hierarchical task network, partial-order planner - used as the basis for text book descriptions of this type of technology (Russell & Norvig). Nonlin was created in 1975-1976 during the first year of the UK Science Research Council project entitled "Planning: a joint AI/OR Approach" whose Principal Investigator was Professor Bernard Meltzer. Austin Tate was the AI researcher on the project and Lesley Daniel was the Operational Research researcher. Nonlin continued to be developed in the 1982-3 period in joint work with Steve Vere at the NASA Jet Propulsion Laboratory (who created the DEVISER planner), and with Andrew Whiter at Systems Designers Ltd in the UK. Brian Drabble's Excalibur planner was built on Nonlin by adding a qualitative process reasoner. Writen in POP2.
 
 http://www.aiai.ed.ac.uk/project/nonlin/
 
