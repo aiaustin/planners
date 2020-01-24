@@ -24,7 +24,7 @@ A portable cross-platform Java-based planning and collaboration support environm
 http://www.aiai.ed.ac.uk/project/ix/
   
 ## Planning and Activity Representation 
-<I-N-OVA>, <I-N-CA> & <I-N-C-A>
+&lt;I-N-OVA&gt;, &lt;I-N-CA&gt; & &lt;I-N-C-A&gt;
   
 ## License
   
