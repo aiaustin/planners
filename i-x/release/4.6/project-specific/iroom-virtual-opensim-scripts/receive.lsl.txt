@@ -1,0 +1,269 @@
+// Message-receiving utility for use with an 'iserve' communication strategy.
+// Author: Jeff Dalton
+// Last modified 13 May 09 by JD
+// 4-Aug-2011 to convert to OpenSim by AT
+// Copyright (C) 2009-11, AIAI, The University of Edinburgh
+
+// A URL of a resource that contains one line telling us where the server is.
+// string SERVICE_URL = "http://www.aiai.ed.ac.uk/~jeff/ix/services/test/comm-server.txt";
+string SERVICE_URL = "http://openvce.net/services/venues/iroom/comm-server-url.txt";
+
+// Script ids for use as link message destinations.
+integer SEND_SCRIPT = 1;
+integer RECEIVE_SCRIPT = 2;
+integer EXEC_SCRIPT = 3;
+integer WAKEUP_SCRIPT = 4;
+
+integer THIS_SCRIPT = 4; // RECEIVE_SCRIPT;
+
+// Go to sleep after this many get-next failures in a row.
+integer MAX_FAILS = 3;
+
+// Config parameters we receive
+string SERVER = "server";
+
+// Control messages we receive
+string START = "start";
+string WAKEUP = "wakeup";
+string WAKEUP_CHAT = "wakeup:chat";
+
+// Id for the outstanding request, else NULL_KEY.
+// Only one request is ever active at a time.
+key http_request_id;
+
+// URL for requests directly to the comm server.
+string http_request_url = "Not a get-next URL";
+
+string ack = "This is my first get-next request";
+integer fail_count = 0;
+string last_id_received = "";
+
+// 'traceSay' messages are written to DEBUG_CHANNEL to indicate progress or info,
+// rather than bugs or problems, and are turned off during normal use.
+// 'debugSay' is for messages that should always appear.
+
+integer TRACE = FALSE; // TRUE;
+
+traceSay(string message) {
+    if (TRACE) llSay(DEBUG_CHANNEL, message);
+}
+
+debugSay(string message) {
+    llSay(DEBUG_CHANNEL, message);
+}
+
+key request(string body) {
+    while(1) {
+        traceSay("Get-next request: " + body);
+        key id = llHTTPRequest(http_request_url, [HTTP_METHOD, "POST"], body);
+        if (id != NULL_KEY) {
+            return id;
+        }
+        debugSay("get-next throttled");
+        llSleep(5.0);
+    }
+    return NULL_KEY; // Never gets here.
+}
+
+list breakup(string message) {
+    return llParseStringKeepNulls(message, ["^"], []);
+}
+
+string reform(list broken_message) {
+    return llDumpList2String(broken_message, "^");
+}
+
+// If the separator does not appear in the source string, then this version
+// of 'left' returns "" and this 'right' returns the whole strong.
+
+string left(string source, string separator) {
+    integer i = llSubStringIndex(source, separator);
+    if (~i)
+        return llDeleteSubString(source, i, -1);
+    else
+        return "";
+}
+
+string right(string source, string separator) {
+    integer i = llSubStringIndex(source, separator);
+    if (~i)
+        return llDeleteSubString(source, 0, i + llStringLength(separator) - 1);
+    else
+        return source;
+}
+
+// In the default state, we get the URL for talking directly with the server
+// and then go to the get_next state.
+default
+{
+    state_entry()
+    {
+        debugSay("Receive script waiting to be started.");
+    }
+    
+    link_message(integer sender_num, integer num, string message, key id)
+    {
+        if (num == -THIS_SCRIPT)
+        {
+            if (message == SERVER) {
+                string server_url = (string)id;
+                http_request_url = server_url + "/ipc/sl/get-next";
+                debugSay("Receive script request url = " + http_request_url);
+            }
+            else if (message == START) {
+                debugSay("Receive script's started working.");
+                state get_next;
+            }
+        }
+    }
+    
+    on_rez(integer start_param) {
+        // Every time we're rezzed, reset the script.
+        // This ensures that all local variables are set afresh.
+        // We have to do this in every state.
+        llResetScript();
+    }
+    
+}
+
+// This is the normal working state.  It repeatedly asks the comm server for
+// the next message that was send to us and, when a new message is received,
+// passes it on the the exec script.
+state get_next {
+    
+    state_entry()
+    {
+        fail_count = 0;
+        http_request_id = request(ack);
+    }
+    
+    on_rez(integer start_param) {
+        llResetScript();
+    }
+
+    http_response(key request_id, integer status, list metadata, string body)
+    {
+        if (request_id == http_request_id)
+        {
+            if (status == 200) {
+                // We've received something.
+                fail_count = 0;
+                // See if it's something new.
+                traceSay("get-next received: " + body);
+                string sequence_id = left(body, "^");
+                if (sequence_id) {
+                    if (sequence_id != last_id_received) {
+                        // It is new, so pass it on.
+                        body = right(body, "^");
+                        last_id_received = sequence_id;
+                        llMessageLinked(LINK_THIS, EXEC_SCRIPT, body, "");
+                    }
+                    else {
+                        traceSay("Received " + sequence_id + " again");
+                    }
+                    ack = "Received " + sequence_id;
+                }
+                else {
+                    //\/: No sequence_id, so we assume for now that the message is new.
+                    traceSay("Assuming received message is new.");
+                    llMessageLinked(LINK_THIS, EXEC_SCRIPT, body, "");
+                    ack = "Thank you for: " + body;
+                }
+            }
+            else if (status == 499) {
+                // Usually this is a timeout.
+                traceSay("Get-next status " + (string)status + "; Received: " + body);
+                fail_count += 1;
+                traceSay((string)fail_count + " failures in a row.");
+                if (fail_count >= MAX_FAILS) {
+                    state asleep;
+                }
+            }
+            else if (status == 503) {
+                 // 503 = service unavailable.  This is what SL normally gives
+                 // us when the server isn't running.
+                 debugSay("Get-next got service unavailable");
+                 state no_server;
+            }
+            else if (status == 502) {
+                // 502 = bad gateway, meaning the SL server gat an invalid rsponse from
+                // our server.  We get this if there's a zero-length response, which
+                // happens if the server goes down while we have a request outstanding.
+                debugSay("Get-next: invalid upstream response");
+                state no_server;
+            }
+            else {
+                debugSay("Get-next status " + (string)status + "; Received: " + body);
+                state no_server;
+            }
+            http_request_id = request(ack);
+        } 
+    }
+    
+    // We don't want to fall asleep if there's something that would wake us up.
+    link_message(integer sender_num, integer num, string message, key id)
+    {
+        if (fail_count > 0) {
+            traceSay("Link message, get-next resetting fail count to 0 from " + (string)fail_count);
+            fail_count = 0;
+        }
+    }
+    
+}
+
+// The script goes to sleep if asking for the next message fails MAX_FAILS
+// times in a row.  Any link message will wake us.
+state asleep
+{
+    state_entry()
+    {
+        traceSay("Receive script sleeping after " + (string)fail_count + " failures.");
+        // llListen(0, "", NULL_KEY, "" ); // -- disable unless needed
+    }
+
+    on_rez(integer start_param) {
+        llResetScript();
+    }
+    
+    link_message(integer sender_num, integer num, string message, key id)
+    {
+        // We could check for WAKEUP_CHAT here, but we want to wake up for any link message.
+        traceSay("Receive script waking up because there was a link message, " + message);
+        state get_next;
+    }
+    
+}
+
+// An HTTP response that the script does not expect brings it here.
+// To get the script working again, it must be reset or explicitly told to wake up.
+state no_server
+{
+    state_entry()
+    {
+        debugSay("The get-next script is assuming it cannot reach the server.");
+        // Don't let things happen too quickly if there's something that
+        // would keep waking us up.  /\/ do we need this?
+        llSleep(2.0);
+    }
+
+    on_rez(integer start_param) {
+        llResetScript();
+    }
+    
+    link_message(integer sender_num, integer num, string message, key id)
+    {
+        if (num == -THIS_SCRIPT) {
+            if (message == START || message == WAKEUP) {
+                debugSay(message + ": Receive script's working again.");
+                state get_next;
+            }
+            else if (message == WAKEUP_CHAT) {
+                debugSay("Receive script stopped: trouble reaching server");
+            }
+            else {
+                debugSay("Unexpected control message to receive script: " + message);
+            }
+        }
+    }
+
+}

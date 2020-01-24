@@ -1,0 +1,43 @@
+                       AutoCAD Demonstration Files
+                       ---------------------------
+
+This directory contains the Demonstration AutoCAD files for use with
+O-Plan.  The files are as follows:
+
+1. acad-plan.config
+                a file used with xrdb to set up suitable windows sizes
+                for AutoCAD - suitable for the Plan Viewer.
+
+2. acad-world.config
+                a file used with xrdb to set up suitable windows sizes
+                for AutoCAD - suitable for the World Viewer.
+
+3. startup.lsp  file copied to acad.lsp in current directory by startup
+                scripts oplan-acad-plan-view and oplan-acad-world-view
+                This causes a <name>.lsp file to be loaded based on the
+                drawing name used.
+
+4. plan.*       files needed for the Default Plan Viewer (.dwg  .lsp  .mnu)
+
+5. plan-parts.dwg
+                used to build the root drawing for plan.dwg (visible
+                components used to make drawing blocks in AutoCAD).
+
+6. world.*      files needed for the Default World Viewer (.dwg  .lsp  .mnu)
+
+7. space-platform.*
+                files needed for a World Viewer (.dwg  .lsp  .mnu  .scr  .sld)
+
+8. map-view.*
+                files needed for a World Viewer (.dwg  .lsp  .mnu  .scr  .sld)
+
+9. map-view-parts.dwg
+                used to build the root drawing for map-view.dwg (visible
+                components used to make drawing blocks in AutoCAD).
+
+
+For each drawing name files with other suffixes may be created in this
+directory when AutoCAD runs (.mnx  and temporarily  .dwk   .mnk).
+
+The demonstrations, files, etc are further defined in AIAI-TR-76
+"Interfacing a CAD System to an AI Planner", A.Tate, January 1990.

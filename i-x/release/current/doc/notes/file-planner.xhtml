@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>File-to-file I-Plan</title>
+  <link rel="stylesheet" href="note-style.css" />
+</head>
+
+<!-- Updated: Mon Sep 17 02:08:54 2007 by Jeff Dalton
+-->
+
+<body bgcolor="#ffffff">
+
+<h1>File-to-file I-Plan</h1>
+
+Author: Jeff Dalton
+<br />
+
+<p><b>Main-program class:</b> <tt>ix.test.FilePlanner</tt></p>
+
+<p><b>Command-line arguments:</b></p>
+
+<dl>
+<dt><tt>-domain=</tt><i>filename</i></dt>
+<dd>
+  The domain to use when planning.  This must be given.
+</dd>
+ 
+<dt><tt>-plan=</tt><i>filename</i></dt>
+<dd>
+  A initial plan that sets up the planning problem.  This is optional,
+  but if it is not given, a task must be.
+</dd>
+
+<dt><tt>-task=</tt><i>activity-pattern</i></dt>
+<dd>
+  This is an alternative to specifying a <tt>plan</tt>, although
+  both can be given.  The pattern is turned into an activity
+  which is then added to the initial plan that's given to the
+  planner.  The pattern is typically a sequence of words, numbers,
+  etc separated by spaces, that is meaningful in the domain.
+  For example, "<tt>test1</tt>", "<tt>drive-to Glasgow</tt>".
+</dd>
+</dl>
+A domain and either a plan or a task must be speficied; the
+remaining arguments are all optional:
+<dl>
+<dt><tt>-number-of-plans=</tt><i>integer</i></dt>
+<dd>
+  The number of plans to generate (defaults to 1).
+</dd>
+
+<dt><tt>-output-directory=</tt><i>filename</i></dt>
+<dd>
+  The directory where output plans should be put.  If no directory
+  is specified, the directory containing the initial plan is used,
+  if an initial plan was given, or else the directory containing
+  the domain.
+</dd>
+
+<dt><tt>output-file-type=</tt><i>string</i></dt>
+<dd>
+  The <a href="file-syntaxes.html">file type</a> to use for output plans.
+  If this is not specified, the type of the initial plan's file is used,
+  if an initial plan was given; otherwise, the type defaults to "xml".
+</dd>
+
+<dt><tt>-test=</tt><i>true or false</i></dt>
+<dd>
+  If true, plans are generated as usual, but no files are created.
+  If this parameter is not specified, it is assumed to be false.
+</dd>
+
+<dt><tt>-debug=</tt><i>true or false</i></dt>
+<dd>
+  If true, turns on debugging output.  Defaults to false.
+</dd>
+
+<dt><tt>-step-limit=</tt><i>int</i></dt>
+<dd>
+  Sets a limit on how much effort the planner should expend on
+  trying to find a plan.  The default value is 100.
+</dd>
+
+</dl>
+
+
+<p><b>Description:</b></p>
+
+<p>Runs I-Plan non-interactively and without a GUI on a planning problem
+specified by an initial plan and a domain, producing one of more
+alternative plans as output.</p>
+
+<p>File names for the output plans look like this
+<pre>
+   <i>domain</i><b>-</b><i>task</i><b>-plan-</b><i>number</i><b>.</b><i>type</i>
+</pre>
+where <i>domain</i> is the domain file-name (minus any directory and
+file type); <i>task</i> is the task, if one was specified, with any spaces
+replaced by "-"s, or else the initial plan file-name (again minus any
+directory and file type); <i>number</i> is 1 for the first output
+plan, 2 for the second, and so on; and <i>type</i> is the file type
+given by the "output-file-type", if one was specfied, else the
+type from the initial plan file, if that was specfied, else "xml".
+In addition, if the initial plan file-name was used for the <i>task</i>,
+and it begins with the domain name, followed by a dash, that part
+is removed, so that it doesn't appear twice, and is replaced by
+"starting-from-".</p>
+
+Some examples:
+<table border="1" cellspacing="0" cellpadding="7">
+  <tr><th>Arguments</th><th>Constructed names</th></tr>
+  <tr>
+    <td><tt>
+      -domain=example.lsp<br />
+      -task="drive-to Glasgow"</tt>
+    </td>
+    <td>
+      <tt>example-drive-to-Glasgow-plan-<i>n</i>.xml</tt>
+    </td>
+  </tr>
+  <tr>
+    <td><tt>
+      -domain=example.lsp<br />
+      -plan=inital-state.init<br />
+      -outout-file-type=lpad</tt>
+    </td>
+    <td>
+      <tt>example-initial-state-plan-<i>n</i>.lpad</tt>
+    </td>
+  </tr>
+  <tr>
+    <td><tt>
+      -domain=example.lsp<br />
+      -plan=example-test.lpad</tt>
+    </td>
+    <td>
+      <tt>example-starting-from-test-plan-<i>n</i>.lpad</tt>
+    </td>
+  </tr>
+</table>
+
+<hr/>
+<small><address>Jeff Dalton &lt;J.Dalton@ed.ac.uk&gt;</address></small>
+</body>
+</html>

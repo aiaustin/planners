@@ -1,0 +1,93 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+  <title>I-Script interpretor (Lisp syntax)</title>
+  <link rel="stylesheet" href="note-style.css">
+</head>
+
+<!-- Updated: Sat Nov  3 22:37:58 2007 by Jeff Dalton
+-->
+
+<body bgcolor="#ffffff">
+
+<h1>I-Script interpretor (Lisp syntax)</h1>
+
+Author: Jeff Dalton
+<br>
+
+<p><b>Main-program class:</b> <tt>ix.util.lisp.LispInterpreter</tt></p>
+
+<p><b>Command-line arguments:</b></p>
+
+<dl>
+<dt><tt>-load-lisp=<i>resource</i>,<i>resource</i>,<i>...</i></tt></dt>
+<dd>
+  <p>Specifies resources (file names and URLs) that contain
+  <a href="iscript.html#lisp-syntax">Lisp-syntax</a>
+  <a href="iscript.html">I-Script code</a>.   The resources are
+  processed by evaluating the expressions in them (in order) when
+  the interpreter starts running.</p>
+</dd>
+</dl>
+
+<p><b>Main-program class:</b> <tt>ix.ip2.LispComputeInterpreter</tt></p>
+
+<p><b>Additional command-line arguments:</b></p>
+
+<dl>
+<dt><tt>-domain=<i>resource</i>,<i>resource</i>,<i>...</i></tt></dt>
+<dd>
+  <p>Specifies resources (file names and URLs) that define I-X domains.
+  Any I-Script code attached the domains by <tt>compute-support-code</tt>
+  annotations is evaluated.  For the details of how that's done, see
+  <a href="compute-conditions.html">compute conditions</a>.</p>
+</dd>
+
+<dt><tt>-extension-classes=<i>classname</i>,<i>classname</i>,<i>...</i></tt></dt>
+<dd>
+    <p>Here a class name must be a full Java class name, including
+    the package.  Each named class must implement the IXAgentExtension
+    interface. For more, including how to use this mechanism to define
+    new functions that can be used in "compute" conditions, see
+    <a href="agent-extensions.html">Agent Extensions</a>.</p>
+    
+</dd>
+
+</dl>
+
+<p><b>Description:</b></p>
+
+<p>The interpreter loads any code specified by "load-lisp" plus,
+if applicable, any domains and extension classes, then enters a
+"read-eval-print loop" that repeatedly asks the user to
+type an expression (with "<tt>Lisp: </tt>" as the prompt),
+evaluates the expression, then prints the resulting value.</p>
+
+<p>Type "<tt>bye</tt>" to exit.</p>
+
+<p>An example, with the parts typed by the user underlined:
+<pre>
+Lisp: <u>(* 1 2 3 4 5 6 7)</u>
+5040
+Lisp: <u>(defun factorial (x)
+        (if (= x 0)
+            1
+          (* x (factorial (- x 1)))))</u>
+factorial
+Lisp: <u>(factorial 7)</u>
+5040
+Lisp: <u>bye</u>
+</pre></p>
+
+<p>The difference between the two main-program classes,
+<tt>LispInterpreter</tt> and <tt>LispComputeInterpreter</tt>, is that
+the compute-interpreter knows about domains and extension classes and
+so can more easily be used to test functions that are meant to be
+called in "compute" conditions.  It may also contain some <a href="compute-conditions.html#iscript-extras">additional built-in
+functions or other features</a>.</p>
+
+<hr>
+<small><address>Jeff Dalton &lt;J.Dalton@ed.ac.uk&gt;</address></small>
+</body>
+</html>

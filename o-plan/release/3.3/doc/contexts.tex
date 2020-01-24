@@ -1,0 +1,309 @@
+\documentstyle [a4]{article}
+
+% This is a draft of a section of the O-Plan Implementation Guide
+
+\raggedbottom
+
+\input{doc-commands}
+
+\begin{document}
+
+\section{Context-layering}
+
+\subsection{Introduction}
+
+An access function, or {\em accessor}, is a function that can be
+applied to an object to obtain a value (another object), typically a
+value stored in a field or {\em slot}.  For instance, {\tt defstruct}
+defines an accessor for each slot in a structure.
+
+In O-Plan, a {\em context\/} is an object that is used as an
+additional, implicit parameter to an accessor.  An ordinary accessor is
+a mapping from objects to values; a context-layered or context-relative
+accessor is a mapping from objects {\em and the current context\/} to
+values.  To make the presentation simpler, we will sometimes talk as if
+context-relative values were always stored in slots.  However, layered
+accessors do not have to be based on slot accessors; they can be based
+on any mapping from objects to values.
+
+A context has few properties of its own.  It is simply an object with
+which the values considered by context-relative accessors can be
+associated.  Contexts are arranged in a tree: each context has a
+single predecessor (parent) and a list of successors (children).  
+When there is no value directly associated with a context, a value is
+inherited from the nearest ancestor context that does have a value
+associated with it.  However, when a value is assigned in a context,
+it is always associated directly with that context; the associations
+between values and ancestor contexts are not changed.  This makes it
+possible to protect the values associated with a context, while
+still being able to access them, by moving to a child context.
+
+One context is always designated as the current context, and only
+values associated with that context or its ancestors are normally
+seen.
+
+The O-Plan context-layering mechanism provides a way to define
+context-relative accessors based on ordinary access functions.
+If $\cal{F}$ is the name of an accessor such that 
+\begin{itemize}
+\item {\tt ($\cal{F}$ \var{x})} accesses a slot of (or location in)
+      objects \var{x} of a certain type, and
+\item {\tt (setf ($\cal{F}$ \var{x}) \var{value})} sets the same slot,
+\end{itemize}
+then a context-relative version of $\cal{F}$ named $\cal{C}$ can be
+defined by
+
+\begin{tabbing}
+{\tt (define-context-accessor $\cal{C}$ $\cal{F}$)}
+\end{tabbing}
+
+\noindent
+{\tt ($\cal{C}$ \var{x})} will then return the slot value associated
+with the current context, directly or by inheritance, and {\tt setf}
+can be used with $\cal{C}$ to directly associate a value with the
+current context.
+
+Note that the slots of an object are normally context-layered
+independently.  This is an advantage when only a few slots are layered
+or when the pattern of associations between slot values and contexts
+is not uniform.  However, there are circumstances in which it would be
+better to layer entire objects instead.  One way to handle this in
+O-Plan be to define a context-layered mapping from object ids (names)
+to objects and make a copy of an object (for the current context)
+when the first slot update is done.  
+
+
+\subsection{Internals}
+
+Context-layered accessors are perfectly happy with ordinary slot
+values such as might be installed when an object is first created.
+However, when a context-relative value is first assigned (by using
+{\tt setf} with a context-layered accessor), the ordinary value
+is replaced by a {\tt cval} structure that contains a mapping from
+contexts to (ordinary) values.
+
+Consequently, a layered accessor normally works by:
+\begin{enumerate}
+\item calling an ordinary accessor to obtain a {\tt cval} structure,
+      and
+\item looking in the {\tt cval} structure for the value associated
+      with the current context or with the nearest ancestor that has a
+      value.
+\end{enumerate}
+Both steps can be performed by calling the function {\tt access-in-context}.
+The second step, dereferencing a {\tt cval}, can be performed by
+calling {\tt deref-in-context}.
+
+The {\tt cval} structure's mapping from contexts to values is an
+a-list.  However, we don't want to search the complete a-list for the
+current context, and then search it again for each ancestor of the
+current context, until we finally find an entry that matches.  Nor do
+we want to go through the a-list entries once, repeating a search
+along parent links from the current context each time (even if we
+could still make inheritance work correctly that way).  Consequently,
+we combine the traversal of the a-list with that of the parent links
+in such a way that there's no repeated work.
+
+An efficient search for the value associated with a context, or
+inherited from an ancestor, is accomplished by exploiting context
+numbers.  Every context has a number which is assigned when it is
+created, and newer contexts have higher numbers than older ones.  In
+particular, a context has a higher number than any of its ancestors.
+The a-list entries in {\tt cval} structures are ordered by context
+number, with higher-numbered (newer) contexts first.  The algorithm
+for finding the right value in a {\tt cval} structure is therefore as 
+follows:
+
+\begin{enumerate}
+
+\item Initialize \var{target} to the current context and \var{a-list}
+      to the a-list in the {\tt cval} structure.
+
+\item Discard entries for contexts newer than \var{target} from the
+      front of \var{a-list}.  If \var{a-list} becomes null, return
+      {\tt :undef}.
+
+\item At this point, the first of the remaining entries in \var{a-list}
+      should be for \var{target} or for a context older than \var{target}.
+      If it's for \var{target}, then we're done: return the associated
+      value.  Otherwise, set \var{target} to the parent of \var{target}
+      and return to step 2.
+
+\end{enumerate}
+
+In addition, a {\tt cval} contains a one-context cache.  If the
+current context is the same as the cached context, then the cached
+value is returned.  Otherwise, the algorithm above is used to find a
+value, and that value and the current context are cached.
+
+
+\subsection{Externals}
+
+
+\subsubsection{Defining forms}
+
+\begin{tabbing}
+{\tt (define-context-accessor \var{name} \var{accessor-name})}
+\end{tabbing}
+
+Defines \var{name} as a context-relative accessor based on 
+\var{accessor-name}.
+
+
+\subsubsection{Variables}
+
+\begin{tabbing}
+{\tt *context*}
+\end{tabbing}
+
+A variable whose value is the currently active context.  It's
+possible to make arbitrary moves in the context tree by assigning
+to or binding {\tt *context*}.
+
+\begin{tabbing}
+{\tt *global-context*}
+\end{tabbing}
+
+A variable whose value is a root context supplied by the system.  
+When a location is first assigned a context-relative value by using
+{\tt setf} with a context-relative accessor, any existing value is
+made the value in {\tt *global-context*}.
+
+
+\subsubsection{Basic context operations}
+
+\begin{tabbing}
+{\tt (new-context \var{parent})} \MapsTo \var{new child context}
+\end{tabbing}
+
+Creates a new context with parent \var{parent}.  \var{Parent} can be
+{\tt nil} to create a new root context.
+
+\begin{tabbing}
+{\tt (context-parent \var{context})} \MapsTo \var{parent context or {\tt nil}}
+\end{tabbing}
+
+Returns the predecessor (parent) of a context.
+
+\begin{tabbing}
+{\tt (contexts-children \var{context})} \MapsTo \var{list of child contexts}
+\end{tabbing}
+
+Returns a list of the successors (children) of a context.
+
+\begin{tabbing}
+{\tt (context-number \var{context})} \MapsTo \var{context-number}
+\end{tabbing}
+
+Returns the number of a context.
+
+If {\tt (context-number \var{c})} returns \var{i}, 
+then {\tt (find-context \var{i})} returns \var{c}.
+
+\begin{tabbing}
+{\tt (find-context \var{context-number})} \MapsTo \var{context}
+\end{tabbing}
+
+Returns the context that has the given number.
+
+If {\tt (find-context \var{i})} returns \var{c},
+then {\tt (context-number \var{c})} returns \var{i}.
+
+\begin{tabbing}
+{\tt (push-context)} \MapsTo \var{new child context}
+\end{tabbing}
+
+Creates a new child of {\tt *context*} and then sets {\tt *context*}
+to be that child.
+
+\begin{tabbing}
+{\tt (pop-context)} \MapsTo \var{parent context or {\tt nil}}
+\end{tabbing}
+
+If {\tt *context*} is not a root context (i.e., if it has a non-null
+parent), {\tt popcontext} sets {\tt *context*} to the parent of
+{\tt *context*}.  Otherwise, {\tt pop-context} simply returns {\tt nil}
+without changing the value of {\tt *context*}.
+
+\begin{tabbing}
+{\tt (in-context \var{context} \var{function} \&rest \var{arguments})}
+     \MapsTo \var{value}
+\end{tabbing}
+
+Applies \var{function} to \var{arguments} with {\tt *context*}
+temporarily bound to \var{context}.
+
+
+\subsubsection{Value lookup and assignment}
+
+\begin{tabbing}
+{\tt (access-in-context \var{accessor} \var{object})} \MapsTo \var{value}
+\end{tabbing}
+
+Applies \var{accessor} to \var{object} to obtain either an ordinary
+value or a {\tt cval} structure.  An ordinary value is simply
+returned.  A {\tt cval} structure is searched to find the value
+associated with {\tt *context*} or the nearest ancestor of
+{\tt *context*}.  If such a value is found, it is returned;
+otherwise, {\tt :undef} is returned.
+
+\begin{tabbing}
+{\tt (update-in-context \var{updater} \var{accessor} \var{object} 
+                        \var{new-value})}
+     \MapsTo \var{new-value}
+\end{tabbing}
+
+Establishes \var{new-value} as the value for {\tt *context*}
+so that {\tt (access-in-context \var{accessor} \var{object})} will
+find \var{new-value} as the value for {\tt *context*} directly
+rather than by inheritance from an ancestor of {\tt *context*}. 
+The values associated with such ancestors are not changed.
+
+\var{Accessor} is applied to \var{object} to obtain either an ordinary
+value or a {\tt cval} structure.  An ordinary value is replaced by a
+{\tt cval} structure in which the ordinary value is associated with
+{\tt *global-context*}.  Otherwise, the existing {\tt cval} structure is
+modified.
+
+\var{Updater} should set the same field that \var{accessor} accesses
+so that after {\tt (funcall \var{updater} \var{object} \var{v})},
+{\tt (funcall \var{accessor} \var{object})} will return \var{v}.
+
+\begin{tabbing}
+{\tt (deref-in-context \var{object})} \MapsTo \var{value}
+\end{tabbing}
+
+If \var{object} is not a {\tt cval} structure, then {\tt deref-in-context}
+returns \var{object}; otherwise, it finds a value for the current context
+in the same manner as {\tt access-in-context}.
+
+\begin{tabbing}
+{\tt (ctxt-symbol-value \var{symbol})} \MapsTo \var{value}
+\end{tabbing}
+
+A context-layered version of {\tt symbol-value} defined by:
+
+\begin{verbatim}
+(define-context-accessor ctxt-symbol-value symbol-value)
+\end{verbatim}
+
+\begin{tabbing}
+{\tt (ctxt-gethash \var{key} \var{hash-table})}
+   \MapsTo \var{value}, \bool \\
+{\tt (ctxt-puthash \var{key} \var{hash-table} \var{value})}
+   \MapsTo \var{value}
+\end{tabbing}
+
+A context-layered version of {\tt gethash} and an associated update
+function.  {\tt ctxt-gethash} can also be used with {\tt setf}.
+
+\subsubsection{Utilities}
+
+\begin{tabbing}
+{\tt (print-context-tree)}
+\end{tabbing}
+
+Prints the context numbers of all contexts with children listed
+below their parent and indented further to the right.
+
+\end{document}

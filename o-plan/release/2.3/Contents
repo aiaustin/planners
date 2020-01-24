@@ -1,0 +1,85 @@
+Contents of the directory for the ARPA/Rome Lab. Planning Initiative
+         Common Prototyping Environment O-Plan Technology Package
+         ARPI FTP Server ai.rl.af.mil (128.132.33.139) Planning Group
+         Directory /planning/tech-systems/oplan
+----------------------------------------------------------------------
+
+Updated: Fri Jul  7 10:57:50 1995
+
+O-Plan is a prototype system to support the description of planning
+domains, tasks and plans to carry out those tasks.  It has a sample
+user interface and includes a simple execution system.
+
+O-Plan documents in this directory are in UNIX compressed file (.Z)
+PostScript format.  After using uncompress on files with .Z suffixes, you
+should be able to print these to a PostScript printer.
+
+Some users with Apple printers have reported problems with loss of the
+edges of the text.  If this occurs, it is wise to reset the printer
+before trying to re-print again. Some of the documents contain large
+bit map images which can take some time to print -- please be patient.
+If printing problem persists please advise the O-Plan team (email:
+oplan@ed.ac.uk).
+
+------------------------
+README                   Contact information for the O-Plan Team.
+Contents                 This file.
+Guidebook                Guide to the O-Plan directory and its use.
+Version                  Version and Date information for O-Plan.
+------------------------
+
+The full O-Plan distribution is available for use within the ARPI
+for those with appropriate authority.
+
+When unpacking the tar image, permissions on files should be preserved.
+This can be done by including the "p" flag in the tar command.
+
+As well as using the Installation Manual, look at the RELEASE-NOTES and
+source/INSTALL files within the release for useful information about the
+release and its installation.
+
+oplan-<version>.tar.Z
+------------------------
+
+oplan-status.ps.Z       A description of the status of the current release.
+                         This file is NOT part of the release itself, so it
+                         should be obtained to explain any variances from
+                         specification or known bugs in the current release.
+
+Other documents described below are available in Latex source format in the
+documentation directories of the release image itself, but it may be
+convenient to obtain PostScript copies directly from this server.
+
+------------------------
+
+The installation guide in particular should be read before trying to make use
+of the O-Plan tar image.
+
+installation-guide.ps.Z  Installation Guide (~14 pages)
+------------------------
+
+The following document gives a short description of the O-Plan system.
+
+handout.ps.Z             Short overview of O-Plan (5 pages)
+------------------------
+
+The following two documents provide a detailed description of the
+O-Plan system and are suitable introductions for those interested in
+the system and what it offers, but who are not necessarily interested
+in the code itself.
+
+architecture-guide.ps.Z  Architecture Guide for O-Plan (~62 pages)
+tf-manual.ps.Z           Task Formalism Manual for O-Plan (~72 pages)
+------------------------
+
+The following three documents are necessary for those intending to use the
+system itself.  These are part of the release image, but can usefully be
+obtained from this FTP server and printed prior to trying to make use of the
+distributed O-Plan release image.
+
+introduction.ps.Z        Introduction to the O-Plan materials (~7 pages)
+user-guide.ps.Z          User Guide (~35 pages)
+demonstration-guide.ps.Z Demonstration Guide (~25 pages)
+
+
+

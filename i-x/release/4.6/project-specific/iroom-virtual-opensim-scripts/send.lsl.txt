@@ -1,0 +1,216 @@
+// Message-sending utility for use with an 'iserve' communication strategy.
+// Author: Jeff Dalton
+// Last modified 13 May 09 by JD
+// 4-Aug-2011 to convert to OpenSim by AT
+// Copyright (C) 2009-11, AIAI, The University of Edinburgh
+
+// Script ids for use as link message destinations.
+integer SEND_SCRIPT = 1;
+integer RECEIVE_SCRIPT = 2;
+integer EXEC_SCRIPT = 3;
+integer WAKEUP_SCRIPT = 4;
+
+integer THIS_SCRIPT = 1; // SEND_SCRIPT;
+
+// Config parameters we receive
+string SERVER = "server";
+string SEND_SERVLET = "send-servlet";
+
+// Control messages we receive
+string START = "start";
+string WAKEUP = "wakeup";
+
+// Id for the outstanding request, else NULL_KEY.
+// Only one request is ever active at a time.
+key http_request_id = NULL_KEY;
+
+// The servlet that should handle messages we send
+string send_servlet = "send-to";
+
+// Base URL direct to our comm server
+string comm_server_url = "";
+
+// URL for our requests directly to the comm server.
+// This is made form the comm_server_url, the send_servlet, and other things.
+string http_request_url = "";
+
+// Mesages waiting to be sent
+list waiting = [];
+
+// 'traceSay' messages are written to DEBUG_CHANNEL to indicate progress or info,
+// rather than bugs or problems, and are turned off during normal use.
+// 'debugSay' is for messages that should always appear.
+
+integer TRACE = FALSE; // TRUE;
+
+traceSay(string message) {
+    if (TRACE) llSay(DEBUG_CHANNEL, message);
+}
+
+debugSay(string message) {
+    llSay(DEBUG_CHANNEL, message);
+}
+
+sendIfNextMessage() {
+    // Complain if we're trying to send before we've finished with the
+    // previous request.
+    if (http_request_id != NULL_KEY) {
+        debugSay("Nested send attempts");
+    }
+    // If there's another message in the queue, try to send it.
+    // In SL just used waiting.  cannot convert list to bool so use waiting != []
+    else if (waiting != [] ) {
+        http_request_id = sendNextMessage();
+    }
+}
+
+key sendNextMessage() {
+    // Sends the first message in 'waiting'.
+    key id = NULL_KEY;
+    while (id == NULL_KEY) {
+        integer len = (waiting != []);
+        if (len > 1) {
+            traceSay((string)len + " waiting");
+        }
+        string body = llList2String(waiting, 0);
+        traceSay("Sending: " + body);
+        id = llHTTPRequest(http_request_url, [HTTP_METHOD, "POST"], body);
+        if (id == NULL_KEY) {
+            debugSay("Send throttled");
+            llSleep(5.0);
+        }
+    }
+    return id;
+}
+
+removeSentMessage() {
+    // Deletes the first message 'waiting'.
+    waiting = llDeleteSubList(waiting, 0, 0);
+}
+
+// In the default state, we get the URL for talking directly with the server
+// and then go to the working state.
+default
+{
+    state_entry()
+    {
+        debugSay("Send script waiting to be started.");
+    }
+    
+    link_message(integer sender_num, integer num, string message, key id)
+    {
+        if (num == -THIS_SCRIPT)
+        {
+            if (message == SEND_SERVLET) {
+                send_servlet = (string)id;
+            }
+            else if (message == SERVER) {
+                comm_server_url = (string)id;
+            }
+            else if (message == START) {
+                http_request_url = comm_server_url + "/ipc/sl/" + send_servlet;
+                debugSay("Send script request url = " + http_request_url);
+                state working;
+            }
+        }
+    }
+    
+    on_rez(integer start_param) {
+        // Every time we're rezzed, reset the script.
+        // This ensures that all local variables are set afresh.
+        // (We have to do this in every state.)
+        llResetScript();
+    }
+    
+}
+
+state working
+{
+    state_entry()
+    {
+        // Start sending if there's anything to send.
+        debugSay("Send script's started working");
+        sendIfNextMessage();
+    }
+    
+    on_rez(integer start_param) {
+        llResetScript();
+    }
+
+    link_message(integer sender_num, integer num, string message, key id)
+    {
+        if (num == SEND_SCRIPT) {
+            // We've been given a message to send.
+            traceSay("New message to send: " + message);
+            // Put it in the queue.
+            waiting += message;
+            // If we're not waiting for a response to an earlier send,
+            // we can try to send it now.
+            if (http_request_id == NULL_KEY) {
+                http_request_id = sendNextMessage();
+            }
+            else {
+                traceSay("Can't send yet because there's an active request");
+                integer len = (waiting != []);
+                traceSay((string)len + " waiting");
+            }
+        }
+        else if (num == -SEND_SCRIPT) {
+            // Control message
+            if (message == START || message == WAKEUP) {
+                debugSay(message + ": Send script's working.");
+                if (http_request_id == NULL_KEY) {
+                    sendIfNextMessage();
+                }
+            }
+            else {
+                debugSay("Invalid control message to send script: " + message);
+            }
+        }
+    }
+    
+    // Note that if we do a styate change, all pending events are deleted,
+    // including queued link_messages, so we try to stay in this state even
+    // when things go wrong, hoping that they will soon be fixed.
+    
+    http_response(key request_id, integer status, list metadata, string body)
+    {
+        if (request_id == http_request_id)
+        {
+            http_request_id = NULL_KEY; // we're through with that id
+            if (status == 200) {
+                // We've successfully sent a message.
+                if (body != "OK")
+                    debugSay("Response to send = " + body);
+                // Remove the sent message from the queue.
+                removeSentMessage();
+                // If there's another message in the queue, try to send it.
+                sendIfNextMessage();
+            }
+            else if (status == 400) {
+                // 400 = bad request.  We get this if there's a syntax error
+                // in what we sent, including in the contents.
+                debugSay("Send received 400: " + body);
+                // Remove the message.  (We assume sending it again won't work.)
+                removeSentMessage();
+                // If there's another message in the queue, try to send it.
+                sendIfNextMessage();
+            }
+            // In the remaining error cases, we won't keep the sending cycle going
+            // just because we still have messages waiting to be sent.   So we'll
+            // wait for something new to send or a START or WAKEUP control message.
+            else if (status == 503) {
+                 // 503 = service unavailable.  This is what SL normally gives
+                 // us when the server isn't running.
+                 debugSay("Send script got service unavailable");
+                 // state no_server;
+            }
+            else {
+                debugSay("Send req status " + (string)status + 
+                         "; Received: " + body);
+                // state no_server;
+            }
+        }
+    }
+    
+}

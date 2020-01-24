@@ -1,0 +1,533 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>LTF for Domains</title>
+  <link rel="stylesheet" href="note-style.css" />
+</head>
+
+<!-- Updated: Tue Jul 22 00:14:44 2008 by Jeff Dalton
+-->
+
+<body bgcolor="#ffffff">
+
+<h1>LTF for Domains</h1>
+
+Author: Jeff Dalton
+
+<h2>Introduction</h2>
+
+<p>LTF is a language that can be used to define domains that can be used
+with <a href="iplan.html">I-Plan</a>, the I-X planner.   "LTF" is just
+a convenient name for the language.  It stands for "List TF", where
+"TF" is Task Formalism, the name of the language that was used to
+define domains for I-Plan's predecessor,
+<a href="http://www.aiai.ed.ac.uk/oplan/">O-Plan</a>.
+The "List" part is because it has a Lisp-like syntax.</p>
+
+<p>The <a href="file-syntaxes.html">file syntax</a>
+for LTF domains uses the (equivalent) file-types "ltf"
+and "lsp".</p>
+
+<p>LTF can also be used to represent plans as domains.  That's discussed
+<a href="ltf-for-plans.html">separately</a>.</p>
+
+<p>This document is primarily about the syntax, and it
+does not go into detail about all elements of the language.
+Instead, the information is given in other documents that
+use LTF for examples:
+<ul>
+
+  <li><a href="iplan.html">I-Plan</a> explains
+  <ul>
+    <li>annotations on domains and refinements that affect planing,</li>
+    <li>advice constraints,</li>
+    <li>time (duration) constraints, and</li>
+    <li>resource constraints.</li>
+  </ul>
+  </li>
+
+  <li><a href="compute-conditions.html">Compute conditions</a>
+    explains "compute" conditions (constraints that are evaluated by
+    calling functions and so can be used to perform calculations,
+    manipulate data structures, etc.)
+  </li>
+
+  <li><a href="object-classes.html">Object classes</a>
+    describes how object classes and properties are represented
+    in domain definitions.
+  </li>
+
+</ul></p>
+
+<p>We'll start with a "quick reference" for the syntax of the whole
+langauge (which can be skimmed on first reading), then go into some
+things further, with examples.</p>
+
+
+<h2><a name="quick-syntax">Syntax: Quick Reference</a></h2>
+
+In the syntax definitions below, all bold-face names are literals
+and other names are syntactic variables.  Other bold-face text should
+also appear literally.  All round parens are bold and hence literal.
+None are optional, nor can extra ones be added without affecting
+the meaning.  Elements of the syntax are grouped using curly brackets
+instead.  "|" separates alternatives.  Square brackets also serve
+to group, but what's within them is optional.  A "*" means
+zero or more repetitions of the element or bracketed group before the *.
+The repeated items must either begin and end with parens or
+be separated by white-space (rather than run together).
+For example,
+<pre>
+  {integer | <b>(</b>letter<b>)</b>}*
+</pre>would match any of the following:
+<pre>
+  1
+  1 2 3
+  (z)12 13 -14876 (q) 77
+  1 (a) 2 (b) (c)
+  1(a)2(b)(c)
+</pre>
+
+<p><tt>Number, symbol, string</tt>, and <tt>duration</tt> appear as terminal
+symbols in the grammer and are explained later.</p>
+
+<table border="1" cellspacing="0" cellpadding="5" width="100%">
+<caption>LTF syntax</caption>
+
+<tr><th class="highlight">Domains</th></tr>
+<tr>
+<td>
+<pre>
+domain ::= {header | refinement | object-class | annotations | include}*
+
+header ::= <b>(domain</b> domain-property*<b>)</b>
+
+domain-property ::= <b>(name</b> string<b>)</b>
+
+include ::= <b>(include</b> file-name-or-URL-as-string<b>)</b>
+</pre>
+</td>
+</tr>
+
+<tr><th class="highlight">Refinements</th></tr>
+<tr>
+<td>
+<pre>
+refinement ::= <b>(refinement</b> name pattern clause*<b>)</b>
+
+name ::= symbol | string
+
+pattern ::= <b>(</b>item*<b>)</b>
+
+item ::= number | symbol | string | pattern | variable
+
+variable ::= <b>?</b>symbol
+
+clause ::= <b>(variables</b> variable-declaration*<b>)</b>
+        |  <b>(issues</b> issue*<b>)</b>
+        |  <b>(nodes</b> node*<b>)</b>
+        |  <b>(orderings</b> ordering*<b>)</b>
+        |  <b>(constraints</b> constraint*<b>)</b>
+        |  annotations
+
+<small><i>Refinement clauses should appear at most once in a refinement.</i></small>
+
+variable-declaration = variable
+
+issue ::= <b>(issue</b> pattern<b>)</b>
+
+node ::= <b>(</b>node-id pattern<b>)</b>
+node-id ::= number | symbol | string
+
+ordering ::= <b>(</b>{node-end-ref | <b>(</b>node-end-ref*<b>)</b>}*<b>)</b>
+
+node-end-ref ::= node-ref | <b>b/</b>node-ref | <b>e/</b>node-ref
+node-ref ::= node-id | <b>self</b>
+
+constraint ::= <b>(world-state condition</b> pattern <b>=</b> value<b>)</b>
+            |  <b>(world-state achieve</b> pattern <b>=</b> value<b>)</b>
+            |  <b>(world-state effect</b> pattern <b>=</b> value<b>)</b>
+            |  <b>(world-state use-for-effect</b> pattern <b>=</b> value<b>)</b>
+            |  <b>(compute</b> [<b>multiple-answer</b>] pattern <b>=</b> value<b>)</b>
+            |  <b>(advice expansion-refinement</b> verb <b>(</b>symbol*<b>))</b>
+            |  <b>(temporal duration</b> node-ref <b>=</b> time-window<b>)</b>
+            |  <b>(temporal before</b> node-end-ref <b>--&gt;</b> node-end-ref
+                            <b>=</b> time-window<b>)</b>
+            |  <b>(resource</b> operation pattern <b>=</b> value<b>)</b>
+            |  other-constraint
+
+other-constraint ::= <b>(</b>type subtype pattern <b>=</b> value<b>)</b>
+
+value ::= item
+verb, operation, type, subtype ::= symbol
+
+time-window = duration | variable | min-duration <b>..</b> max-duration
+
+min-duration, max-duration ::= duration | variable
+</pre>
+</td>
+</tr>
+
+<tr><th class="highlight">Object classes</th></tr>
+<tr>
+<td>
+<pre>
+object-class ::= <b>(object-class</b> class-name supers object-property*<b>)</b>
+
+supers = <b>(</b>class-name*<b>)</b>
+
+object-property ::= <b>(</b>property-name [class-name] [<b>:syntax</b> value-syntax]<b>)</b>
+
+class-name ::= symbol | string
+property-name ::= symbol
+value-syntax ::= <b>number</b> | <b>symbol</b> | <b>string</b> | <b>list</b> | <b>object</b> | <b>default</b>
+</pre>
+</td>
+</tr>
+
+<tr><th class="highlight">Annotations</th></tr>
+<tr>
+<td>
+<pre>
+annotations :: = <b>(annotations</b> annotation*<b>)</b>
+annotation ::= <b>(</b>aKey = aValue<b>)</b>
+
+aKey, aValue ::= item | map
+
+map ::= <b>(Map</b> map-entry*<b>)</b>
+map-entry ::= <b>(</b>aKey = aValue<b>)</b>
+
+<i>The word map must be written "Map".</i>
+</pre>
+</td>
+</tr>
+</table>
+
+
+<h2>Background</h2>
+
+<h3>&lt;I-N-C-A&gt;</h3>
+
+<p>The underlying ontology in I-X is called &lt;I-N-C-A&gt;; it stands
+for Issues - Nodes - Constraints - Annotations.</p>
+
+<p>&lt;I-N-C-A&gt; represents something that is being modelled or
+produced as a set of constraints.  Although we will often use
+"constraint" only for the "C" part, all &lt;I-N-C-A&gt; elements can
+be considered constraints.  Issues are sometimes called "implied
+constraints" or "flaws" that need to be addressed.  Nodes can be seen
+as include-node constraints, where the nodes represent the principal
+entities or components to model or include.  Even annotations can
+imply constraints.</p>
+
+<p>The "C" constraints can usefully be divided into
+"critical constraints" and everything else: "auxiliary constraints".
+Critical constraints are also sometimes called "cross constraints";
+they're a bit like a common language that can be used to express
+many of the requirements imposed by different types of constraints.
+</p>
+
+<p>The nodes and constraint types can be different in different
+application areas (as can which constraints are considered critical).
+For example, if &lt;I-N-C-A&gt; is used to describe buildings, the
+nodes might be structural elements such as walls, floors, doors and
+windows, and there could be constraints that express spatial
+relationships.</p>
+
+<p>In the &lt;I-N-C-A&gt; view of plans, a plan is a set of
+constraints on possible behaviour in the doman being modelled.
+In a plan, the nodes represent actions or activities, and the
+critical constraints are temporal ordering constraints and variable
+constraints.  The variable constraints are essentially about which
+objects to use, with "object" taken very abstractly.  For example, if
+a block is going to be painted some colour, by an activity <tt>paint
+?block ?colour</tt>, where <tt>?block</tt> and <tt>?colour</tt> are
+variables, the available blocks and the colours would be objects.</p>
+
+<p>The critical constraints are used to resolve conflicts between
+activities, due to other constraints.  For example, resource-use
+constraints might mean that two activities would conflict if they
+tried to use the same resource at the same time; and the conflict
+might be avoided either by saying one activity must finish
+before the other can start, or by saying the activities must
+use different resources (different objects).</p>
+
+<h3>What the planner does</h3>
+
+     * Finds a plan that is a completion of this planner's current
+     * plan and makes it the new current plan.  The precise meaning
+     * of "completion" depends on the planner in question, but
+     * typically it will mean that all activities in the initial
+     * plan that might be expanded into subactions, using refinements
+     * in this planner's domain, will be expanded, and that all
+     * constraints in the initial plan or introduced by expansion
+     * would be satisfied if the plan were executed in a way that
+     * respected all of the ordering constraints.   (Here, the
+     * <i>initial plan</i> is the plan that was current when
+     * plan() was called.)
+
+<p>For this, it will be helpful to start with a very simple example
+that includes every &lt;I-N-C-A&gt; element:</p>
+
+<table border="1" cellspacing="0" cellpadding="5" width="100%">
+<tr>
+<td>
+<pre>
+(refinement simple-painter (paint ?object ?colour)
+  (variables ?object ?colour)
+  (issues
+    (issue (is priming needed?)))
+  (nodes
+    (1 (prepare-surface ?object))
+    (2 (apply-paint ?colour ?object))
+    (3 (wait-until-dry ?object)))
+  (orderings
+    (1 2)
+    (2 3))
+  (constraints
+    (world-state condition (have ?object) = true)
+    (world-state condition (is-colour ?colour) = true)
+    (world-state effect (colour ?object) = ?colour)
+    (resource use (?colour paint) = true))
+  (annotations
+    (purpose = example)))
+</pre>
+</td>
+</tr>
+</table>
+
+<table border="1" cellspacing="0" cellpadding="5" width="100%">
+<tr>
+<td>
+<pre>
+have block = true
+have bird-house = true
+is-colour red = true
+is-colour green = true
+is-colour blue = true
+</pre>
+</td>
+</tr>
+</table>
+
+<h2>An example</h2>
+
+<p>At this point, it's useful to have an example.  The example is
+unrealistic in many ways as a model of the problem domain, but it
+illustrates the most-used features of LTF.  Here is the first
+refinement:</p>
+
+<table border="1" cellspacing="0" cellpadding="5" width="100%">
+<tr>
+<td>
+<pre>
+(refinement get-up-and-go (get-to-work)
+  (variables ?paper)
+  (nodes
+    (1 (wake-up))
+    (2 (shower))
+    (3 (get-dressed))
+    (4 (eat-breakfast))
+    (5 (read-paper ?paper))
+    (6 (travel home work)))
+  (orderings
+    (1 (2 3 4 5) 6)
+    (2 3))
+  (constraints
+    (world-state condition (have-paper ?paper) = true)))
+</pre>
+</td>
+</tr>
+</table>
+
+<p>Here are two more refinements.  They could be used to
+refine the <tt>(travel home work)</tt> acticity introduced by
+<tt>get-up-and-go</tt>, because they have patterns that would
+match it.</p>
+
+<table border="1" cellspacing="0" cellpadding="5" width="100%">
+<tr>
+<td>
+<pre>
+(refinement walk (travel ?from ?to)
+  (variables ?from ?to)
+  (constraints
+    (world-state condition (weather) = sunny)
+    (world-state condition (location me) = ?from)
+    (world-state effect (location me) = ?to)
+    (temporal duration self = PT20M .. PT30M)))
+
+(refinement take-bus (travel ?from ?to)
+  (variables ?from ?to)
+  (constraints
+    (world-state condition (location me) = ?from)
+    (world-state effect (location me) = ?to)
+    (temporal duration self = PT15M .. PT25M)))
+</pre>
+</td>
+</tr>
+</table>
+
+<p>Each refinement represents a way for "me" to travel and, although
+they treat where I'm traveling from and to as variables, for
+illustrative purposes, they don't make sense for arbitrary journeys;
+instead they're meant for the journey from home to work.
+Walking requires sunny weather and takes between 20 and 30 minutes;
+the bus can be used in any weather and takes between 15 and 25
+minutes.</p>
+
+<h2>Some details</h2>
+
+<h3>Comments</h3>
+
+<p>A comment begins with a semicolon and continues to the end of the
+line.  Comments are discarded when the domain description is parsed.
+An annotation can be used to attach something more permanently.</p>
+
+<h3>Symbols and strings</h3>
+
+<p>Symbols are the usual way to represent words, names,
+and operators.  A symbol is written as a sequence of characters,
+often just letters, or letters and digits, that (a) is not a
+number, (b) does not contain whitespace, and (c) does
+not contain any significant punctuation characters such as
+double quotes or round parentheses.  To include such characters
+in a symbol, the entire symbol is written between vertical bars.
+Inside the "<tt>|...|</tt>" notation, a vertical bar can be
+included by putting a backslash in front of it.
+Such symbols should usually be avoided but are sometimes
+convenient.  Case is retained in all symbols.  Examples:
+<pre>
+   refinement
+   world-state
+   +
+   &lt;=
+   /=
+   /doc/notes
+   UNESCO-Visitors
+   |an unusual symbol that even includes a \| within it|
+</pre></p>
+
+<p>Note that some sequences of characters that you might not
+normally think of as a single item are treated as one symbol.
+For example, <tt>a+b&gt;=c</tt> is a single symbol.  That's a
+consequence of (a) allowing characters such as '<tt>+</tt>',
+'<tt>&gt;</tt>' and '<tt>=</tt>' to be combined in symbols
+so that operators such as <tt>&gt;=</tt> can be single symbols,
+and (b) allowing them to be mixed with other characters rather
+than having special rules.</p>
+
+<p>It is sometimes more convenient to use strings.   A string is
+written as a sequence of characters between double-quote marks.
+A <tt>\</tt> at the end of a line includes the newline sequence
+in the string and allows the string to continue on the next line.
+Within a string, the escape sequences such as <tt>\t, \n, \r</tt>
+are converted to single characters.  Backslash and double-quote
+can also be escaped in that way.  Examples:
+<pre>
+   "This is a sring."
+   "This is a string that \"quotes\" a string."
+</pre></p>
+
+<h3>Variables</h3>
+
+<p>Variables are symbols that begin with "<tt>?</tt>".  They should
+not contain any special characters, and the "<tt>|...|</tt>" notation
+should not be used.</p>
+
+<p>All variables used in a refinement should be delcared in the
+refinement's <b>variables</b> clause.</p>
+
+<p>Examples:
+<pre>
+   ?x
+   ?location
+   ?vehicle
+</pre></p>
+
+<h3>Numbers</h3>
+
+<p>Numbers are signed and can be integers (longs) or double-precision
+floating point.  In floating point numbers, the exponent character
+is 'e' or 'E'; and 'd', 'D', 'f', or 'F' may be placed on the end.
+Examples:
+<pre>
+   12
+   -1024
+   1d
+   1.14e20
+</pre></p>
+
+
+<h3>Node-ends and time-points</h3>
+
+
+
+<h3>Orderings</h3>
+
+<p>Here's a version of the syntax that's better at suggesting the
+semantics:</p>
+
+<table border="1" cellspacing="0" cellpadding="5" width="100%">
+<caption>Orderings in a refinement</caption>
+<tr>
+<td>
+<pre>
+  clause ::= <b>(orderings</b> ordering*<b>)</b>
+
+  ordering ::= sequential-ordering
+
+  sequential-ordering ::= <b>(</b>node-end-group*<b>)</b>
+
+  node-end-group ::= node-end-ref | <b>(</b>node-end-ref*<b>)</b>
+
+  node-end-ref ::= node-ref | end-ref
+
+  end-ref ::= <b>b/</b>node-ref | <b>e/</b>node-ref
+
+  node-ref ::= node-id | <b>self</b>
+</pre>
+</td>
+</tr>
+</table>
+
+<!--
+<h3>World-state constraints</h3>
+
+<h3>Other constraints</h3>
+-->
+
+<h3><a name="durations">Durations</a></h3>
+
+<p>Durations are written in a subset of the ISO 8601 notation used
+for the XML Schema duration datatype.</p>
+
+<p>The full duration datatype is difficult to work with, because the
+number of days in a month varies.  Hence durations aren't even totally
+ordered.  However, in the 1.1 version of the Schema definition, there
+are two derived types that are each totally ordered: yearMonthDuration
+and dayTimeDuration.</p>
+
+<p>Our durations are dayTimeDurations.  The full duration syntax is
+PnYnMnDTnHnMnS, optionally preceded by a minus sign, where each n is
+a possibly different unsigned number, 'Y', 'M', 'D', 'H', 'M, and 'S'
+stand for years, months, days, hours, minutes, and seconds
+respectively, 'P' stands for "period", and 'T' separates the
+year-month-day date portion from the time portion.  'P' must always be
+present, and 'T' must be present if any hours, minutes, or seconds are
+specified.  The number-letter combinations are all optional, so long
+as at least one is specified.  All of the numbers must have no decimal
+point except for the number of seconds.  None of the numbers is
+restricted in range.</p>
+
+<p>Since LTF supports only dayTimeDurations, year and month values
+must not be given.</p>
+
+<p>Examples: <tt>PT0.001S</tt> = 1 millisecond and
+<tt>P10DT23H59.012S</tt> = 10 days, 23 hours, 59 seconds, and 12
+milliseconds.</p>
+
+<hr/>
+<small><address>Jeff Dalton &lt;J.Dalton@ed.ac.uk&gt;</address></small>
+</body>
+</html>

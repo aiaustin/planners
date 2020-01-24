@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plan xmlns="http://www.aiai.ed.ac.uk/project/ix/">
+ <plan-nodes>
+  <list>
+   <plan-node id="node-0" expansion="refinement-0">
+    <activity>
+     <activity status="executing" priority="normal">
+      <pattern>
+       <list>
+        <symbol>do</symbol>
+        <symbol>something</symbol>
+       </list>
+      </pattern>
+     </activity>
+    </activity>
+   </plan-node>
+  </list>
+ </plan-nodes>
+ <plan-refinements>
+  <list>
+   <plan-refinement id="refinement-0" expands="node-0">
+    <plan-nodes>
+     <list>
+      <plan-node id="node-0-0">
+       <activity>
+        <activity status="possible" priority="normal">
+         <pattern>
+          <list>
+           <symbol>do</symbol>
+           <symbol>step</symbol>
+           <symbol>one</symbol>
+          </list>
+         </pattern>
+        </activity>
+       </activity>
+      </plan-node>
+      <plan-node id="node-0-1">
+       <activity>
+        <activity status="blank" priority="normal">
+         <pattern>
+          <list>
+           <symbol>do</symbol>
+           <symbol>step</symbol>
+           <symbol>two</symbol>
+          </list>
+         </pattern>
+        </activity>
+       </activity>
+      </plan-node>
+      <plan-node id="node-0-2">
+       <activity>
+        <activity status="blank" priority="normal">
+         <pattern>
+          <list>
+           <symbol>do</symbol>
+           <symbol>step</symbol>
+           <symbol>three</symbol>
+          </list>
+         </pattern>
+        </activity>
+       </activity>
+      </plan-node>
+     </list>
+    </plan-nodes>
+    <constraints>
+     <list>
+      <ordering>
+       <from>
+        <node-end-ref end="end" node="node-0-0" />
+       </from>
+       <to>
+        <node-end-ref end="begin" node="node-0-1" />
+       </to>
+      </ordering>
+      <ordering>
+       <from>
+        <node-end-ref end="end" node="node-0-1" />
+       </from>
+       <to>
+        <node-end-ref end="begin" node="node-0-2" />
+       </to>
+      </ordering>
+     </list>
+    </constraints>
+   </plan-refinement>
+  </list>
+ </plan-refinements>
+</plan>
+

@@ -1,0 +1,234 @@
+default namespace d0e1_ns = "http://www.aiai.ed.ac.uk/project/ix/"
+namespace local = ""
+namespace inh = inherit
+
+start = plan
+
+object =
+   \list
+ | map
+ | plan
+ | plan-variable-declaration
+ | name
+ | symbol
+ | variable-scope
+ | plan-issue
+ | issue
+ | status
+ | priority
+ | yes-no
+ | plan-issue-refinement
+ | plan-node
+ | activity
+ | plan-refinement
+ | constrainer
+ | pattern-assignment
+ | plan-variable
+ | constraint
+ | ordering
+ | node-end-ref
+ | end
+ | literal-document
+ | \string
+ | integer
+ | long
+ | float
+ | double
+
+\list = element list { object* }
+
+map =
+   element map
+   {
+      element map-entry { element key { object }, element value { object } }*
+   }
+
+plan =
+   element plan
+   {
+      element plan-variable-declarations
+      {
+         element list { plan-variable-declaration* }
+      }?
+    & element plan-issues { element list { plan-issue* } }?
+    & element plan-issue-refinements
+      {
+         element list { plan-issue-refinement* }
+      }?
+    & element plan-nodes { element list { plan-node* } }?
+    & element plan-refinements { element list { plan-refinement* } }?
+    & element constraints { element list { constrainer* } }?
+    & element world-state { element list { pattern-assignment* } }?
+    & element annotations { map }?
+   }
+
+plan-variable-declaration =
+   element plan-variable-declaration
+   {
+      attribute id { name-value }?,
+      attribute name { symbol-value }?,
+      attribute scope { variable-scope-value }?,
+      ( element annotations { map }? )
+   }
+
+name = element name { name-value }
+
+name-value = xsd:string
+
+symbol = element symbol { symbol-value }
+
+symbol-value = xsd:string
+
+variable-scope = element variable-scope { variable-scope-value }
+
+variable-scope-value = "local" | "global"
+
+plan-issue =
+   element plan-issue
+   {
+      attribute id { name-value }?,
+      attribute expansion { name-value }?,
+      ( element issue { issue }? & element annotations { map }? )
+   }
+
+issue =
+   element issue
+   {
+      attribute status { status-value }?,
+      attribute priority { priority-value }?,
+      attribute sender-id { name-value }?,
+      attribute ref { name-value }?,
+      attribute report-back { yes-no-value }?,
+      ( element pattern { \list }? & element annotations { map }? )
+   }
+
+status = element status { status-value }
+
+status-value =
+   "blank" | "complete" | "executing" | "possible" | "impossible" | "n/a"
+
+priority = element priority { priority-value }
+
+priority-value = "lowest" | "low" | "normal" | "high" | "highest"
+
+yes-no = element yes-no { yes-no-value }
+
+yes-no-value = "yes" | "no"
+
+plan-issue-refinement =
+   element plan-issue-refinement
+   {
+      attribute id { name-value }?,
+      attribute expands { name-value }?,
+      (
+         element plan-variable-declarations
+         {
+            element list { plan-variable-declaration* }
+         }?
+       & element plan-issues { element list { plan-issue* } }?
+       & element annotations { map }?
+      )
+   }
+
+plan-node =
+   element plan-node
+   {
+      attribute id { name-value }?,
+      attribute expansion { name-value }?,
+      ( element activity { activity }? & element annotations { map }? )
+   }
+
+activity =
+   element activity
+   {
+      attribute status { status-value }?,
+      attribute priority { priority-value }?,
+      attribute sender-id { name-value }?,
+      attribute ref { name-value }?,
+      attribute report-back { yes-no-value }?,
+      ( element pattern { \list }? & element annotations { map }? )
+   }
+
+plan-refinement =
+   element plan-refinement
+   {
+      attribute id { name-value }?,
+      attribute expands { name-value }?,
+      (
+         element plan-variable-declarations
+         {
+            element list { plan-variable-declaration* }
+         }?
+       & element plan-nodes { element list { plan-node* } }?
+       & element constraints { element list { constrainer* } }?
+       & element annotations { map }?
+      )
+   }
+
+constrainer = constraint | ordering
+
+pattern-assignment =
+   element pattern-assignment
+   {
+      element pattern { \list }? & element value { object }?
+   }
+
+plan-variable =
+   element plan-variable
+   {
+      attribute id { name-value }?,
+      attribute name { symbol-value }?,
+      ( element annotations { map }? )
+   }
+
+constraint =
+   element constraint
+   {
+      attribute type { symbol-value }?,
+      attribute relation { symbol-value }?,
+      attribute sender-id { name-value }?,
+      ( element parameters { \list }? & element annotations { map }? )
+   }
+
+ordering =
+   element ordering
+   {
+      element from { node-end-ref }?
+    & element to { node-end-ref }?
+    & element annotations { map }?
+   }
+
+node-end-ref =
+   element node-end-ref
+   {
+      attribute end { end-value }?,
+      attribute node { name-value }?
+   }
+
+end = element end { end-value }
+
+end-value = "begin" | "end"
+
+literal-document = element literal-document { anyXML }
+
+anyXML = element * { ( attribute * { text } | text | anyXML )* }
+
+\string = element string { string-value }
+
+string-value = text
+
+integer = element integer { integer-value }
+
+integer-value = xsd:int
+
+long = element long { long-value }
+
+long-value = xsd:long
+
+float = element float { float-value }
+
+float-value = xsd:float
+
+double = element double { double-value }
+
+double-value = xsd:double

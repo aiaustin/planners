@@ -1,0 +1,51 @@
+                           Task Formalism Files
+                           --------------------
+
+This directory contains the demonstration Task Formalism files for the O-Plan
+system. The files are as follows:
+
+bbb.tf            Blue Badge in Box Problem
+
+blocks-1.tf       Block stacking using a single operator schema
+
+blocks-2.tf       Block stacking using multiple schemas.
+
+eusat.tf          Simple satellite command and control problem.
+
+house-1.tf        Simple house building problem
+
+house-1-inc-1.tf  Incremental addition to the house-1.tf file
+
+house-2.tf        House building problem involving interactions and
+                  alternatives
+
+house-3.tf        Larger house building example
+  
+house-4.tf        House building problem involving time windows for actions
+                  and a start time for the entire plan
+
+house-5.tf        House building problem involving resource limitations
+                  versus requirements on the house specification.
+
+m-and-c-1.tf      Missionaries and Cannibals Problem
+
+m-and-c-2.tf      Missionaries and Cannibals Problem using compute conditions
+
+pacifica-1.tf     Pacifica Island Non-combatant Evacuation Operation (NEO)
+                  (demonstrates the AutoCAD Interface)
+
+pacifica-2.tf     Pacifica NEO with time and resources
+                  (demonstrates the AutoCAD Interface)
+
+pacifica-3.tf     Pacifica NEO with rich rresource modelling
+                  (demonstrates the AutoCAD Interface)
+
+pacifica-4.tf     Pacifica NEO for demonstrating Command, Planning and Control
+                  (demonstrates the AutoCAD Interface)
+
+space-platform.tf Space platform construction problem (demonstrates the 
+                  AutoCAD Interface)
+
+spanner.tf        demonstration of need to have an achieve condition span
+                  outside of schema which introduces it for some solutions
+

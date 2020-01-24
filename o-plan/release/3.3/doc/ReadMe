@@ -1,0 +1,51 @@
+O-Plan source documentation
+----------------------------
+This directory contains documentation for aspects of O-Plan that are
+not necessarily described, or described in such detail, or described
+in the same way, in the formatted, paper documentation.
+
+There are two main kinds of files here: LaTeX sources and plain text.
+In the plain text especially, something like
+
+   See the "A b c" section.
+
+is a pointer to the file "a-b-c" or "a-b-c.tex" (whichever exists)
+in this directory.  For instance, `See the "TA interface" section"'
+is a reference to the file "ta-interface".
+
+What follows is a brief guide to some starting points.
+
+
+Using O-Plan
+-------------
+
+command-line-arguments
+
+   Describes the syntax of the "oplan" command (which is used for
+   running O-Plan).
+
+parameters
+
+   Describes parameters that affect the operation of O-Plan and
+   whose values can be set by command-line arguments or by commands
+   in your "oplan-init" file.
+
+ta-interface
+
+   This is the document to read if you wish to run and then control
+   O-Plan from a separate program or wish to define a new interface
+   to O-Plan.  It describes the messages to and from O-Plan in O-Plan's
+   "task-assignment interface" and the Lisp procedures in the higher-level
+   "program interface"; it provides detailed instructions on how to run
+   O-Plan in "connect" and "subroutine" modes (which correspond to the
+   "-connect" and "-subr" command-line arguments, respectively); and
+   it includes a range of examples.   
+
+ta-interface-quick-reference
+
+   Presents information from "ta-interface" in summary form.
+
+tf-syntax-checking
+
+   Describes how to run O-Plan as a TF syntax-checker.
+

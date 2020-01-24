@@ -1,0 +1,69 @@
+TF syntax checking
+------------------
+O-Plan be run as a TF syntax-checker ("tfc").  This can be useful
+when writing a new domain description.  O-Plan performs the same
+checks when a TF file is loaded, but it's sometimes easier if you 
+can check without starting up the whole planner.  "tfc" also lets 
+you ask for a level analysis to be printed which normally happens 
+only when there are level errors.
+
+O-Plan will run as the syntax-checker if it's given "-tfc" as a
+command-line argument.  Arguments after "-tfc" are interpreted by 
+the syntax-checker.  They can take the following forms:
+
+   [-q] [-l [-e]] filename
+   [-q] [-l [-e]] -d directory
+
+where the square brackets surround optional items.  At present, the
+items must appear in the order given.
+
+"-q" is for "quiet" and suppresses progress reports. 
+"-l" is for "levels" and produces a level analysis.
+"-e" can be used with "-l" to have the level analysis list the
+     effect names for each action (to make it easier to see where
+     the effect-levels come from).  This does not include the
+     effects of subactions.
+
+When "-d" is used, all files in the directory are checked and
+a report is produced at the end.
+
+If the filename is the single character "-", TF forms will be read
+from standard-input.  Progress reports will be turned off
+automatically.
+
+If no additional arguments are supplied after "-tfc", the checker
+enters a loop in which you can type tfc commands.  E.g
+
+   shell% oplan -tfc
+   tfc> -q -l snark.tf
+   tfc>
+
+To exit, type "q" (not "-q") as a command.
+
+Here is an example of a level analysis:
+
+   shell% oplan -tfc -q -l demo/tf/pacifica-1
+
+   Levels for domain "pacifica-1"
+
+   There are 0 strongly connected components in the
+   action graph that have length greater than one.
+
+   Action levels:
+      0 task_operation_castaway
+	task_operation_paradise
+	task_operation_blue_lagoon
+      1 fly_passengers
+	transport
+	fly_transport
+      2 load
+	unload
+	drive
+
+   Effect levels:
+      0 country
+      1 nationals
+	people_at_poe_from
+      2 in_use_for
+	at
+

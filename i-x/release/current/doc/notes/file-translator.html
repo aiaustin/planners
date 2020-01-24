@@ -1,0 +1,56 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+  <title>File translator</title>
+  <link rel="stylesheet" href="note-style.css">
+</head>
+
+<!-- Updated: Fri Sep 14 00:58:55 2007 by Jeff Dalton
+-->
+
+<body bgcolor="#ffffff">
+
+<h1>File translator</h1>
+
+Author: Jeff Dalton
+<br>
+
+<p><b>Main-program class:</b> <tt>ix.test.TranslateFile</tt></p>
+
+<p><b>Command-line arguments:</b></p>
+<pre>
+  <i>file-name file-name ... file-type</i>
+
+  -help
+</pre>
+
+<p><b>Description:</b></p>
+
+<p>If the first command-line argument is <tt>-help</tt>, it prints
+a brief description of the available <a href="file-syntaxes.html">file
+syntaxes</a>.</p>
+
+<p>Otherwise, the arguments must be a sequence of file-names,
+separated by spaces and followed by a file-type.  For example,
+assuming Unix-style filename expansion, the arguments
+<pre>
+   test-domains/*.lsp domain-library/*.lsp xml
+</pre>
+would ask the translator to translate every ".lsp"
+file in "test-domains" and in "domain-library" to ".xml"
+files, with each ".xml" file in the same directory as
+its corresponding ".lsp" source.
+</p>
+
+<p>A progress message is printed before each file is translated.</p>
+
+<p>Note that the input files needn't all represent the same
+type of object.   For instance, some of them might contain
+plans and others domains.  However, the output type should
+be one that can handle all of those different objects.</p>
+
+<hr>
+<small><address>Jeff Dalton &lt;J.Dalton@ed.ac.uk&gt;</address></small>
+</body>
+</html>

@@ -1,0 +1,242 @@
+Notes on O-Plan and Common Lisp
+Jeff Dalton
+Sat, 25 Jan 2014 17:56:15 +0000
+
+----------------------------------------------------------------------
+
+
+Allegro and Lucid Common Lisps were used for most O-Plan development
+on Sun Solaris. I don't remember whether we ever used Allegro on
+Linux/DICE or not; but most (at least) of what we did on Linux used GCL.
+All of the web demo work used GCL.
+
+
+Also, we didn't use separate sources for different Common Lisps, apart
+from a few files that came in lisp-specific versions (and were all
+included in the releases).  Instead, we used a Common Lisp feature
+that's like #ifdef in C and lets code for different Common Lisps be
+written in the same file.   Most of the O-Plan code didn't even do
+that and could be used in any Common Lisp.   It's been a long time
+since any of O-Plan has been tested in any CL except GCL, however.
+
+
+So far as I can recall, the "prebuilt" O-Plan did not involve modified
+sources; it was simply O-Plan built using GCL and saved as an
+executable, so that people could download it and use it without having
+to install a Common Lisp.
+
+
+There was a time, and going by file dates it was 2002-2003, which puts
+it a few years after the prebuilt release file from 2000, when there
+was a minor problem on Linux that could be fixed by a bit of Lisp
+code.  I don't remember how we made people aware of that fix, if they
+wanted to use the prebuilt version, but in any case, it soon became
+insufficient because of further changes in Linux
+
+
+If someone wanted to use the O-Plan 3.3 source code, it would not
+necessarily be best to use GCL.  However, it's been so long since
+O-Plan's been tested in anything other than GCL that there might be
+some Lisp compatibility issues that had to be sorted out.  Allegro
+might be a good option.  I've been thinking of trying CCL (which is
+nice on Macs) at some point.  (The further aim would be to make a
+version that was completely portable Common Lisp code, dropping any
+features that couldn't be made portable.)  However, if someone has a
+working GCL, getting O-Plan to work in GCL would probably be easiest.
+
+
+Re GCL, the main problem is that GCL is in effect a big C program;
+Linux has often changed so that it stops working; although there are
+people working on GCL, you can't always immediately get a working
+version; and when you do get a new version, it might be different in
+ways that affect O-Plan.  That's why our "prebuilt" version no longer
+works, and why it would be difficult to make it work fully.
+
+
+Using any Common Lisp, including (by now) GCL
+---------------------------------------------
+
+
+* The old interface that popped up a bunch of windows would be
+difficult to make work, because it involves using xterms via
+pseudo-terminals (which is tricky).  If someone wants that sort of
+interface, it would probably be best to re-implement it in some other
+way; and on non-Unix-like systems, a different approach would probably
+be needed anyway.
+
+
+* The web demos that had O-Plan run as an HTTP server would most
+likely also be difficult, without switching to a different approach
+(or modifying GCL).
+
+
+* However, the other web demos simply run O-Plan via CGI, so they're
+relatively straightforward to get working.
+
+
+* The "program interface" described in the doc linked below should
+work without a special effort.
+
+
+http://www.aiai.ed.ac.uk/project/oplan/release/3.3/doc/ta-interface
+
+
+O-Plan and GCL and other Common Lisps
+-------------------------------------
+
+
+1 -- I think it made good sense to use GCL back when we were actively
+working on O-Plan.  I won't go into all the reasons, but one was that
+it was more under our control.  We had all the sources; I'd even
+ported earlier versions (KCL) a coupe of times; and is was written in
+C.  So there was a good chance that we could fix problems rather than
+hope a vendor would do so.
+
+
+However, Lunix is has proved a much less stable environment than the
+Suns; GCL became more sophisticated and so harder to understand and
+fix; and GCL went through a period (now ended) when it didn't seem to
+be actively supported.  Also, Linux didn't support a key feature of
+Berkeley Unix and Solaris that GCL relied on for some things we used
+in the HTTP server.
+
+
+So for that and other reasons, it's at least not so clear that GCL is
+the best choice now.  It looks like Allegro is available on DICE
+machines.  If you expect it to continue to be available, it might make
+sense to see how hard it is to get the things that still work in GCL
+to work in Allegro too.
+
+
+However, Allegro has the problem that other people would have to pay
+to have Allegro on their own machines, if they wanted to use O-Plan
+there.
+
+
+There is at least one GPL-licensed Common Lisp that runs on the Java
+Virtual Machine (Armed Bear Common Lisp); and that's a route that
+might be worth considering.
+
+
+It looks like GCL may still support making a "prebuilt" O-Plan though,
+which would mean people who had a suitable machine / OS could use it
+without having to obtain or install a Common Lisp.  I haven't yet
+checked whether the facility works on Linux.
+
+
+2 -- HTTP was treated differently back when the demos were developed.
+It was easy, then, for a program simply to ask for OS for a free port,
+and most people could connect to it.  Now the free port part has to be
+specially configured in the OS, and lots of people can't connect, or
+don't want to connect, to a random port.  So a somewhat different
+approach should probably be taken anyway.
+
+
+Also, there weren't many other options back then.  There was a Common
+Lisp HTTP server, CL-HTTP, but it was big and complicated; it was
+easier and less risky to write a straightforward HTTP server instead.
+So that's what I did.
+
+
+There are some other options now.  For instance, a Java HTTP server
+could be used with a Common Lisp that ran on the JVM.
+
+
+3 -- Some things about O-Plan in GCL.
+
+
+As you may recall, Common Lisp went through a couple of major phases
+of development.   After the first, the book Common Lisp the Language
+(CLtL) served as a de facto standard.  Then the ANSI standard was
+developed.  GCL implemented the CLtL version.  (This is sometimes
+called CLtL 1 -- first edition -- while a second edition, CLtL 2,
+documented how things stood part way through the standardisation
+process.)
+
+
+However, since O-Plan was working in Lucid CL and Allegro CL, which
+included newer features and tracked the ANSI standard as it developed,
+and since the ANSI standard would replace CLtL, we added some of the
+new features to GCL.  This was easy to do, and in particular, we
+added:
+
+
+* The 'loop' macro, by using the standard implementation of that
+macro.  (This is the file "support/loop.lsp".)
+
+
+* Defpackage, using the freely available one from Spice Lisp.
+("support/defpackage.lsp").
+
+
+* A subset of the Common Lisp Object System (CLOS) using an
+implementation I'd written for a CLOS course I gave at AIAI.  (This is
+in the "public-mc" -- "mc" for micro-CLOS -- directory.)
+
+
+* A subset of the Common Lisp condition system based on code I wrote
+when thinking about condition system proposals when I was a member of
+X3J13.  ("support/kcl-conditions.lsp".)
+
+
+* Some minor things that can be found in "support/kcl-exensions.lsp".
+
+
+* The Common Lisp pretty printer, using a freely available reference
+implementation from MIT.  ("support/xp.lsp")
+
+
+In addition, I wrote a version of defsystem ("support/defsys.lsp") --
+basically, Lisp's version of Unix 'make'.  Defsystem isn't in the
+Common Lisp standard, but many Common Lisps will include one or
+another version of it somehow.  However, we use this one in all Common
+Lisps so that we can use the same system definitions everywhere.
+(It's also focuses on the features I thought were most useful and
+includes some features other versions don't, while lacking some
+features I didn't need.)
+
+
+Now, however, GCL can be built in two different ways: either as the
+traditional CLtL version, or as an ANSI version.  The ANSI version
+isn't quite completely ANSI, though it's close.  And the traditional
+version has changed a bit too.  O-Plan is meant to use traditional
+GCL, but some things that used to work there now need a bit of
+tweaking if a recent version is used.
+
+
+For different reasons, there will probably be problems with the C code
+in support/kcl-sockets.lsp and support/xfork.lsp.  Their main use is
+for the HTTP server.   They aren't needed for things like the web
+demos that are working on www.aiai.  (The problems here are primarily
+because Linux doesn't support the Berkeley Unix feature I mentioned
+earlier.)
+
+
+4 -- I don't know quite what's behind errors such as these:
+
+
+Error: Cannot find the external symbol DEFPACKAGE in #<"LISP" package>.
+Error: Cannot find the external symbol SAVE-OPLAN in #<"OPLAN" package>.
+
+
+However, they don't necessarily mean the relevant sources are missing.
+ Defpackage should be in support/defpackage.lsp, and save-oplan should
+be in top/top-level.lsp.
+
+
+Summary of the Situation (by Miles Gould on 3-Feb-2014)
+-------------------------------------------------------
+
+1) O-Plan is written in CLtL 1 style; GCL supports this style if built
+specially, but distro-supplied builds of GCL are likely to be ANSI-only.
+
+
+2) GCL has drifted somewhat since O-Plan was released, so it may be
+necessary to use GCL version 2.2.2 rather than the current version.
+
+3) The windowing interface is unlikely to work on modern Linux systems
+at all, but it should be possible to get `oplan -connect -no -windows`
+working.
+
+4) The HTTP server expects to be able to request a free port from the
+OS, and talk to that; this facility doesn't exist on Linux.

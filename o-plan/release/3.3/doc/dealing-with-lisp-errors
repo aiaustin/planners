@@ -1,0 +1,113 @@
+Dealing with Lisp errors
+------------------------ 
+By "a Lisp error" we mean that O-Plan or the Lisp system invokes the
+Lisp error signalling mechanism rather than, say, just printing a
+message.  Unless the error is caused by an erroneous command typed
+into the Lisp interaction window, it is usually due to a bug in
+O-Plan and should be reported.
+
+Your options for dealing with the Lisp error depend on what O-Plan
+was doing when it occurred.
+
+When a Lisp error occurs in the TF compiler, a menu will appear to
+make sure you notice the error.  There will be only one option, "ok".
+Select "ok" to continue.  The TF compiler will exit and report that
+the file contained an error.  That is, a Lisp error is treated as if
+it were a single syntax error that applied to the whole TF file.
+
+When the error occurs in some other part of the planner, there is
+typically no neat way to recover from it, and a more complex menu
+appears.  It will look something like this:
+
+   Lisp error in process <process-name>
+   ------------------------------------
+   Allow the error
+   Return to scheduler
+   Force global reset
+
+<Process-name> will be replaced by the name of the process that was
+running when the error occurred: :AM, :DM, :KP, etc.  You should
+look in the window associated with that process to see the error
+message.  The meanings of the options are as follows:
+
+   Allow the error
+     Allow Lisp to handle the error.  This will usually result in
+     a "break loop" as described below.  Select this option if you
+     plan to report the bug, because the bug report should include
+     a "backtrace" (also described below).
+
+   Return to scheduler
+     Exit the process in which the error occurred so that the
+     system can continue running.  In most cases, this will not
+     work very well, because the process in which the error
+     occurred needed to finish some task that was interrupted by
+     the error.  This sort of recovery can also be attempted from
+     a break loop, as described below (again).
+
+   Force global reset
+     Attempt to reinitialise O-Plan.  This will abandon the attempt
+     to find a plan (or whatever O-Plan was doing) and start over as
+     if you had selected the "Initialise planner" option in the TA.
+     It is equivalent to evaluating the Lisp expression (force-reset).
+
+When the Lisp system handles an error, Lisp usually enters a "break
+loop" in one of the O-Plan windows.  Ordinarily, you will see a menu
+first, as described above.  In any case, you can tell that Lisp has
+entered a break by the following signs:
+
+  1. O-Plan will stop producing any output.
+  2. The one-line "running processes" window will stop changing.
+  3. There will be an error message in a window associated with
+     the rightmost name in the "running processes" window.
+  4. The window will be displaying the ">" prompt.
+
+The first two can also happen when O-Plan is merely taking a long
+time to do something; the others cannot.
+
+In a break loop, the normal ways of exiting O-Plan by using the
+control panel or the TA menu will not work.  However, you can type
+Lisp debugger commands and Lisp expressions in the the window, after
+the ">" prompt.  Typing
+
+  (exit-oplan)
+
+should cause O-Plan to exit.
+
+  (force-reset)
+
+attempts to reset the system by wiping out all pending messages,
+sending itself an :INIT message, and returning to the process
+scheduler.
+
+If you're planing to report a bug, you should get a "backtrace"
+before exiting.  It shows the nested Lisp procedure calls that
+led up to the error.  Get a backtrace by typing ":b" after the ">"
+prompt.  Grab the resulting output and the error message with the 
+mouse and put them both in the bug report.
+
+In some cases you can (and may want to) get O-Plan to continue after an
+error.  This is most likely to be so when the error is in a relatively
+peripheral part of the planner, such as the PW viewer, but it can
+happen in other cases too.
+
+In some cases, the Lisp system will offer you a reasonable way to
+continue from the error, so always look at the options that appear
+after the error message.
+
+Another form of recovery that sometimes makes sense is to get O-Plan
+to abandon its current activity and allow other parts of the system
+to run.  You can accomplish this by selecting "Return to pprocess
+scheduler" from the restart options presented after the Lisp error
+message.  (This is equivalent to choosing "Return to scheduler"
+from the menu appears when the error is first noticed.)
+
+This approach should be tried only when the error occurs during a
+relatively self-contained activity.  An example might be a Lisp error
+when the PlanWorld Viewer tried to display a plan.  By returning
+control the the scheduler, you could get the viewer to abandon this
+attempt This would work fairly well because nothing else in the system
+depends very strongly on the viewer succeeding.  On the other hand, it
+would not work very well if, for instance, the DM ran into an error
+somewhere deep in the TOME/GOST manager.  In such cases, you might try
+typing the command (force-reset) instead.
+

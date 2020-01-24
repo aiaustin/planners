@@ -1,0 +1,105 @@
+**DOCUMENTATION
+[AutoCAD plan.mnu for O-Plan Plan Viewer - A.Tate 30-Sep-94]
+***BUTTONS
+;
+$p1=*
+^c^c
+^B
+^O
+^G
+^D
+^E
+^T
+***AUX1
+;
+$p1=*
+^C^C
+^B
+^O
+^G
+^D
+^E
+^T
+
+***POP1
+[O-Plan Plan]
+[Initialise       ]setvar MENUECHO 3;+
+setvar CMDECHO 0;+
+setvar BLIPMODE 0;+
+setvar UCSICON 0
+
+***POP2
+[Plan Input       ]
+[Redraw           ]redrawall
+[Schema header    ]insert schema 10,10 1 1 0
+[Insert Node      ]setvar ATTDIA 0;+
+insert node X 1 Y 1 R 0;\\\+
+setvar ATTDIA 1
+[Insert Dummy     ]setvar ATTDIA 0;+
+insert dummy X 1 Y 1 R 0;\+
+setvar ATTDIA 1
+[Insert Link      ]line \\;
+[Insert Bent Link ]pline
+[Insert Conditions]setvar ATTDIA 0;+
+insert conditions X 1 Y 1 R 0 \\\+
+setvar ATTDIA 1
+[Insert Effects   ]setvar ATTDIA 0;+
+insert effects X 1 Y 1 R 0 \\\+
+setvar ATTDIA 1
+[Move Part        ](progn (princ "Move - First corner: ") (princ));+
+stretch AU c \\;
+[Erase Part       ](progn (princ "Erase - First corner: ") (princ));+
+erase AU c \\;
+[Plan Output      ]tfout
+
+***POP3
+[Plan Output      ]
+[Redraw           ]redrawall
+[Load Plan        ]setvar ATTDIA 0;+
+load-plan;+
+setvar ATTDIA 1
+[Pick Item        ]pick-item \\
+[Move Part        ](progn (princ "Move - First corner: ") (princ));+
+stretch AU c \\;
+[Erase Part       ](progn (princ "Erase - First corner: ") (princ));+
+erase AU c \\;
+[Insert Link      ]line \\;
+[Insert Bent Link ]pline
+
+***POP4
+[Animation        ]
+[Redraw           ]redrawall
+[Start Recording  ](setq pw-p-sld-num 0)
+[  Add a Slide    ](progn (princ "Slide ")+
+(setq pw-p-sld-num (1+ pw-p-sld-num)));+
+mslide (strcat "plan-view-" (itoa pw-p-sld-num))
+[  View Last Slide]vslide (strcat "plan-view-" (itoa pw-p-sld-num))
+[End Recording    ](prompt+
+"Please rename the slides and make a plan.scr file. ")
+[Run Recording    ](setq pw-p-ind 0);+
+(while (< pw-p-ind pw-p-sld-num)+
+(progn (setq pw-p-ind (1+ pw-p-ind))+
+(command "vslide" (strcat "plan-view-" (itoa pw-p-ind)))+
+(command "delay" 500)))
+[Run Slide Script ]script;;
+
+***POP5
+[Control   ]
+[Redraw           ]redrawall
+[Clear screen     ]erase all ;redrawall
+[Zoom in          ]zoom w
+[Zoom out         ]zoom all
+[Plot Screen      ]plot d 
+[Save Screen      ]save
+[Quit             ]quit
+
+***SCREEN
+**S
+[]redrawall
+
+***SCREEN
+***TABLET1
+***TABLET2
+***TABLET3
+***TABLET4
+

@@ -1,0 +1,694 @@
+\documentstyle [a4]{article}
+
+% This is a draft of a section of the O-Plan Implementation Guide
+
+\raggedbottom
+
+\input{doc-commands}
+
+\begin{document}
+
+\tableofcontents
+
+\newpage
+
+\section{Task Formalism compiler}
+
+The TF Compiler processes a domain description written in the Task
+Formalism language and returns a structures that contains the same
+information in a more easily manipulated form.  It is usually called
+by the database manager on behalf of a knowledge source (typically
+KS-DOMAIN), but it can also be used as a syntax-checker without
+involving the rest of O-Plan.
+
+The compiler uses a fairly conventional recursive descent parser and
+a scanner (or ``tokenizer'') that employs the Common Lisp readtable
+mechanism.  In addition to parsing, it detects a number of errors and
+inconsistencies that can occur in domain descriptions and performs a
+certain amount of compile-time analysis, especially of action and
+effect ``levels''.  The interface to the compiler and the main
+components of the implementation are described below.
+
+\subsection{Interface}
+
+The TF Compiler is invoked by calling the function
+{\tt compile-tf-stream}:
+
+\begin{tabbing}
+mmmm\=\kill
+{\tt (compile-tf-stream \var{stream}
+                        \&optional
+                        \var{input-domain}
+                        \var{check-only})} \\
+    \>\MapsTo \=\var{revised-domain-information}, \\
+    \>        \>\var{error-count}, \\
+    \>        \>\var{warning-count}
+\end{tabbing}
+
+\noindent
+{\tt Compile-tf-stream} takes three parameters and returns three
+results.  The parameters are:
+
+\begin{enumerate}
+\item A character input stream containing TF forms followed
+      by an end-of-file.
+\item A domain information structure or {\tt nil}.  A structure is
+      given when a domain description is being constructed in steps.
+      It contains an earlier result constructed by the TF compiler 
+      and is used as a base for further compilation.
+\item An optional flag that is {\em true\/} if the compiler should
+      operate in syntax-checking mode and {\em false\/} (the default)
+      otherwise.
+\end{enumerate}
+
+\noindent
+The results are:
+
+\begin{enumerate}
+\item A domain information structure.
+\item The number of errors found.
+\item The number of warnings found.
+% \item A description of what has been deleted, altered or added.
+\end{enumerate}
+
+The \var{input-domain} is never modified.  If the result will contain
+different information, a new domain structure is created instead. 
+If the number of errors is nonzero, any new domain is discarded and
+the input domain is returned as the result.
+
+
+% \subsection{Overall structure of the compiler}
+
+% Three passes: parsing, domain construction, domain analysis.
+
+% The TF compiler could be considered a three-pass compiler.  The TF
+% language does not require that many passes, but they provide a more
+% modular structure for the code.  The ``passes'' are as follows.
+
+%
+
+
+\subsection{Scanner}
+
+\subsubsection{Token generators}
+
+The TF scanner is implemented as a token generator: a function of no
+arguments that returns a new token each time it is called.  If there
+are no more tokens, it returns the value of the variable {\tt *end-token*}.
+From the point of view of the parser, any token generator can be used.
+For instance, when debugging the parser it may be useful to use a
+generator that returns successive elements from a list without doing
+any scanning at all.\footnote{For an example, see \S\ref{list-gen-example}.}
+The standard TF scanner is a generator that takes tokens from a
+character input stream and employs a syntax appropriate for the TF
+language.  It is created by calling the function {\tt tf-tokens}:
+
+\begin{tabbing}
+{\tt (tf-tokens \var{stream})} \MapsTo \var{generator}
+\end{tabbing}
+
+\subsubsection{Tokens and character classes}
+
+The TF scanner tries to use a natural mapping from TF tokens to Lisp
+data structures.  For instance \meta{number}s are returned as numbers
+and \meta{text\_string}s as strings.  Symbols are used for several
+types of tokens: for \meta{name}s; for {\em operators\/} such as {\tt +},
+{\tt <=}, and {\tt --->}; and for {\em punctuation\/} characters such
+as comma.
+
+When forming symbols, the idea is to employ a natural grouping of
+characters.  This is defined in terms of three disjoint {\em character
+classes}:
+
+\begin{enumerate}
+\item A set of {\em name characters\/} that make up normal identifiers,
+      i.e., \meta{name}s.
+\item A set of {\em operator characters} that make up special
+      identifiers (operators) which may consist of more than
+      one character.
+\item A set of {\em punctuation characters} that result in
+      single-character identifiers.
+\end{enumerate}
+
+It's important that these sets are disjoint, so that the scanner can
+find the boundaries of tokens without requiring that they be separated
+by ``white space''.  For characters in the name or operator classes, a
+maximal sequence of adjacent characters in the same set is combined
+into a single token.  Characters in the punctuation set are returned
+as single-character tokens.  Thus in ``\verb|apple>=pie;|'', the
+sequence of tokens is ``{\tt apple}'', ``{\tt =>}'', ``{\tt pie}'',
+and ``\verb|;|''.  % /\/ maybe omit the quotes here.
+
+It's usually clear whether a character should be an operator
+character or punctuation.  For example, ``{\tt -}'' and ``{\tt =}''
+have to be operator characters because they can occur in
+multi-character operators, and comma should be punctuation because
+it should always be treated as a single character.  Characters
+such as ``{\tt +}'' and ``{\tt *}'' do not occur in any
+multi-character operators presently in TF, but for consistency
+it makes sense to put them in the same class as ``{\tt -}''.
+Since both operators and punctuation are represented as symbols,
+however, moving a character from one class to the other changes
+only the grouping rule without changing the type of Lisp object
+that's returned.
+
+This approach to operators has several advantages.
+Multi-character operators such as {\tt >=} and {\tt --->} can be
+returned as single tokens; the grouping rules are simple and do not
+require that the scanner perform a context-dependent analysis or be
+told what operators are in the language; and it's usually easy to
+move a character from one class to another.  
+
+However, it has the disadvantage that it's necessary to use white
+space or punctuation characters to delimit adjacent operators.
+Fortunately, adjacent operators are rare.  In TF, the only place where
+they might occur is in arithmetic expressions.  For instance, someone
+might write ``{\tt 3*-4}'' to multiply $3$ by $-4$.  Since ``{\tt
+*-}'' will be returned as a single token, the user would have to
+write ``{\tt 3 * -4}'' or ``{\tt 3*(-4)}'' instead.  This particular
+instance of the problem could be remedied by moving ``{\tt *}'' to
+the punctuation class, but that would still leave cases such as 
+``{\tt 3--4}''.
+
+\subsubsection{Readtables}
+
+The TF scanner assigns meanings to characters by using a readtable.
+The next token is read from a stream by calling {\tt read} with
+{\tt *readtable*} bound to a ``TF readtable''. The TF scanner
+uses the TF readtable that is the value of {\tt *tf-readtable*}.
+
+The TF readtable allows names to be read as symbols in the usual way.
+Letters are converted to upper case, just as they are in normal Common
+Lisp input.  As far as the readtable is concerned, the characters
+allowed in names are defined implicitly as the characters Common Lisp
+treats as ``constituents'' minus any characters defined as operator
+or punctuation characters or explicitly defined as illegal.
+
+Tokens other than names are read by character macros.  The character
+macros are defined according to character classes which include
+the classes described above plus some others such as {\em digit}.  All
+macro characters in a class are given the same function as their macro
+definition, and this function is responsible for reading the entire
+token.  For instance, all digits are defined to call a function that
+reads a number, and all operator characters are defined to call a
+function that reads a sequence of characters in the operator class and
+assembles them into a symbol.  Some characters do not fit into any
+class and are given special macros of their own.
+
+The most important special cases are ``{\tt ;}'' and ``{\tt ?}''.
+
+Semicolon is a special case so that it can handle comments.
+A single semicolon behaves like a punctuation character and
+returns the symbol ``{\tt ;}''.  However, the function that
+handles semicolons also looks ahead to see if the first
+semicolon is followed by two others.  In that case, it reads
+the rest of the line as a comment.
+
+Question mark is a special case so that {\tt question-reader}, the
+OBase routine for reading \meta{actor\_restriction}s, can also be used
+by the TF scanner.  The macro function for ``{\tt ?}'' calls
+{\tt question-reader} and whatever results is returned as a
+single token.  The TF compiler then uses that token as-is.
+
+However, {\tt question-reader} expects some characters to have
+different meanings than they do in the TF readtable.  For instance,
+it expects that ``\verb|{|'' will be defined as a character macro
+that reads a list ending in ``\verb|}|'', but in the TF readtable
+``\verb|{|'' is a punctuation character.  Consequently, the scanner's
+macro for ``\verb|?|'' establishes a different readtable before
+calling {\tt question-reader}.  This readtable is constructed by
+calling the function
+
+\begin{tabbing}
+{\tt (make-actor-readtable \var{base-readtable})}
+        \MapsTo \var{actor-readtable}
+\end{tabbing}
+
+The base readtable can be any readtable, but the scanner uses
+the TF readtable as the base.  {\tt Make-actor-readtable}
+redefines characters in a copy of the base readtable to create a
+readtable suitable for use inside \meta{actor-restriction}s.
+
+% {\tt question-reader} is the macro function for ``{\tt ?}'' in this
+% new readtable, and other characters, such as ``\verb|{|'', also
+% have the required definitions.
+
+This example shows that it is possible to change the low-level syntax
+of the language within a well-defined context.  However, it's important
+to bear in mind that the compiler has to be able to tell when it's time
+to switch readtables.  In this case, the ``{\tt ?}'' character marks
+the start of the new context, and the syntax of \meta{actor-restriction}s 
+is such that there is always a well-defined end.  In other cases,
+the compiler might not be able to tell when to switch readtables,
+and we would have to change the TF language so that it could tell.
+For example, consider a {\tt has}-actor such as \verb|?{has length 3}|.
+The general syntax is as follows:
+
+\begin{quote}
+\begin{tabbing}
+{\tt ?\{has \meta{function name} \meta{argument} \ldots \meta{result}\}}
+\end{tabbing}
+\end{quote}
+
+If the readtable had to be changed between the last \meta{argument}
+and the \meta{result}, we'd have to introduce some punctuation or
+other token to mark the end of the arguments.  Otherwise, we couldn't
+tell the \meta{result} was a \meta{result}, rather than another
+\meta{argument}, without reading it to see if it was followed by
+``{\tt \}}'.  That is, in order to tell that the expression was a
+\meta{result}, we'd already have to know how to read a \meta{result}.
+
+
+% \subsubsection{Numbers and dot-operators}
+
+
+\subsection{Parser}
+
+This section describes the parser and how it is derived from the
+grammar for the TF language.  It also explains some of the coding
+conventions and briefly describes a set of auxiliary procedures that
+are used for such things as recognizing tokens, reporting errors, and
+error recovery.
+
+Recursive descent parsers can be written almost directly from
+LL(1) grammars.
+A nonterminal symbol in the grammar is implemented as a procedure that
+consumes one or more tokens and then returns some result, such as a
+parse tree.  For convenience, we will also refer to these procedures as
+``nonterminals''.
+
+For a grammar to be LL(1), there must not be any left-recursive
+productions, and it must always be possible to select between
+alternatives by looking only at the current token.  The published
+grammar for the TF language is not quite LL(1), but it is still
+possible to write a parser by using a somewhat looser correspondence
+between grammar rules and procedures.  It is also possible for a
+recursive descent parser to handle some cases that cannot be expressed
+in an LL(1) grammar at all.
+
+
+\subsubsection{Interface to the scanner}
+
+The scanner provides a token generator which is accessed from within
+the parser by calling the procedures {\tt token} and {\tt next-token}.
+{\tt Token} returns the current token; {\tt next-token} advances to
+and returns the next token by calling the token generator, making the
+result the new current token.  
+
+There is also a facility for looking ahead one or more tokens which is
+used at present only when a number is followed by a token that begins
+with ``{\tt .}''.  {\tt (Push-token \var{token})} makes the next call to
+{\tt next-token} return \var{token}.  When a number is followed by an
+operator such as ``{\tt ..}'', the scanner returns the number after
+calling {\tt push-token} to save the operator.  The next call to {\tt
+next-token} will then return the operator.
+
+It is important to have a convention for when the parser advances
+to the next token.  In the TF parser, the following rules apply,
+and any departure from them is explicitly noted.
+
+\begin{itemize}
+\item When called, a nonterminal can assume that the current token
+      has already been set to the first token it should consider.
+\item A nonterminal matches an initial segment of the input tokens.
+      On exit, the current token should be the first one that is
+      not part of the segment matched.  That is, it should be the
+      first token that the rest of the parser should consider.
+\end{itemize}
+
+
+\subsubsection{Parsing utilities}
+
+In most cases, {\tt token} and {\tt next-token} are not called
+directly.  Instead, one of the following procedures is used.
+
+\begin{itemize}
+
+\item {\tt (token-is \var{token})} \MapsTo \bool
+
+{\tt Token-is} compares its argument with the current token.  If they
+are the same ({\tt eql}), it advances to the next token by calling
+{\tt next-token} and returns {\em true}.  Otherwise it returns
+{\em false} without calling {\tt next-token}.
+
+\item {\tt (token-satisfies \var{predicate})} \MapsTo \var{token}
+
+{\tt Token-satisfies} is used to determine whether the current token
+satisfies a predicate.  If it does, {\tt token-satisfies} advances to
+the next token by calling {\tt next-token} then returns the token that
+was tested.  Otherwise, {\tt token-satisfies} returns {\em false}
+without calling {\tt next-token}.  The {\em predicate} is a function
+of one argument, a token, and returns \bool.
+
+\item {\tt (must-be \var{token})} \MapsTo \var{token}
+
+{\tt Must-be} is similar to {\tt token-is} but requires that the current
+token be a particular token.  If the current token is not acceptable,
+a syntax error will be reported.
+
+\item {\tt (must-satisfy \var{predicate} \var{description})}
+         \MapsTo \var{token}
+
+{\tt Must-satisfy} is similar to {\tt token-satisfies} but requires
+that the current token satisfy the predicate.  If the current token is
+not acceptable, a syntax error will be reported.  The {\em description}
+is a string that will be used in the error message.  For example:
+
+\verb|(must-satisfy #'numberp "a number")|
+
+\item {\tt (one-or-more \var{nonterminal}
+              \&key :separator \var{token}
+                    :until \var{end-token})}
+      \MapsTo \var{list}
+
+{\em Nonterminal} is a procedure that parses a nonterminal in the
+grammar.  {\tt One-or-more} parses a sequence of one or more
+occurrences of the nonterminal until a particular {\em end-token\/}
+appears.  The {\em separator\/} is optional.  {\tt One-or-more}
+returns a list of the results returned by {\em nonterminal}.
+                    
+\item {\tt (zero-or-more \var{nonterminal}
+              \&key :separator \var{token}
+                    :until \var{end-token})}
+      \MapsTo \var{list}
+
+This function is similar to {\tt one-or-more} but allows zero
+occurrences of the nonterminal.
+                    
+\end{itemize}
+
+
+\subsubsection{Error recovery}
+
+The compiler uses a version of the ``S-algol error recovery scheme''
+described in the book {\em Recursive Descent Compiling\/} by A. J. T.
+Davie and R.  Morrison (Ellis Horwood, 1981), which in turn comes from
+a scheme developed by D. A. Turner for a SASL compiler.
+%
+Some additional conventions are required by the error recovery
+scheme:
+
+\begin{itemize}
+\item If a syntax error is detected, it should be signalled by
+      calling the {\tt syntax-error} procedure.  That call will
+      (usually) return, after which parsing should continue as
+      much as possible as if the syntax had been correct.
+\item At a point where a certain token must be present, require that
+      it be present by calling the the procedure {\tt must-be}.
+      Something similar can be done for classes of tokens by calling
+      {\tt must-satisfy}.
+      The ``{\tt must-}'' procedures call {\tt syntax-error}
+      automatically.
+\end{itemize}
+
+The error recovery scheme is very simple, but it works reasonably well
+in a number of common cases.  The basic idea is to take advantage of
+points where a particular token or class of tokens must occur.  If the
+current token is not acceptable, the normal action would be to report
+an error.  However, if the parser is already in an error state it can
+try to recover instead, by discarding tokens until an acceptable one
+appears.  While the parser is waiting to recover from an error,
+further error messages are suppressed
+
+
+\subsubsection{Blocking tokens}
+
+Since the error recovery scheme can sometimes ``eat'' too much of
+the source text, it is possible to specify a list of {\em blocking
+tokens\/} that it will not pass.  The {\tt one-or-more} and
+{\tt zero-or-more} procedures will also respect this list when
+they examine the current token to see whether their iteration
+should continue.\footnote{Note that this does not mean a blocking
+token will {\em never\/} be skipped inappropriately.  Since they
+are not reserved words, a nonterminal might interpret them in other 
+ways or mistake them for something else.}
+
+A list of blocking tokens can be specified in two ways: by
+using the {\tt :blocking-tokens} keyword parameter to {\tt zero-}
+or {\tt one-or-more}, or by binding {\tt *blocking-tokens*}.
+The main use of blocking tokens in the TF compiler is when
+parsing a schema, when the blocking tokens are the symbols 
+that can begin schema clauses (e.g. {\tt expands}, {\tt conditions})
+or end schemas.
+
+
+\subsubsection{Translating grammar rules to Lisp code}
+
+To illustrate the coding conventions, we'll consider a subset of
+LL(1) grammars that can be translated directly to code and that is
+sufficient to cover most of the statement-level cases that arise.
+
+A given nonterminal may be defined by more than one rule, or by
+one rule with several alternatives.  If so, we need to be able to
+select among the alternatives without looking beyond the current
+token.  It will clearly be possible to do this if all but at most
+one of the alternatives begins with a terminal symbol and the
+remaining alternative (if there is one) must begin in some other
+way.  For instance, consider a definition of \meta{statement} in
+which every alternative except the assignment statement begins with
+a reserved word.  By looking at only the current token, we can
+determine what kind of statement we have.  If the token isn't one
+of the reserved words, we have an assignment.
+
+A rule of this form can be translated into a function definition as
+follows\footnotemark (or by using the equivalent {\tt token-case}
+macro which inserts the calls to {\tt next-token} automatically):
+
+% /\/: Should describe token-case earlier.  At present, it's not
+%      really described at all.
+
+\footnotetext{When describing such translations, we'll present grammar
+rules {\em abstractly\/} and then show the corresponding Lisp.  To do
+this, we need notations that stand for the terminal and nonterminal
+symbols that would actually appear in a rule, and here they are:
+upper-case italic names in angle-brackets such as \meta{NT} stand for
+nonterminal symbols, and italic names without brackets such as
+\var{t$_1$} or, later, \var{separator}, stand for terminal symbols.}
+
+\begin{quote}{\tt
+\begin{tabbing}
+mmm\=\kill
+  \meta{NT} \BNFdef\ \var{t$_1$} \meta{NT$_1$}
+             \ordef\ \var{t$_2$} \meta{NT$_2$}
+             \ordef\ \ldots\ 
+             \ordef\ \meta{NT$_n$} \\
+    \>\expandsto
+      (d\=efun \meta{NT} () \\
+    \>  \>(c\=ase (token) \\
+    \>  \>  \>((\var{t$_1$}) (next-token) (\meta{NT$_1$})) \\
+    \>  \>  \>((\var{t$_2$}) (next-token) (\meta{NT$_2$})) \\
+    \>  \>  \>\ldots \\
+    \>  \>  \>(otherwise \meta{NT$_n$})))
+\end{tabbing}}
+\end{quote}
+
+This can clearly be generalized to handle cases where the alternatives
+are more complex, and to cases where arbitrary predicates (not just
+{\tt eql}) are applied to the current token.  In other cases, it will
+be necessary to (implicitly) transform the grammar to a form that can
+be handled directly. % or to depart somewhat from LL(1).
+
+Once we've selected an alternative, we're committed to it and
+should report an error if the input doesn't match what we expect.
+Some of the more common constructs that occur within alternatives
+can therefore be translated as follows:
+
+\begin{quote}{\tt
+\begin{tabbing}
+mmm\=\kill
+  \meta{NT} \\
+     \>\expandsto (\meta{NT})\\
+\\
+  \var{literal} \\
+     \>\expandsto (must-be '\var{literal}) \\
+\\
+   \optional{\var{literal} \meta{NT}} \\
+     \>\expandsto (when (token-is '\var{literal}) (\meta{NT})) \\
+\\
+   \meta{NT} \arbno{\optional{\var{separator} \meta{NT}}} \var{end} \\
+     \>\expandsto
+       (one-or-more \verb|#'|\meta{NT} 
+                    :separator '\var{separator}
+                    :until '\var{end})
+\end{tabbing}}
+\end{quote}
+
+Note that in the last case, both instances of \meta{NT} must be
+replaced by the same nonterminal.  As a concrete example, consider
+the following incomplete grammar for a fragment of the TF language:
+
+\begin{Lindent}
+
+\begin{syntaxtable}
+\meta{tf form} 
+   & \BNFdef & {\tt always} \meta{always form} \\
+   & \ordef  & {\tt types} \meta{types form}   \\
+\end{syntaxtable}
+
+\begin{syntaxtable}
+
+\meta{always form}
+   & \BNFdef & \meta{pattern assignment} 
+               \arbno{\optional{{\tt , }\meta{pattern assignment}}}
+               {\tt ;} \\
+
+\meta{pattern assignment}
+   & \BNFdef & \meta{pattern} \optional{{\tt =} \meta{value}} \\
+
+\meta{types form} 
+   & \BNFdef & \meta{type definition} 
+               \arbno{\optional{{\tt , }\meta{type definition}}}
+               {\tt ;} \\
+
+\meta{type definition} 
+   & \BNFdef & \meta{name} {\tt =} \meta{name set}
+
+\end{syntaxtable}
+
+\end{Lindent}
+
+The corresponding procedures are shown below.  They are written using
+the convention that the procedure for a nonterminal has a name in
+angle-brackets.  Note that only the parsing code is shown, without
+anything that would construct a result.
+
+\begin{Lindent}
+\begin{verbatim}
+(defun <tf-form> ()
+  (token-case
+    ((always) (<always-form>))
+    ((types)  (<types-form>))
+    (t (syntax-error "Unknown TF form."))))
+
+(defun <always-form> ()
+  (one-or-more #'<pattern-assignment> :separator '|,| :until '|;|))
+
+(defun <pattern-assignment> ()
+  (<pattern>)
+  (when (token-is '=)
+    (<value>)))
+
+(defun <types-form> ()
+  (one-or-more #'<type-definition> :separator '|,| :until '|;|))
+
+(defun <type-definition> ()
+  (<name>)
+  (must-be '=)
+  (<name-set>))
+\end{verbatim}
+\end{Lindent}
+
+Of course, grammars are not always written in so accommodating a style.
+For instance, \meta{types form} might have been defined as follows:
+%
+\begin{Lindent}
+\begin{syntaxtable}
+
+\meta{types form} & \BNFdef & \meta{types body}{\tt ;} \\
+
+\meta{types body} 
+   & \BNFdef & \meta{type definition} \\
+   & \ordef  & \meta{types body}{\tt , }\meta{type definition}
+
+\end{syntaxtable}
+\end{Lindent}
+%
+With this definition, some analysis is needed before it becomes clear
+that a \meta{types form} is a sequence of \meta{type definition}s
+separated by commas and terminated by a semicolon.
+
+This example also serves to illustrate a difficult case for us,
+because it involves left-recursion.  Some analysis and recasting
+is therefore necessary.  In other cases, it may not be
+necessary---because we can write out the recursive procedures
+rather than using {\tt one-or-more}---but it may still be
+desirable.  Indeed, most grammars not written specifically for
+use with a recursive descent parser will require some modification
+hare and there.  Whether you handle this by explicitly rewriting
+the grammar or just by translating it more loosely into Lisp
+is up to you.
+
+
+\subsubsection{Testing}
+
+Several procedures are available for testing the parser or for
+parsing fragments of TF.  The most important ones are:
+
+\begin{itemize}
+
+\item {\tt (compile-tf-string \var{nonterminal} \var{string})}
+         \MapsTo \var{object}, \var{error-count}
+
+This creates a TF scanner for a string input stream and calls
+{\em nonterminal}.  The results are whatever object {\em nonterminal\/}
+returns and the number of errors that occurred.
+
+\item {\tt (compile-tf \var{nonterminal} \var{generator})}
+         \MapsTo \var{object}, \var{error-count}, \var{warning-count}
+
+{\tt Compile-tf} uses the {\em generator\/} as the scanner and calls
+{\em nonterminal}.  The results are whatever object {\em nonterminal\/}
+returns and the number of errors and warnings that occurred.
+
+\item {\tt (list-tokens \var{list})} \MapsTo \var{generator}
+
+{\tt List-tokens} creates a generator that returns successive
+elements of a list followed by the value of {\tt *end-token*}
+
+\end{itemize}
+
+\noindent
+Here's an example:
+
+\label{list-gen-example}
+\begin{verbatim}
+(compile-tf #'<pattern>
+            (list-tokens '(|{| on a b |}|)))
+\end{verbatim}
+
+\noindent
+returns the list {\tt (on a b)}.
+
+
+\subsection{Compile-time analysis}
+
+\subsubsection{Levels}
+
+The level algorithm assigns levels to actions, then to effects.
+Conditions are then checked against effects.  Actions, effects,
+and conditions are represented by the first word of their
+respective patterns.
+
+The level number of an effect is the max of the level numbers
+of all actions that have that effect.
+
+The level number of an action is determined as follows:
+
+\begin{enumerate}
+
+  \item
+
+     Construct a directed graph $G$ in which the vertices are actions
+     and there's an edge from $A$ to $A'$ whenever $A'$ is part of an
+     expansion of $A$ or can be brought in by an {\tt achieve} / 
+     {\tt only\_use\_for\_effects} link.
+
+  \item
+
+     Construct a graph, $SCC(G)$, of the strongly connected components
+     of $G$.  Two actions $A$ and $A'$ are in the same component if there's
+     both a path from $A$ to $A'$ and one from $A'$ to $A$.  There's an edge
+     in $SCC(G)$ from component $C$ to component $C'$ if there's an edge
+     in $G$ from an action in $C$ to an action in $C'$.
+
+  \item
+
+     Starting from actions that correspond to task schemas, determine
+     the length of the longest path to each component in $SCC(G)$,
+     giving each edge length $1$.
+     The length of the longest path to a component becomes the
+     level number of all actions in that component.
+
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,14 @@
+This directory contains pre-built, ready-to-run, versions of O-Plan.
+
+Instructions-for-prebuilt
+
+  Instructions for obtaining and installing the prebuilt versions
+  of O-Plan.
+
+pc-linux
+
+  O-Plan prebuilt on a PC running Linix (Redhat 5.2)
+
+sun-solaris
+
+  O-Plan prebuilt on a Sun running Solaris (SunOS 5.6)

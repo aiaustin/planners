@@ -1,0 +1,62 @@
+% set up LaTeX parameters for British A4 paper.
+
+% modified to allow twoside documents by J.Dalton.
+
+\makeatletter
+
+\newdimen\mainfontsize	\mainfontsize=1\@ptsize pt
+
+% Side margins, text width, etc. -- [jwd]
+%
+% was: \setlength{\oddsidemargin}{.25 true in}	% left margin 1.25 inch
+%      \setlength{\textwidth}{14.85 true cm}	% 21.2 cm - 2.5*(2.54 cm)
+%
+% Our A4 is 21 cm wide, and the lw setup is off so that the "logical inch"
+% added to the sidemargins is actually 0.7 in, or 1.778cm.  Then,
+%
+%	oddsidemargin = realinsidemargin - logicalinch
+%	evensidemargin = realoutsidemargin - logicalinch
+%
+%	realinsidemargin = <whatever we want>
+%	realoutsidemargin = pagewidth - textwidth - realinsidemargin
+%
+% For backwards compatibility, we want:
+%
+%	textwidth = 14.85 cm
+%	realinsidemargin = 1.25 in.
+%
+% BUT that's based on the bogus page width, so
+%
+%	textwidth = 14 cm (always -- but it gives 14.1!)
+%	realinsidemargin = 3.5cm (centered for single-sided)
+% or	realinsidemargin = 3cm   (4 on other for double-sided)
+%
+% So, calculating as if textwidth = 14.1cm ...
+
+\setlength{\textwidth}{14.0 true cm}
+
+\if@twoside
+   \oddsidemargin 1.222 truecm
+   \evensidemargin 1.122 truecm   % was 2.122 -- the new one is just a guess
+\else
+%   \oddsidemargin 1.672 truecm    % note even = odd
+%   \evensidemargin 1.672 truecm
+   \oddsidemargin 1.172 truecm    % note even = odd
+   \evensidemargin 1.172 truecm
+\fi
+
+\topskip=\mainfontsize	% plain has 10pt, so this is the equivalent
+\maxdepth=.4\mainfontsize	% plain has 4pt
+   \@maxdepth=\maxdepth		% this has to be set as well (cf. latex.tex)
+
+\setlength{\headheight}{\mainfontsize}
+\dimen0=2\mainfontsize
+\setlength{\headsep}{\dimen0}	% headline gets depth shaved off
+\setlength{\topmargin}{\dimen0}
+\setlength{\footheight}{\mainfontsize}
+\dimen0=2.5\mainfontsize
+\setlength{\footskip}{\dimen0}
+
+\setlength{\textheight}{21.34 true cm}	% 30cm - 2in - (8.5\mainfontsize pt)
+
+\makeatother

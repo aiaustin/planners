@@ -1,0 +1,34 @@
+vslide *map-view-scr-0
+vslide
+vslide *map-view-scr-1
+delay 3000
+vslide
+vslide *map-view-scr-2
+delay 3000
+vslide
+vslide *map-view-scr-3
+delay 500
+vslide
+vslide *map-view-scr-4
+delay 500
+vslide
+vslide *map-view-scr-5
+delay 500
+vslide
+vslide *map-view-scr-6
+delay 500
+vslide
+vslide *map-view-scr-5
+delay 500
+vslide
+vslide *map-view-scr-4
+delay 500
+vslide
+vslide *map-view-scr-3
+delay 500
+vslide
+vslide *map-view-scr-2
+delay 500
+vslide
+delay 3000
+rscript

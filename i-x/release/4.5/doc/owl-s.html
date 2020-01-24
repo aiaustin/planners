@@ -1,0 +1,49 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252">
+<META content="MSHTML 6.00.2900.2873" name=GENERATOR>
+<TITLE>I-X Support for OWL-S</TITLE>
+</HEAD>
+<BODY>
+
+<H3>
+I-X Support for OWL-S
+</H3>
+
+<P>
+You can add I-X support for OWL-S using files available in an add-on
+distribution.  This contains the files needed to use I-X with the
+OWL-S API - 
+<a href="http://www.mindswap.org/2004/owl-s/api/">http://www.mindswap.org/2004/owl-s/api/</a>.
+<P>
+
+</P>
+Unzip the OWL-s add-on file, which will be called something like
+"ix-<i>version</i>-owl-s.zip", in the directory in which
+you installed I-X.
+<P>
+
+</P>
+Before going further, you may wish to save your existing ix.jar and
+imports/all-imports.jar because they are replaced to allow the use
+of OWL-S.
+<P>
+
+</P>
+Then use etc/ix-with-owl-s.jar to replace ix.jar (move or rename) and
+etc/all-imports-for-owl-s.jar to replace imports/all-imports.jar.
+<P>
+
+</P>
+Check that imports/owl-s exists and contains a fair number
+of jar files.
+<P>
+
+</P>
+Note that we are not distributing the file upnp100.jar that is
+part of the OWL-S 1.0.0 API, because of licencing issues.
+It is not needed for any existing I-X applications.
+</P>
+
+</BODY>
+</HTML>

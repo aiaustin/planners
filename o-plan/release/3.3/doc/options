@@ -1,0 +1,207 @@
+Title:   Options
+Author:  Jeff Dalton <J.Dalton@ed.ac.uk>
+Created: January 1997
+Updated: Fri Jan 31 16:45:56 1997 by Jeff Dalton
+
+
+                            Options
+                            -------
+
+This document should be read in conjunction with doc/ta-interface.
+
+Contents:
+ * Introduction
+ * How to do things with options.
+
+
+Introduction
+------------
+
+An option is a kind of plan state that can be referred to by the TA.
+Options can be used to create variations on a task, to remember plans
+while finding other plans, to add constraints to plans, and to ask
+"what if" questions.
+
+Options have several properties.  Each option has a unique name, and
+the TA uses those names as "handles" for manipulating options.  The
+name can be specified when the option is made, or it can be generated
+automatically.  The options form a tree.  Each option has a single
+parent option and zero or more children.  For planning purposes, an
+option has a base plan state, a current plan state, and a list of
+alternatives.  (The significance of these items should become clear
+below.)  Options may also have other properties, for use by the
+O-Plan implementation.
+
+There is always some option, a different one at different times, 
+that is regarded as the current option.  Planning is confined to the
+current option.  That is, any plan that is found while an option O is
+the current option will be a descendent of O's base state.  (This is
+explained in more detail later on.)
+
+When an option is created, it is given the current option as its
+parent, the current plan state as its base-state, and an empty list of
+alternatives (backtrack points).  Alternatives are created while
+planning, when the planner makes a decision it may wish to reconsider.
+
+When an option ceases to be the current option, the current plan state
+and the current set of alternatives are recorded in the option.  The
+option that then becomes the (new) current option provides a new current
+plan state and set of alternatives.  So by going back to an option that
+was once the current option, we let planning pick up where it left off.
+Moreover, creating a new option, and making it the current option,
+blocks backtracking to earlier states.  (The new option starts with no
+alternatives, and any alternatives created while it is the current
+option will be for decisions about descendants of the option's base
+state.  Think of the state tree rooted in that base state.  There's
+no way to get to a state outside that tree.)
+
+Two options are created automatically; all others are created only
+in response to messages from the TA.  When O-Plan is initialized, an
+option named "root-option" is created.  It is the initial current option
+and is an ancestor of all other options.  An option named "option-1" is
+created, and becomes the current option, when a task schema is expanded.
+It captures the plan state immediately after all constraints in the
+task schema have been added to the plan.
+
+The basic option-related messages that can be sent by the TA are:
+
+  :make-option       Construct an option based on the current plan state
+                       and with the current option as its parent.
+  :get-option        Get the name of the current option.
+  :set-option        Make a designated option be the current option.
+  :twin-option       Make a "twin" of the current option as it was
+                       when first created.
+  :clear-option      Change the current option to be equivalent to how
+                       it was when first created.
+
+The messages are described in more detail in doc/ta-interface.
+:make-option and :twin-option make the newly created option be
+the current option, and they let you specify the new option's name.
+Two other operations are:
+
+   :push-option
+   :pop-option
+
+:push-option is like :make-option but does not let you specify the
+name.  :pop-option moves to the parent of the current option.  That
+is, if the current option is O, :pop-option makes it be O's parent.
+
+
+Doing things with options
+-------------------------
+
+You have a plan for a task and would like to see a different plan.
+
+  To get a new plan:
+     Send (:replan).
+     Wait for a planning status message.
+
+You have a plan for a task and would like to see a different plan,
+but you also want to be able to return to the first plan.
+
+  To remember the current plan:
+     Suppose N is the name of the current option.
+     Send (:make-option) or (:push-option).
+     Receive (:option name) and record the name.
+     Send (:pop-option).
+     Receive (:option N) as confirmation that you have returned
+       to the option you started with.
+
+  To get a new plan after remembering the current plan:
+     Remember the current plan.
+     Get a new plan.
+
+  To return to a remembered plan:
+     You must have an option name recorded as in "remember the current plan".
+     Send (:set-option name).
+     Receive (:option name) as confirmation.
+
+     Note that if the planner's authority has increased since the
+     option was last current, some planning may occur.  To detect
+     this, you may want to send (:status-after (:set-option name)),
+     rather than (:set-option name), above.
+
+You would like to make the current plan your base of operations
+so that you can create variations on the plan by adding actions, etc.
+You don't want to add an action and then find that backtracking 
+or (later) replanning takes you to some plan that that is not a
+descendent of your base plan.
+
+  To make the current plan your base:
+     Send (:make-option) or (:push-option).
+     Receive (:option name).
+     Perhaps record the name.
+
+You have a plan and would like to add an action.
+
+  To add an action:
+     Send (:add-to-task :action pattern).
+     Wait for a planning status message.
+
+     Note that the addition will affect all plans produced, after this
+     point, for the current option.  If you want, instead, to affect
+     only plans developed from the current plan, you should make/push
+     an option before adding the action (i.e., make the current plan
+     your base).
+
+  Adding an initial effect is similar, except that you send
+  (:add-to-task :initially pattern value).
+
+You've added an action but wish you hadn't.
+
+  This is tricky, unless you remembered the plan state (as an option)
+  before adding the action.  However, if you got a certain plan once,
+  you should be able to get it again.  What you have to do is find an
+  option from which the plan can be generated.  For instance, if you
+  generated the first plan for a task, and would like to get that plan
+  back, and have not done anything with options, then your current
+  option will be option-1, and you can find the same plan again by
+  creating a twin of option-1.  (Since it's the current option, just
+  send (:twin-option) and receive the new option's name in the reply.
+  That will also make the twin the current option and, authority
+  permitting, the planner will start planning.  The result should
+  be the same plan you had before.)
+
+You have a plan and would like to add an action, but you might
+change your mind about adding it.  In other words, you're asking
+"what happens if I add this action?"  The general pattern for
+such questions is as follows:
+
+  Make the current plan your base.
+  Add actions or initial effects.
+  Perhaps replan to see several plans containing the added actions
+    and effects.
+
+  To remove all additions and return to the base plan:
+     Send (:clear-option).
+     Receive (:option name) as confirmation.
+
+  You can also leave things as they are, after additions and
+  replaning, but move to a copy of the base plan that lacks those
+  changes, by sending (:twin-option) instead of (:clear-option).
+  That creates a new option, and when you then receive (:option name),
+  that will give you its name.
+
+You want to create a variation on a task by adding an initial effect;
+and you want to add the effect before any plan is produced so that
+only_use_if conditions will not be misled.
+
+  Set the :level authority to 0 before sending the :set-task message.
+  When you set the task, the planner should expand the task,
+  send a message saying it is waiting for authority, then stop.
+  You can then add the initial effect and increase the planner's
+  authority so that it can find a plan.
+
+  To create a second variation, you can set the :level authority
+  back to 0 and make a twin of option-1.
+
+You want to add more than one action to the current plan before
+further planning occurs.
+
+  Since you're talking about adding to the current plan, you will
+  probably want to start by making the current plan your base, as above.
+  Set the :level authority to 0 before adding the actions; then,
+  to allow planning, put the authority back to what it was before.
+  Wait for a planning status message.
+
+----------------------------------------------------------------------

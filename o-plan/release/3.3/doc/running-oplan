@@ -1,0 +1,389 @@
+
+                            Running O-Plan
+                            ------- ------
+
+Contents
+--------
+  What to expect when starting O-Plan
+  Environment variables
+  Window configurations
+  Exiting O-Plan
+  The oplan-init file
+  Defining a PostScript viewer
+  Pseudo-processes
+  Typing Lisp commands
+  Dealing with Lisp errors
+
+
+What to expect when starting O-Plan
+-----------------------------------
+O-Plan can be run in several different "modes".  Some are intended for
+cases where O-Plan is controlled by another program; others are for
+human use.  See the "command-line arguments" section for information
+on how to specify the mode.  The rest of this document assumes that
+you are running O-Plan in the default way, in which no mode has been
+specified.
+
+When you start O-Plan, a number of windows should appear.  The first
+window to appear displays the names of the currently running parts of
+O-Plan.  This window is described in the "Pseudo-processes" section
+below.
+
+After that, one window will appear for the Task Assigner (TA) and
+one for each of the components of the planner (IM, AM, DM, KP).
+Finally a control panel (CP) window will appear over the top of the
+IM window.
+
+The window in which you typed the "oplan" command will stay
+connected to O-Plan.  When all the other windows have appeared, 
+the prompt "form> " should appear in this window.  You can type
+Lisp commands in this window and consequently it is called the 
+"Lisp interaction window".  For more information see the section
+"Typing Lisp commands" below.
+
+At this point, you can select the first option in the TA window
+("Initialize Planner") and begin to try the examples described in
+the Demonstration Guide.
+
+
+Environment variables
+---------------------
+O-Plan refers to a number of environment variables that are described
+in the User and Installation Guides.  However, it's important to bear
+in mind that you do not need to set OPLANDIR, OPLANTMPDIR or any other
+environment variable in order to run version 3.x.  If you have set
+OPLANDIR (e.g. as a base for setting other variables), the value will
+be ignored by O-Plan.
+
+If you have set any other OPLAN variable (OPLANTMPDIR, OPLANTFDIR,
+etc), the value will be used, or, if you have not provided a value, 
+a reasonable default value will be chosen for you when O-Plan is run.
+The default values are in force only in O-Plan; the values you set
+globally and can see by typing "printenv" will not change.
+
+The only environment variables that most users will want to set are
+OPLANTMPDIR and OPLANTFDIR.  However, even that is unnecessary because
+OPLANTMPDIR defaults to the current directory and the TF directory can
+be changed while running O-Plan by using an option in the TF-file
+menu.
+
+
+Window configurations
+---------------------
+The window configuration is specified by the "-config" argument to
+the "oplan" command.  The default, screen-filling, configuration 
+can also be specified by starting O-Plan as follows:
+
+   oplan -config oplan-planner-default
+
+Smaller windows can be obtained by starting O-Plan with
+
+   oplan -config oplan-planner-small
+
+Note that you do not have to specify a configuration.
+
+
+Exiting O-Plan
+--------------
+The standard way to exit is to use the "quit" option in the Task
+Assigner menu or to press the "quit" button in the control panel
+window.  However, if something has gone wrong, these methods may 
+not work.  In that case, you have several options.
+
+The fastest way to exit is to type control-\ (quit) in the Lisp
+interaction window.  All the other windows should vanish, and Lisp
+will exit, leaving you back at the shell.  This is a "hard exit".
+Lisp may not perform cleanup tasks such as flushing buffered output.
+
+Typing control-c in the Lisp interaction window will also cause all
+other windows to vanish, but in most cases Lisp will not exit.  To get
+out of Lucid Common Lisp, type "(lcl:quit)".
+
+
+The oplan-init file
+-------------------
+When O-Plan starts, it looks for a file named "oplan-init", first
+in the current directory and then in the user's home directory.  If
+the file exists, is is loaded into Lisp.
+
+The oplan-init file can contain (Lisp) commands that customize certain
+aspects of O-Plan.  At present, only a few such customizations are
+defined.  See the "paarameters" section and the section below on
+defining a PostScript viewer.
+
+
+Defining a PostScript viewer
+----------------------------
+One of the plan-view options is "Print graph".  This causes a
+PostScript picture of the current plan nodes and their order
+relationships to be printed on a PostScript printer.  It is
+assumed that the Unix command "lpr" refers to such a printer
+by default.  (That is, "lpr" is called without a "-P" argument
+to select a non-default printer.)
+
+However, a number of PostScript viewers are available, and they
+allow you to display PostScript output on your screen rather than
+waiting for a hardcopy.  It is possible to tell O-Plan of such
+a viewer by defining the :ps-viewer parameter in an oplan-init
+file.  For instance, to use GhostView, you would place the following
+line in your oplan-init file:
+
+(set-parameter :ps-viewer "ghostview -landscape")
+
+When this parameter has a value (it has none by default), a
+"Viewer one page" option will appear in the "Printer format"
+menu (the menu that appears when you select "Print graph"
+as the plan display mode).  Selecting this option will cause
+the viewer to be run.  The viewer is run in the background,
+and O-Plan can continue independently.  However, O-Plan may
+not exit completely until the viewer has exited as well.
+
+If you have difficulty getting a viewer to work, it may help to
+know that the viewer and "lpr" are invoked using the Unix command
+
+  ( viewer tmpfile ; /bin/rm tmpfile )&
+
+where viewer is, e.g., "lpr" or "ghostview -landscape" and tmpfile
+is the name of a temporary file generated by O-Plan.
+
+
+Pseudo-processes
+----------------
+Most of the time, users do not have to know anything about how
+O-Plan works internally.  However, a reasonably accurate model
+of how the system works may make it easier to understand its
+behaviour, especially when something goes wrong.  Since the
+processing model used in version 3.x may not be familiar to all 
+users, this section provides a brief description.  It also serves
+to explain the contents of the "run-lights" window.
+
+An O-Plan agent, such as the planning or execution agents, 
+contains a number of components (Database Manager, Agenda Manager,
+etc) that run in a semi-independent fashion and accomplish certain
+tasks by sending each other messages.  
+
+O-Plan versions 2.x and 3.x run as a single invocation of Lisp as a
+single Unix process.  Version 1 ran as several separate invocations of
+Lisp which communicated via sockets.  Consequently, versions later
+than 1 are sometimes referred to as "single-process" versions.  Using
+only one process has lower communication overheads and is easier to
+manage, but the appearance of independent operation is sometimes less
+complete.
+
+In a single-process O-Plan, each component is implemented as a "pseudo
+process" or "p-process".  They are "pseudo" because, unlike real
+processes, they don't represent an independent thread of control.
+They are more like event handlers.  An agent's main loop calls each
+p-process in turn so long as there is a message for it to handle.
+The p-process usually handles one message and then returns to the
+main loop.
+
+When you start O-Plan, a small one-line window will appear before 
+all of the other windows.  This window is sometimes called the "run
+lights" window.  It displays the names of the parts of O-Plan that
+are currently running or waiting for a running component to return a
+value.  The window has the title "O-Plan Running Processes" and is
+usually placed just below the Task Assignment window.
+
+Ordinarily, only one p-process is active at once and they run 
+in turns in a round-robin fashion.  However, in some cases (such
+as DM requests), one p-process calls another as a subroutine.
+In this case the calling p-process will be shown to the left of
+the one it calls.  For instance, if the DM is running in the
+ordinary way, you'll see:
+
+  +----------------------+
+  |:DM                   |
+  +----------------------+
+
+But if the KP calls the AM and the AM calls the DM before returning,
+you'll see:
+
+  +----------------------+
+  |:KP :AM :DM           |
+  +----------------------+
+
+In this case, only the DM is actually running.  The AM is waiting for
+the DM to return some result, and the KP is waiting for the AM.
+
+Certain things cannot happen while the system is waiting for a
+p-process to return.  In particular, no other p-processes can run.
+So if you press a button in the control panel, or type an expression
+in the Lisp interaction window, or select "Plan View" or "World
+View" in the Task Assigner window, the requested effects may not
+happen immediately.
+
+Whenever O-Plan does not seem to be responding as you'd expect
+when you type something or select a menu entry, you should look
+at the "running processes" to see what part of O-Plan is currently
+running.  You may have forgotten to answer a question or to select
+a menu entry, so that O-Plan is waiting for you to do that before
+going on.
+
+
+Typing Lisp commands
+--------------------
+When you start O-Plan, the window in which you type the "oplan"
+command does not return to the shell prompt.  Instead it functions as
+a read-eval-print loop in which you can type Lisp commands.  It is
+also used for some low-level messages from O-Plan.  This window is
+called the "Lisp interaction window".  Most of the time, you can
+ignore it, but you may have to use it from time to time, e.g. to turn
+on some of the debugging tools.  Any Lisp expression can be typed as a
+command.
+
+It's possible to type commands because there's a (pseudo-)process
+that waits for input from this window and evaluates it when it
+comes.  When you type a command, there may therefore be a delay,
+until the next time this pseudo-process gets to run, before the
+command is evaluated.
+
+Note that if you type some input to the interaction window that
+doesn't amount to a complete Lisp expression, the whole system
+will eventually stop and wait for you to complete the expression.
+In particular, this will happen if you type <return> in the
+interaction window.  You can see that this has happened by looking
+at the one-line "Running processes" window.  If nothing seems to
+be happening, but the :LISP-LISTENER process is running, it may be
+because you have typed some incomplete input.
+
+The listening p-process prints "form> " as a prompt, but the output
+that goes to the interaction window sometimes causes the prompt to go
+off the top of the screen.
+
+If a Lisp error occurs during the evaluation of a command that was
+typed into this window, you can get out of the error "break loop",
+and hence allow O-Plan to continue running, by using a "restart"
+that has been set up for this purpose.  Look for the option that says
+"Return to O-Plan".  You can usually select this option by typing
+":a" or "1".  An example will make this a bit clearer:
+
+   form> (not-a-function)
+   >>Error: The function NOT-A-FUNCTION is undefined
+
+   SYMBOL-FUNCTION:
+      Required arg 0 (S): NOT-A-FUNCTION
+   :C  0: Try evaluating #'NOT-A-FUNCTION again
+   :A  1: Return to O-Plan
+
+   -> :a
+   Return to O-Plan
+   NIL
+   form> 
+
+
+Dealing with Lisp errors
+------------------------
+Lisp errors sometimes occur.  That is, O-Plan or the Lisp system
+sometimes invokes the Lisp error signalling mechanism rather than, say,
+just printing a message.  Unless the error is caused by an erroneous
+command typed into the Lisp interaction window (see above), it's
+usually due to a bug in O-Plan and should be reported.
+
+Your options for dealing with the Lisp error depend on what O-Plan
+was doing when it occurred.
+
+When a Lisp error occurs in the TF compiler, a menu will appear to
+make sure you notice the error.  There will be only one option, "ok".
+Select "ok" to continue.  The TF compiler will exit and report that
+the file contained an error.  That is, a Lisp error is treated as if
+it were a single syntax error that applied to the whole TF file.
+
+When the error occurs in some other part of the planner, there is
+typically no neat way to recover from it, and a more complex menu
+appears.  It will look something like this:
+
+   Lisp error in process <process-name>
+   ------------------------------------
+   Allow the error
+   Return to scheduler
+   Force global reset
+
+<Process-name> will be replaced by the name of the p-process that was
+running when the error occurred: :AM, :DM, :KP, etc.  You should look
+in the window associated with that process to see the error message.
+The meanings of the options are as follows:
+
+   Allow the error
+     Allow Lisp to handle the error.  This will usually result in
+     a "break loop" as described below.  Select this option if you
+     plan to report the bug, because the bug report should include
+     a "backtrace" (also described below).
+
+   Return to scheduler
+     Exit the p-process in which the error occurred so that the
+     system can continue running.  In most cases, this will not
+     work very well, because the p-process in which the error 
+     occurred needed to finish some task that was interrupted by
+     the error.  This sort of recovery can also be attempted from
+     a break loop, as described below (again).
+
+   Force global reset
+     Attempt to reinitialize O-Plan.  This will abandon the attempt
+     to find a plan (or whatever O-plan was doing) and start over as
+     if you had selected the "Initialise planner" option in the TA.
+     It is equivalent to evaluating the Lisp expression (force-reset).
+     It sometimes requires several attempts before it works.
+
+When the Lisp system handles an error, Lisp usually enters a "break
+loop" in one of the O-Plan windows.  Ordinarily, you will see a menu
+first, as desribed above.  In any case, you can tell that Lisp has
+entered a break by the following signs:
+
+  1. O-Plan will stop producing any output.
+  2. The one-line "running processes" window will stop changing.
+  3. There will be an error message in a window associated with
+     the rightmost name in the "running processes" window.
+  4. The window will be displaying the ">" prompt.
+
+The first two can also happen when O-Plan is merely taking a long
+time to do something; the others cannot.
+
+In a break loop, the normal ways of exiting O-Plan by using the
+control panel or the TA menu will not work.  However, you can type
+Lisp debugger commands and Lisp expressions in the the window, after
+the ">" prompt.  Typing
+
+  (exit-oplan)
+
+should cause O-plan to exit.
+
+  (force-reset)
+
+attempts to reset the system by wiping out all pending messages,
+sending itself an :INIT message, and returning to the p-process
+scheduler.
+
+If you're planing to report a bug, you should get a "backtrace"
+before exiting.  It shows the nested Lisp procedure calls that
+led up to the error.  Get a backtrace by typing ":b" after the ">"
+prompt. Grab the resulting output and the error message with the
+mouse and put them both in the bug report.
+
+In some cases you can (and may want to) get O-Plan to continue after an
+error.  This is most likely to be so when the error is in a relatively
+peripheral part of the planner, such as the PW viewer, but it can
+happen in other cases too.
+
+In some cases, the Lisp system will offer you a reasonable way to
+continue from the error, so always look at the options that appear
+after the error message.
+
+Another form of recovery that sometimes makes sense is to get O-Plan
+to abandon its current activity and allow other parts of the system
+to run.  You can accomplish this by selecting "Return to pprocess
+scheduler" from the restart options presented after the Lisp error
+message.
+
+This approach should be tried only when the error occurs during a
+relatively self-contained activity.  An example might be a Lisp error
+when the PlanWorld Viewer tried to display a plan.  By returning
+control the the scheduler, you could get the viewer to abandon this
+attempt This would work fairly well because nothing else in the system
+depends very strongly on the viewer succeeding.  On the other hand, it
+would not work very well if, for instance, the DM ran into an error
+somewhere deep in the TOME/GOST manager.  In such cases, you might try
+typing the command (force-reset) instead.
+
+----------------------------------------------------------------------
+

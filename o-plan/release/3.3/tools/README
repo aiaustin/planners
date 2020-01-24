@@ -1,0 +1,19 @@
+This directory contains software that is not part of O-Plan.
+
+COPYING.LIB-2.0
+
+  GNU Library General Public License Version 2, June 1991.
+
+gcl-2.3.tar.gz
+
+  GNU Common Lisp (GCL) version 2.3.  GCL is distributed under the GNU
+  public library license.  See the GNU file COPYING.LIB-2.0 for a full
+  description of your right to copy this software.
+
+  GCL is an implementation of Common Lisp that is capable of supporting
+  O-Plan once a suitable implementation of CLOS has been added.
+
+public-mc-30-Sep-99.tar.gz
+
+  Micro-CLOS (MC), an implementation of a small subset of CLOS that
+  is sufficient to support O-Plan in GCL 2.3.

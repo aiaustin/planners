@@ -1,0 +1,104 @@
+// Tweet display bubble.
+// Author: Jeff Dalton
+// Last modified 26 Aug 09 by JD
+// Copyright (C) 2009, AIAI, The University of Edinburgh
+
+// Based on http://sl-devcorner.blogspot.com/2007/03/second-life-twitter.html
+
+vector TEXT_COLOR = <1,1,1>;
+
+integer is_bright = 0;
+float saved_alpha = 1.0;
+
+string text = "";
+
+// For llGetLinkNumber(), 0 = not linked, 1 = root, 2 ... = children.
+// The most recently created child will have the lowest link number,
+// but we want it to have the highest child_number (and the 1st created
+// child to have child_number 0).
+
+integer child_number() {
+    integer n = llGetNumberOfPrims() - 1; // mumber of children
+    // n - link_number gives the 1st-created child 1, so we -1 to make it 0:
+    return (n - (llGetLinkNumber() - 2)) - 1;
+}
+
+maybe_save_alpha() {
+    // Do nothing if we've already saved a value < 1.0.
+    if (saved_alpha == 1.0) {
+        float alpha = llGetAlpha(0);
+        // Never save 1.0.  That ensures we don't lose any lower value.
+        if (alpha < 1.0) {
+            saved_alpha = alpha;
+        }
+    }
+}
+
+default
+{
+    state_entry()
+    {
+        llListen(999, "", NULL_KEY, "destroy bubbles");
+    }
+    
+    on_rez(integer start_param)
+    {
+        // Clear the probably obsolete text.
+        text = "";
+        llSetText("", TEXT_COLOR, 1.0);
+        // Seems we can't set the touch text for an individual bubble.
+    }
+    
+    link_message(integer sender_num, integer num, string str, key id)
+    {
+        // child_number = llGetStartParameter();
+        if (num == child_number()) {
+            maybe_save_alpha();
+            if (str != text) {
+                // Text has changed
+                text = str;
+                // Display new text at our normal alpha value
+                llSetText(text, TEXT_COLOR, saved_alpha);
+            }
+        }
+    }
+    
+    touch_start(integer num_detected)
+    {
+        // Save our normal alpha value and go to fully opaque.
+        maybe_save_alpha();
+        llSetAlpha(1.0, ALL_SIDES);
+        llSetText(text, TEXT_COLOR, 1.0);
+
+        // Instant message thr tweet text to every touching avatar.
+        integer i = 0;
+        for(; i < num_detected; ++i) {
+            llInstantMessage(llDetectedKey(i), text);
+        }
+        
+        // Set a timer for when to fade again.
+        llSetTimerEvent(10); // 10 seconds
+    }
+    
+    timer()
+    {
+        llSetTimerEvent(0.0); // disable timer
+        
+        // Go back to our normal alpha value
+        llSetAlpha(saved_alpha, ALL_SIDES);
+        llSetText(text, TEXT_COLOR, saved_alpha);
+    }
+    
+    listen(integer channel, string name, key id, string message)
+    {
+        if (message == "destroy bubbles") {
+            llBreakLink(llGetLinkNumber());
+            while (llGetNumberOfPrims() > 1) {
+                llSleep(1);
+            }
+            llDie();
+        }
+    }
+
+
+}

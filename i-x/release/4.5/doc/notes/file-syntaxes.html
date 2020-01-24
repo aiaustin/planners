@@ -1,0 +1,186 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>File Syntaxes</title>
+  <link rel="stylesheet" href="note-style.css"></link>
+</head>
+
+<!-- Updated: Mon Jan 21 15:32:28 2008 by Jeff Dalton
+-->
+
+<body bgcolor="#ffffff">
+
+
+<h1>File Syntaxes</h1>
+
+Author: Jeff Dalton
+
+
+<h2>Available syntaxes</h2>
+
+<p>I-X agents can handle a number of different text syntaxes
+for data stored in files and similar resources.</p>
+
+<p>There is a general-purpose <a href="../xml-syntax/index.html">
+XML syntax</a> that can be used to represent plans, domains and
+other objects that are meaningful in I-X.  There is also an
+equally general-purpose XML/RDF representation, but it is less
+often used.</p>
+
+There are some specialised syntaxes for domains.  Here are the
+ones that currently have their own documentation:
+<ul>
+  <li><p><a href="ltf-for-domains.html">LTF</a>, a
+      Lisp-like syntax that is easier to read than the XML.</p>
+  </li>
+  <li><p><a href="checklists.html">Checklists</a> that use
+      indentation to indicate subactivities.  (Input only.)</p>
+  </li>
+</ul>
+
+<p>There are also some specialised syntaxes for plans:
+<ul>
+  <li><p>Plans that are only world-state information can be
+      represented as ".init" files.</p>
+  </li>
+  <li><p>Plans can be represented using a
+      <a href="ltf-for-plans.html">variant of LTF domains</a>.</p>
+  </li>
+</ul>
+</p>
+
+<p>The available syntaxes for an I-X agents such as and I-P2
+or an I-Plan are listed near the end of the response to the
+"Help" -&gt; "About ..." menu entry.  The ones available by
+default can be found by using the "-help" argument to the
+<a href="file-translator.html">file translator</a></p>
+
+<p>Example:
+<pre>
+File syntaxes:
+   XML files ("xml")
+   RDF and OWL files ("rdf" "owl")
+      Not available in this agent
+   List-TF files ("lsp" "ltf")
+      Input must be a domain
+      Output must be a domain
+   O-Plan TF files ("tf")
+      Output only
+      Output must be a domain
+   Checklist files as domains ("checklist")
+      Input only
+      Input must be a domain
+   Initial world-state files ("init")
+      Input must be a plan
+      Output must be a plan
+   Plans represented as LTF domains ("lpad")
+      Input must be a plan
+      Output must be a plan
+   Text descriptions of plans ("txt")
+      Output only
+      Output must be a plan
+   OWL-S files ("owls")
+      Not available in this agent
+      Input only
+      Input must be a domain
+</pre></p>
+
+<p>On the input side, the syntaxes are not only for files.
+Any "resource" (URL, or entity in the classpath) can
+be used.</p>
+
+<p>Some syntaxes are restricted to input or to output,
+and some can handle only certain classes of objects.</p>
+
+<p>That a syntax is listed at all means that the corresponding
+syntax description object exists.  For now, at least, there's
+always one for every syntax that has any support.</p>
+
+<p>"Not available in this agent" means either that the I-X code
+that handles that syntax has not been included in the class path
+or that the the necessary imported code is not there.</p>
+
+<p>The applicable syntax is determined by the file "type" or
+"extension" (the bit after the ".").  The type(s) handled
+by each syntax are listed in parentheses after the syntax
+name.  So OWL-S files, for example, must be ".owls".  If they
+are named ".owl" or ".rdf", they won't be read correctly.</p>
+
+<p>(We probably shouldn't allow ".owl" at all -- ".owl" should be
+for ontology definitions, which we can't meaningfully process --
+but it's there for historical reasons, because people were
+saying "owl" for files that were RDF that just happened to
+have an OWL ontology for their class and property names.)</p>
+
+<p>File synaxes also affect the filters in file-choosers.  For
+example, if you're loading a plan, all syntaxes that might
+produce a plan will be individually selectable and are
+available together as "Plan files".</p>
+
+<p>Note that this doesn't mean that the files necessarily contain
+plans.  "xml" and "rdf" files, for example, might contain anything,
+and the only way for I-X to find out is to read them in and see.</p>
+
+
+<h2>Using file syntaxes in Java</h2>
+
+<p>For reasons of history and convenience, file-syntax utilities
+are in the <tt>ix.xml</tt> package (even though they can use
+any available syntax), and many of them are accessible using
+static methods of the
+<a href="../javadoc/index.html?ix/util/xml/XML.html">XML</a> class.</p>
+
+<p><i>This section is incomplete and eventually needs to describe
+FileSyntaxManager and related classes; for now, it discusses only
+basic I/O.</i></p>
+
+
+<h3>Reading from files and URLs; writing to files</h3>
+
+<p>The syntax that is used is determined by the file "type"
+as described above.  For example, "<tt>rescue.ltf</tt>"
+would be handled by the LTF syntax for domains.</p>
+
+<p>At present, objects can be written only to files, but they
+can be read from any "resource", where a resource is specified by a
+file-name, a URL, or the name of a resource that can be obtained from
+the agent's classpath.</p>
+
+<dl>
+
+<dt><tt>XML.readObject(String resourceName)</tt></dt>
+<dd>
+<p>Parses the contents of the specified resource and returns
+a corresponding object.</p>
+</dd>
+
+<dt><tt>XML.readObject(Class&lt;T&gt; desiredClass, String resourceName)</tt></dt>
+<dd>
+<p>Parses the contents of the specified resource and returns
+a corresponding object if it is an instance of the specified class;
+otherwise a ClassCastException is thrown.</p>
+</dd>
+
+<dt><tt>XML.writeObject(Object object, String fileName)</tt></dt>
+<dd>
+<p>Writes a textual representation of the object to the specified file.</p>
+</dd>
+
+</dl>
+
+<p>Examples:
+<pre>
+    Plan p = (Plan)XML.readObject("plan1.xml");
+
+    Plan p = XML.readObject(Plan.class, "plan1.xml");
+
+    Domain d = XML.readObject(Domain.class, "rescue.ltf");
+
+    XML.writeObject(p, "best-plan.xml");
+</pre>
+</p>
+
+
+<hr></hr>
+<small><address>Jeff Dalton &lt;J.Dalton@ed.ac.uk&gt;</address></small>
+</body>
+</html>

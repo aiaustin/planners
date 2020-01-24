@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://www.aiai.ed.ac.uk/project/ix/" xmlns:ix="http://www.aiai.ed.ac.uk/project/ix/">
+  <xs:include schemaLocation="ix.xsd"/>
+  <!-- Hand-written grammar that has patterns for known constraints -->
+  <!-- Redefine constraint to allow any type except "world-state" -->
+  <xs:group name="constraint">
+    <xs:choice>
+      <xs:element name="constraint">
+        <xs:complexType>
+          <xs:all>
+            <xs:element minOccurs="0" name="parameters">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element ref="ix:list"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element minOccurs="0" ref="ix:annotations"/>
+          </xs:all>
+          <xs:attribute name="type" type="xs:string"/>
+          <xs:attribute name="relation" type="ix:symbol-value"/>
+          <xs:attribute name="sender-id" type="ix:name-value"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:group ref="ix:known-constraint"/>
+    </xs:choice>
+  </xs:group>
+  <xs:element name="annotations">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ix:map"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <!-- world-state condition constraint -->
+  <xs:group name="known-constraint">
+    <xs:choice>
+      <xs:element name="constraint">
+        <xs:complexType>
+          <xs:all>
+            <xs:element name="parameters">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="list">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element ref="ix:pattern-assignment"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element minOccurs="0" ref="ix:annotations"/>
+          </xs:all>
+          <xs:attribute name="type" use="required">
+            <xs:simpleType>
+              <xs:restriction base="xs:token">
+                <xs:enumeration value="world-state"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="relation" use="required">
+            <xs:simpleType>
+              <xs:restriction base="xs:token">
+                <xs:enumeration value="condition"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="sender-id" type="ix:name-value"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="constraint">
+        <xs:complexType>
+          <xs:all>
+            <xs:element name="parameters">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="list">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element ref="ix:pattern-assignment"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element minOccurs="0" ref="ix:annotations"/>
+          </xs:all>
+          <xs:attribute name="type" use="required">
+            <xs:simpleType>
+              <xs:restriction base="xs:token">
+                <xs:enumeration value="world-state"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="relation" use="required">
+            <xs:simpleType>
+              <xs:restriction base="xs:token">
+                <xs:enumeration value="effect"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="sender-id" type="ix:name-value"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:choice>
+  </xs:group>
+  <!-- world-state effect constraint -->
+</xs:schema>

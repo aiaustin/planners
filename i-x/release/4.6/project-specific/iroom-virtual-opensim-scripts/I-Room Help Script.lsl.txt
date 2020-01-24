@@ -1,0 +1,916 @@
+// I-X Helper main script
+// Last modified 13 May 09 by JD
+// 4-Aug-2011 to convert to OpenSim by AT
+// Copyright (C) 2007-2011, AIAI, The University of Edinburgh
+
+// This script handles the main behaviour of an I-X Helper.
+// This includes: sensing avatars, issuing greetings, and
+// handling simple activities.
+
+// Modified for new comms and restructured by JD, April 2009.
+
+// SP Pizzicato, Jussi Aya, and Ai Austin 18-Dec-2008
+
+// Based on script by AITommy Jannings 29-May-2007
+
+// If XML-RPC Channel Id is needed to be used in this script then
+// this script must be started before the Comms script is started.
+
+
+//--- Global variables ----------
+
+
+// Script ids for use as link message destinations.
+integer SEND_SCRIPT = 1;
+integer RECEIVE_SCRIPT = 2;
+integer EXEC_SCRIPT = 3;
+integer WAKEUP_SCRIPT = 4;
+
+integer THIS_SCRIPT = 3; //EXEC_SCRIPT;
+
+
+// Labels for on and off state
+string OFF_LABEL = "I-Room Helper (off)";
+string ON_LABEL = "I-Room Helper";
+string CONFIGURING_LABEL = "I-Room Helper (configuring)";
+string ME = "I-Room Helper";
+
+
+// I-X activities
+string START_ACTIVITY = "start";
+string STOP_ACTIVITY = "stop";
+string PROGRESS_REPORT = "activity progressing";
+string COMPLETION_REPORT = "activity completed";
+string INFORMATION_REPORT = "activity information";
+string STARTED_ACTIVITY = "activity started";
+string STOPPED_ACTIVITY = "activity stopped";
+string STATE_CONSTRAINT = "state-constraint";
+
+
+string DISPLAY = "display";
+string STOP = "stop";
+string SAY = "say";
+string READ = "read";
+string DESCRIBE = "describe";
+string INFORM = "inform";
+
+
+string MINUTE = "minute";
+string ACTION = "action";
+string DECISION = "decision";
+string AGENDA = "agenda";
+string TO = "to";
+
+
+string OBJECTS = "objects";
+string AVATARS = "avatars";
+string NOTECARD = "notecard";
+string CAPABILITY = "capability";
+string CHANNEL = "channel";
+string USE_VERB = "use-verb";
+
+
+string True = "true";
+string False = "false";
+
+
+// Demonstration using an object listening on a given channel for commands
+
+
+//integer SCREEN_CHANNEL = 10;
+
+
+string NOTECARD_NAME = "I-Room Setup";
+string DISPLAY_NOTECARD_NAME = "I-Room Display";
+integer num_notecard_lines = 0;
+key notecard_request = NULL_KEY;
+key display_request = NULL_KEY;
+// key http_request_id = NULL_KEY;
+
+
+integer notecard_line = 0;
+list card_data = [];
+list capability_list = [];
+list channel_list = [];
+list display_data = [];
+list display_list = [];
+list use_verb_list = [];
+
+
+// Currently detected avatar
+string avatarname;
+
+
+// List of all visitors greeted
+list visitors;
+
+
+// Scan frequency (seconds) and range (metres)
+float SCAN_FREQ = 5.0;
+integer RANGE = 30;
+
+
+// Communication channel ID
+/// key RPCChannelID;
+/// string CHANNEL_ID_MESSAGE = "cid";
+/// key XML_channel;
+integer channel = 9;
+
+
+// *****
+// * Debug functions
+// *****
+
+// 'traceSay' messages are written to DEBUG_CHANNEL to indicate progress or info,
+// rather than bugs or problems, and are turned off during normal use.
+// 'debugSay' is for messages that should always appear.
+
+integer TRACE = FALSE; // TRUE;
+
+traceSay(string message) {
+    if (TRACE) llSay(DEBUG_CHANNEL, message);
+}
+
+debugSay(string message) {
+    llSay(DEBUG_CHANNEL, message);
+}
+
+
+// *****
+// * Show ON/OFF staus
+// *****
+
+show_off()
+{
+    // No rotation
+    llTargetOmega(<0.0,0.0,0.0>, 0, 0.0);
+    
+    // Set off label
+    llSetText(OFF_LABEL, <1.0,1.0,1.0>, 1);
+    
+    // The next touch should turn the helper on
+    llSetTouchText("Turn On");
+    
+}
+
+show_configuring()
+{
+    llSetText(CONFIGURING_LABEL, <1.0,1.0,1.0>, 1);
+}
+
+show_on()
+{
+    // Start spinning
+    llTargetOmega(<0.0,0.0,1.0>, -1.5, 1.0);
+        
+    // Set on label
+    llSetText(ON_LABEL, <1.0,1.0,1.0>, 1);
+    
+    // The next touch should turn the helper off
+    llSetTouchText("Turn Off");
+
+}
+
+
+// *****
+// * NOTECARD FUNCTIONS
+// * these functions are used to process the associated notecard(s).
+// *****
+
+
+integer is_notecard(string name) // check that that the named inventory item is a notecard
+{
+    integer i = llGetInventoryType(name);
+    return i == INVENTORY_NOTECARD;
+}
+
+
+process_card_data(string cardline){
+    // cardline is a string
+    integer caps = llSubStringIndex(cardline, CAPABILITY);
+    if(caps!=-1){
+        // ie this is a capability description!
+        list templ = llParseString2List(cardline, [" "],[]);
+        capability_list = llListInsertList(capability_list, 
+            [llList2String(templ,1),llList2String(templ,2)],
+            llGetListLength(capability_list));
+    }
+    else{
+        caps = llSubStringIndex(cardline, CHANNEL);
+        if(caps!=-1){
+            list templ = llParseString2List(cardline, [" "],[]);
+            channel_list = llListInsertList(channel_list, 
+                [llList2String(templ,1),llList2String(templ,2)],
+                llGetListLength(channel_list));    
+        }
+        else{
+            caps = llSubStringIndex(cardline, USE_VERB);
+            if(caps!=-1){
+                list templ = llParseString2List(cardline, [" "],[]);
+                use_verb_list = llListInsertList(use_verb_list, 
+                    [llList2String(templ,1),llList2String(templ,2)],
+                    llGetListLength(use_verb_list));
+            }
+        }
+    }
+}
+
+
+process_display_data(string cardline){
+    list temp = llParseString2List(cardline, [" "],[]);
+    display_list = llListInsertList(display_list,
+            [llList2String(temp,0),llList2String(temp,1),llList2String(temp,2),
+            llList2String(temp,3),llList2String(temp,4)],
+            llGetListLength(display_list));
+}
+
+
+
+// *****
+// * LOOKUP FUNCTIONS
+// * the following functions lookup and return values in the various lists generated using
+// * the notecard.
+// *****
+
+
+integer lookup_default_display_channel(){
+    //return (integer)llList2String(card_data,1);
+    // find something with the capability DISPLAY:
+    integer occ = llListFindList(capability_list,(list)DISPLAY);
+    if(occ==-1)
+        // no displayers:
+        return 0;
+    else{
+        string displayer = llList2String(capability_list,occ-1);
+        //llWhisper(0, "using "+displayer+" as default displayer");
+        return lookup_object_channel(displayer);
+    }
+}
+
+
+
+integer lookup_capability_channel(string capa){
+    //llSay(0,(string)capability_list);
+    integer occ = llListFindList(capability_list,(list)capa);
+    if(occ==-1)
+        // none capable - write to channel 0?:
+        return 0;
+    else{
+        string capable = llList2String(capability_list,occ-1);
+        //llWhisper(0, capable +" can perform " +capa);
+        return lookup_object_channel(capable);
+    }
+}
+
+
+string lookup_capable_object(string capa){
+    //llSay(0,(string)capability_list);
+    integer occ = llListFindList(capability_list,(list)capa);
+    if(occ==-1)
+        // none capable - write to channel 0?:
+        return "";
+    else{
+        string capable = llList2String(capability_list,occ-1);
+        //llWhisper(0, capable +" can perform " +capa);
+        return capable;
+    }
+}
+
+
+integer lookup_verb_use(string name){
+    integer occ =  llListFindList(use_verb_list,(list)name);
+    if(occ==-1)
+        // no pattern; assume we keep verb:
+        return TRUE;
+    else{
+        string useverb = llList2String(use_verb_list,occ+1);
+        if(useverb==False)
+            return FALSE;
+        else
+            return TRUE;
+    }  
+}
+
+
+integer lookup_object_channel(string name){
+    //llWhisper(0, "Request for channel of "+name+" "+(string)channel_list+" "+(string)capability_list);
+    integer occ = llListFindList(channel_list,(list)name);
+    if(occ==-1)
+        return 0;
+    else
+        return (integer)llList2String(channel_list,occ+1);
+        
+}
+
+
+string lookup_display_info(string name){
+    integer occ = llListFindList(display_list,(list)name);
+    if(occ==-1)
+        return "";
+    else
+        return llDumpList2String(llList2List(display_list,occ+1,occ+4)," ");
+}
+
+
+
+// *****
+// * SEND FUNCTIONS
+// * these functions generate the appropriate content for various messages that
+// * are to be sent back (by the comms script) to the I-X panel.
+// *****
+
+// /\/: We should allow more informative completion reports -- for instance
+// indicating which activity was completed in case they're all going to the
+// same "Note other reports" activity -- and let the usual I-X conventions
+// set the report-type.
+
+send_constraint(string attribute, string object, string value)
+{
+    llMessageLinked(LINK_THIS, SEND_SCRIPT, 
+               STATE_CONSTRAINT+" "+attribute+" "+object+" = "+value, NULL_KEY);
+}
+
+send_report(string text)
+{
+    llMessageLinked(LINK_THIS, SEND_SCRIPT, text, NULL_KEY);
+}
+
+send_completion_report()
+{
+    llMessageLinked(LINK_THIS, SEND_SCRIPT, COMPLETION_REPORT, NULL_KEY);
+}
+
+
+send_progress_report()
+{
+   llMessageLinked(LINK_THIS, SEND_SCRIPT, PROGRESS_REPORT, NULL_KEY);
+}
+
+
+send_information_report(string contents)
+{
+   llMessageLinked(LINK_THIS, SEND_SCRIPT, INFORMATION_REPORT+" "+contents, NULL_KEY);
+}
+
+
+// *****
+// * Commands / our own capabilities
+// *****
+
+do_display(list message, integer len) {
+
+    integer schannel;
+    string url;
+    integer useverb = 1;
+            
+    if (len==2) {
+        // if 2 items, second term is url
+        schannel = lookup_default_display_channel();
+        url = llList2String(message,1);
+    }
+    if (len==3) {
+        // if 3 items, second term is screen-name, third is url
+        string objectname = llList2String(message,1);
+        schannel = lookup_object_channel(objectname);
+        useverb = lookup_verb_use(objectname);
+        url = llList2String(message,2);
+    }
+    //llSay(0,verb + " " + (string) schannel+ " "+ url);
+    // url may not be an url...
+            
+    string dispinfo = lookup_display_info(url);
+    //llSay(0, "looked-up display info, found: "+dispinfo);
+    if (dispinfo=="") {
+        if (useverb==TRUE) {                    
+            llSay(schannel,"display "+url);
+            llSay(schannel,"set label "+url);
+        }
+        else
+            llSay(schannel, url);
+        // Used to read display card, if any.  /\/
+    }
+    else {
+        if (useverb==TRUE) { // should never really be anything else here
+            llSay(schannel,"display "+dispinfo);
+            llSay(schannel,"set label \""+url+"\"");
+        }
+        else
+            llSay(schannel, dispinfo);
+    }
+
+}
+
+do_inform(string whole_message) {
+    // this is information about the display contents...
+    // use semicolon as conventional separator:
+    // (note - still includes verb!)
+    list inmessage = llParseString2List(whole_message, [":"], []);
+    integer nlines = llGetListLength(inmessage);
+    integer i=0;
+    //string temp;
+    display_list = [];
+    for(; i<nlines; i++) {
+        // want to process each line in turn:
+        if (i>0)
+            process_display_data(llList2String(inmessage,i));
+        else {
+            string temp = llList2String(inmessage,i);
+            temp = llGetSubString(temp,llStringLength(INFORM),llStringLength(temp));
+            process_display_data(temp);
+        }              
+    }
+}
+
+do_say(list message, integer len) {
+    // remove verb:
+    message = llDeleteSubList(message,0,0);
+    // is the next item an escaped forward slash (indicating channel)?
+    string next = llList2String(message,0);
+    //if (next == "\\\\") {
+    if (llSubStringIndex(next,"/")==0) { 
+        //message = llDeleteSubList(message,0,0);
+        //integer chan = llList2Integer(message,1);
+        integer chan = (integer) llGetSubString(next,1,llStringLength(next));
+        message = llDeleteSubList(message,0,0);
+        //llSay(0, "Saying "+ llDumpList2String(message," ") +" on channel "+ (string)chan);
+        llSay(chan,llDumpList2String(message," "));
+    }
+    else
+        // simply echo the message:
+        llSay(0,llDumpList2String(message," "));
+}
+
+do_read(list message, integer len) {
+    string what = llList2String(message, 1);
+            
+    if (what == NOTECARD) { 
+        // want to reset capability lists and re-read the notecard...
+        card_data = [];
+        capability_list = [];
+        channel_list = [];
+        notecard_request = NULL_KEY;
+        notecard_line = 0;
+        num_notecard_lines = 0;
+        // ask for the number of lines in the card
+        notecard_request = llGetNumberOfNotecardLines(NOTECARD_NAME);
+        
+         // if we don't hear back in 5 secs, then the card might have been empty
+        llSetTimerEvent(5.0);
+    }
+    
+}
+
+do_describe(list message, integer len) {
+    string what = llList2String(message,1);
+    if (what == CAPABILITY) {
+        llSay(0, ME + " is able to do the following: "+ SAY +", "+ DESCRIBE +", "+ INFORM +", "
+            +READ+", "
+            + MINUTE +", "+ DECISION+", "+ACTION+", "+AGENDA); 
+        string caps = "";
+        integer i;
+        for (i=0; i < llGetListLength(capability_list); i=i+2)
+            caps += llList2String(capability_list,i+1)+", ";
+        //llSay(0,"knows about the following objects: " + llDumpList2String(capability_list, " "));
+        if (caps =="")
+            llSay(0, ME + " knows about no capabilities.");
+        else
+            llSay(0, ME +" knows about objects with the following capabilities: "+caps);
+    }
+    else if (what == OBJECTS) {
+        string objs = "";
+        integer i;
+        for (i=0; i < llGetListLength(capability_list); i=i+2)
+            objs += llList2String(capability_list,i) 
+                + "(capability: "+llList2String(capability_list,i+1)+") ";
+        //llSay(0,"knows about the following objects: " + llDumpList2String(capability_list, " "));
+        if(objs =="")
+            llSay(0, ME + " knows about no objects.");
+        else
+            llSay(0, ME +" knows about the following objects: "+objs);
+    }
+    else if (what == AVATARS) {
+        llSay(0,ME + " knows the following avatars are nearby: " + llDumpList2String(visitors, " "));
+        integer i;
+        for (i=0; i < llGetListLength(visitors); i++) {
+            string visitor = llList2String(visitors,i);
+            send_constraint("present", "\""+visitor+"\"", "true");
+        }
+        send_constraint("number-present", "i-room", (string)llGetListLength(visitors));
+    }
+    else if (what == DISPLAY) {
+        llSay(0,ME+" knows about the following display elements: "+llDumpList2String(display_list," "));
+    }
+            
+}
+
+do_minute(list message, integer len) {
+    if (llGetListLength(message)>1) {
+        // minute <minute contents>
+        string what = llDumpList2String(llDeleteSubList(message,0,0)," ");
+        llSay(0,ME+ " minuting \""+what+"\"");
+        send_information_report(MINUTE+" "+what);
+    }
+    else
+        llSay(0,"Ill-formed minute - should be \""+MINUTE+" <minute contents>\"");
+}
+
+do_decision(list message, integer len) {
+    if (llGetListLength(message)>1) {
+        // minute <minute contents>
+        string what = llDumpList2String(llDeleteSubList(message,0,0)," ");
+        llSay(0,ME+ " recording decision: \""+what+"\"");
+        send_information_report(DECISION+" "+what);
+    }
+    else
+        llSay(0,"Ill-formed decision - should be \""+DECISION+" <decision contents>\"");
+}
+
+do_agenda(list message, integer len) {
+    if (llGetListLength(message)>1) {
+        // minute <minute contents>
+        string what = llDumpList2String(llDeleteSubList(message,0,0)," ");
+        llSay(0,ME+ " recording agenda item for next meeting: \""+what+"\"");
+        send_information_report(AGENDA+" "+what);
+    }
+    else
+        llSay(0,"Ill-formed agenda info - should be \""+AGENDA+" <decision contents>\"");
+}
+
+do_action(list message, integer len) {
+    if (llGetListLength(message)>3) {
+        // action <avatar-forename avatar-surname> <action>
+        string av = llDumpList2String(llList2List(message,1,2)," ");                          
+        integer ai = llListFindList(visitors,[av]);
+        if (ai==-1)
+            llSay(0, "Note: "+av+" is not present - recording action anyway!");
+        //else{
+            string what = llDumpList2String(llDeleteSubList(message,0,2)," ");
+            llSay(0, ME+" noting action on "+av+": \""+what+"\"");
+            send_information_report(ACTION + " "+llDumpList2String(llDeleteSubList(message,0,0)," "));
+        //}
+    }
+    else
+        llSay(0,"Ill-formed action - should be \""+ACTION+" <avatar-forename avatar-surname> <action>\"");
+}    
+
+
+// *****
+// * STATES
+// * these define the behaviour of the Helper object.
+// *****
+
+
+// Entry state for script. Wait to be switched on.  Acts also as off state
+default
+{
+    state_entry()
+    {
+        // Show that we're off.
+        show_off();
+        
+        // Always start with empty list of visitors.
+        visitors = [];
+    }
+
+    on_rez(integer start_param) {
+        // every time we're rezzed, reset the script
+        // this ensures that all local variables are set afresh
+        llResetScript();
+    }
+    
+    link_message(integer sender_prim, integer num, string stringValue, key id)
+    {
+        if (num == THIS_SCRIPT)
+        {
+            if (stringValue == START_ACTIVITY)
+            {
+                send_report(STARTED_ACTIVITY);
+                state startup;
+            }
+        }
+    }
+    
+    // Start robot behaviour by touching it, 
+    // if one of the touches is in same group as object.
+    touch_start(integer num)
+    {
+        integer i = 0;
+        for(; i < num; i++)
+        {
+            if (llSameGroup(llDetectedKey(i)))
+            {
+                state startup;
+            }
+        }
+    }
+    
+}
+
+state startup
+{
+    
+    state_entry()
+    {
+        // show_on(); // wait 'till we're really working /\/
+        show_configuring();
+        
+        visitors = [];
+                
+        // check notecard exists:
+        if (!is_notecard(NOTECARD_NAME))
+        {
+            state notecard_error;
+        }
+        else {
+            traceSay("Parsing notecard: " + NOTECARD_NAME);
+            capability_list = [];
+            channel_list = [];
+            notecard_request = NULL_KEY;
+            notecard_line = 0;
+            num_notecard_lines = 0;
+            // ask for the number of lines in the card
+            notecard_request = llGetNumberOfNotecardLines(NOTECARD_NAME);
+            // if we don't hear back in 5 secs, then the card might have been empty
+            llSetTimerEvent(5.0);
+        }   
+    }
+    
+    on_rez(integer start_param) {
+        // every time we're rezzed, reset the script
+        // this ensures that all local variables are set afresh
+        llResetScript();
+    }
+    
+    timer()
+    {
+        llSetTimerEvent(0.0);
+        state notecard_error;
+    }
+    
+    dataserver(key query_id, string data){
+        if(query_id == notecard_request)
+        {
+            llSetTimerEvent(0.0);
+            if(data == EOF)
+            {
+                state sensing;
+            }
+            else if (num_notecard_lines==0)
+            {
+                num_notecard_lines = (integer) data;
+                notecard_request = llGetNotecardLine(NOTECARD_NAME, notecard_line);
+            }
+            else
+            {
+                if(data != "" && llGetSubString(data, 0, 0) != "#")
+                {
+                    // original SL memory opt.   card_data = (card_data = []) + card_data + data;
+                    card_data =  data;
+                    process_card_data(data);
+                }
+                ++notecard_line;
+                notecard_request = llGetNotecardLine(NOTECARD_NAME, notecard_line);
+            }
+        }
+        //llWhisper(0,"read "+ (string)(notecard_line) + " of " + (string)num_notecard_lines + " lines");
+    }
+
+}
+
+
+state notecard_error
+{
+    state_entry()
+    {
+        debugSay("something went wrong; try checking that the notecard [ " + NOTECARD_NAME + " ] exists and contains data");
+        llResetScript();
+    }
+    changed (integer change)
+    {
+        if (change & CHANGED_INVENTORY)
+        {
+            llResetScript();
+        }
+    }
+}
+
+
+
+// Sense surrounding area and greet new visitors.
+state sensing
+{
+    state_entry()
+    {
+        traceSay("Starting sensing");
+        show_on();
+        // Repeatedly sense every 20secs for 10mts for avatars.
+        llSensorRepeat( "", "", AGENT, RANGE, PI, SCAN_FREQ );
+        llListen(channel,"","","");
+    }
+    
+    on_rez(integer start_param) {
+        // every time we're rezzed, reset the script
+        // this ensures that all local variables are set afresh
+        llResetScript();
+    }
+    
+    sensor(integer total_number)
+    {  
+        //llShout(0,"Visitors = "+(string)visitors);
+        integer i = 0;
+        integer changed_flag = 0;
+        // store old list of visitors and reset list:
+        list old_visitors = visitors;
+        visitors = [];
+        
+        for(i=0; i < total_number; i++)
+        {
+            avatarname = llDetectedName(i);
+            // add to list of current visitors:   
+            visitors += [avatarname];
+            
+            integer index = llListFindList( old_visitors, [avatarname] );
+
+
+            // Only greet new visitors.
+            if ( index == -1 )
+            {
+                // Stop sensing for avatars
+                //llSensorRemove();
+                
+                // Greet visitor!
+                llSay(0, "Hello, " + avatarname + ", welcome!");
+                
+                // Send activity progress report
+                //llMessageLinked(LINK_THIS, 0, PROGRESS_REPORT+avatarname, NULL_KEY);
+                
+                 send_constraint("present", "\""+avatarname+"\"", "true");
+                 changed_flag = 1;
+            }
+
+
+        }
+
+
+        for(i=0; i < llGetListLength(old_visitors); i++) {
+            string oldv = llList2String(old_visitors,i);
+            if (llListFindList(visitors,[oldv])==-1) {
+                // ie if an avatar in old_visitors is not in (current) visitors:
+                llShout(0,"Goodbye "+oldv+"!");
+                send_constraint("present", "\""+oldv+"\"", "false");
+                changed_flag = 1;
+            }
+        }
+        
+        if (changed_flag==1) {
+            send_constraint("number-present", "i-room", (string)total_number);
+            changed_flag = 0;
+        }
+        
+    }
+    
+    no_sensor() {
+        // nothing close:
+        integer i;
+        integer vn = llGetListLength(visitors);
+        for (i=0;i<vn;i++) {
+            string oldv = llList2String(visitors,i);
+            llShout(0,"Goodbye "+oldv+"!");
+            send_constraint("present", "\""+oldv+"\"", "false");
+        }
+        // this should only trigger the first time no_sensor is invoked after
+        // avatars have all left.
+        if (vn>0) {
+            send_constraint("number-present", "i-room", (string)0 );
+        }
+        visitors = [];
+    }
+    
+    listen(integer channel, string name, key id, string message)
+    {
+        llMessageLinked(LINK_THIS, 0, message, id);  // <-- note the zero
+    }
+    
+    link_message(integer sender_prim, integer n_value, string strValue, key id)
+    {
+        if (n_value == THIS_SCRIPT || n_value == 0) {
+    
+            integer report_back = (n_value == THIS_SCRIPT);
+            
+            //llSay(0,"link message: "+strValue);
+            list message = llParseString2List(strValue, [" ","|"], []);
+            string verb = llList2String(message,0);
+            integer len = llGetListLength(message);
+        
+            if (strValue == STOP_ACTIVITY) {
+                if (report_back)
+                    send_report(STOPPED_ACTIVITY);
+                // Transition back to initial (off) state
+                state default;
+            }
+            else if (verb == DISPLAY)  do_display(message, len);
+            else if (verb == INFORM)   do_inform(strValue);
+            else if (verb == SAY)      do_say(message, len);
+            else if (verb == READ)     do_read(message, len);
+            else if (verb == DESCRIBE) do_describe(message, len);
+            else if (verb == MINUTE)   do_minute(message, len);
+            else if (verb == DECISION) do_decision(message, len);
+            else if (verb == AGENDA)   do_agenda(message, len);
+            else if (verb == ACTION)   do_action(message, len);
+            else {
+                // unrecognised verb - does anything have this capability?
+                // 24-Nov-08 replaced this:
+                // integer chan = lookup_capability_channel(verb);
+                // llSay(chan, strValue);
+                string capableobject = lookup_capable_object(verb);
+                if (capableobject != "") {
+                    // found some object!
+                    integer chan = lookup_object_channel(capableobject);
+                    integer useverb = lookup_verb_use(capableobject);
+                    if (useverb==FALSE)
+                        // remove verb (ie first element), and dump to string:
+                        llSay(chan, llDumpList2String(llDeleteSubList(message,0,0)," "));
+                    else
+                        // default behaviour - pass on whole message:
+                        llSay(chan, strValue);
+                    }
+                else
+                    // no capable object known - announce on open channel:
+                    llSay(0, strValue);
+            }
+            if (report_back)
+                // send completion_report iff this is a remote call...
+                send_completion_report();   
+        }
+    }
+    
+    dataserver(key query_id, string data){
+        if(query_id == notecard_request)
+        {
+            llSetTimerEvent(0.0);
+            if(data == EOF)
+            {
+                state sensing;
+            }
+            else if (num_notecard_lines==0)
+            {
+                num_notecard_lines = (integer) data;
+                notecard_request = llGetNotecardLine(NOTECARD_NAME, notecard_line);
+            }
+            else
+            {
+                if(data != "" && llGetSubString(data, 0, 0) != "#")
+                {
+                    // original SL memory opt.   card_data = (card_data = []) + card_data + data;
+                    card_data =  data;
+                    process_card_data(data);
+                }
+                ++notecard_line;
+                notecard_request = llGetNotecardLine(NOTECARD_NAME, notecard_line);
+            }
+            //llWhisper(0,"re-read "+ (string)(notecard_line) + " of " + (string)num_notecard_lines + " lines");
+        }
+        else if(query_id == display_request)
+        {   // this works but is not currently used...
+            llSetTimerEvent(0.0);
+            if(data == EOF)
+            {
+                state sensing;
+            }
+            else if (num_notecard_lines==0)
+            {
+                num_notecard_lines = (integer) data;
+                display_request = llGetNotecardLine(DISPLAY_NOTECARD_NAME, notecard_line);
+            }
+            else
+            {
+                if(data != "" && llGetSubString(data, 0, 0) != "#")
+                {
+                    // original SL memory opt.  display_data = (display_data = []) + display_data + data;
+                    display_data =  data;
+                    process_display_data(data);
+                }
+                ++notecard_line;
+                display_request = llGetNotecardLine(DISPLAY_NOTECARD_NAME, notecard_line);
+            }
+            //llWhisper(0,"re-read "+ (string)(notecard_line) + " of " + (string)num_notecard_lines + " lines");
+        }
+
+    }
+
+    // Stop robot behaviour by touching it, 
+    // if one of the touches is in same group as object.
+    touch_start(integer num)
+    {
+        integer i = 0;
+        for(; i < num; i++)
+        {
+            if ( llSameGroup(llDetectedKey(i)) )
+            {
+                state default;    
+            }
+        }
+    }
+    
+
+}

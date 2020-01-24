@@ -1,0 +1,2000 @@
+Title:   The O-Plan TA Interface
+Author:  Jeff Dalton <J.Dalton@ed.ac.uk>
+Created: January 1997
+Updated: Mon Feb 14 05:33:03 2000 by Jeff Dalton
+
+
+                      The O-Plan TA Interface
+                      -----------------------
+
+Contents:
+ * Introduction
+ * Ways of running O-Plan
+    - The default
+    - Connect mode
+    - Server mode
+    - Subroutine mode
+ * Messages in the TA interface
+    - Introduction
+    - Agent
+    - Planning
+    - Authority
+    - Planning parameters
+    - Questions from O-Plan
+    - Options
+ * Subroutine mode
+    - Introduction
+    - Advantages
+ * Functions in the program interface
+    - Introduction
+    - Sending and receiving
+    - Planning
+    - Authority
+    - Requests for plan information
+    - Component output
+    - Timeouts
+    - Etc
+ * Program interface examples
+    - A program that finds and draws a plan
+    - The plan-for function
+    - The plan-by-levels function
+    - The generate-plans-as-options function
+
+
+Introduction
+------------
+
+This document describes the task-assignment interface to O-Plan.  This
+interface is used internally by the simple menu-based "TA" component
+that's supplied with O-Plan.  It can also be used by a program that is
+exchanging messages with an O-Plan agent running as a separate Unix
+process (here O-Plan is running in "connect mode"), and by Common Lisp
+code running in the same Lisp as O-Plan and calling O-Plan as a
+subroutine (here O-Plan is running in "subroutine mode").
+
+In effect, we will end up describing two interfaces: the messages that
+are sent to, and received from, O-Plan (the TA interface); and the Lisp
+functions that can be called in subroutine mode (the program interface).
+Some of those functions are just for sending and receiving messages;
+others perform higher-level operations but send and receive messages
+internally; still others control aspects of the subroutine mode
+environment or affect O-Plan in ways that do not involve messages.
+
+Since the program interface uses the TA interface, we will describe
+the TA interface first.  Before that, we will describe how to run
+O-Plan in connect and subroutine modes.
+
+This document is meant to be read through from the beginning, though
+it can also be used for reference.  A "quick reference" is also 
+available.  See doc/ta-interface-quick-reference.
+
+Note that the phrase "the TA" sometimes refers to the simple
+menu-based component mentioned above but usually means the task-
+assignment agent more generally: either that component, or an
+external agent (whether human or software), or the controlling
+procedure in subroutine mode.
+
+
+Ways of running O-Plan
+----------------------
+
+The default
+-----------
+The usual way to run O-Plan:
+
+  oplan
+
+In this case, O-Plan puts up a number of windows, including a TA
+window that can be used for task assignment.  (This is the "simple
+menu-based component" mentioned above.)  If you'd like, you can use
+the pprocess single-stepper to see what the TA is doing behind the
+scenes.  It's easier to deal with the single-stepper when it's just
+tracing what happens without pausing after each event for you to tell
+it what to do; so that's what I'll describe.  Type the following in
+the Lisp-interaction window:
+
+  (step-pprocesses)
+
+  (watch-pprocess :trace :ta)
+
+Now use O-Plan in the usual way.  The trace output will appear in the
+Lisp-interaction window.  Note that a message M from the TA becomes
+(:input M) before it appears in the trace as a message to the IM.
+
+
+Connect mode
+------------
+To run O-Plan in connect mode, use the command-line argument "-connect".
+You can also control whether or not O-Plan puts up windows; and you
+can say "-no -windows" either before or after "-connect".  The order
+is significant.  Here are the standard variations:
+
+  oplan -connect
+
+     O-Plan runs as usual except that no TA window is created and
+     the Lisp-interaction window is not the window in which you ran
+     O-Plan.  Instead a new interaction window is created, and you
+     have to position it by hand.
+
+  oplan -connect -no -windows
+
+     The usual windows are not created but the new Lisp-interaction
+     window is.  Output that would normally go to the windows associated
+     with the various components (the DM, AM, etc) goes to the interaction
+     window instead.
+
+  oplan -no -windows -connect
+
+     No windows are created.  This is "non-interactive connect mode".
+     There is no place for the component output to go, so none is
+     produced.  (The output levels of all components are set to :none).
+     Moreover, O-Plan assumes that there is no (human) user to 
+     answer questions or to say what to do about Lisp errors.
+
+     Lisp errors are dealt with by sending a message to the TA.
+     Some errors are fatal and cause O-Plan to exit.  Others cause
+     O-Plan to reinitialize itself.  (This is a pain, because all
+     domain and task information is lost, along with any plans or
+     options).  Still other errors are "harmless" and are merely
+     reported.  The TA can tell which sort of error occurred by
+     looking at the message.  The three message forms are:
+
+       (:fatal-error    error-type message-string)
+       (:error          error-type message-string)
+       (:harmless-error error-type message-string)
+
+     For example, if O-Plan receives "(:mistake)", it will send
+
+       (:harmless-error invalid-command
+           "There is no :mistake knowledge source.")
+
+     Note that the non-interactive behaviour regarding errors can
+     be obtained in the other connect-mode cases by explicitly
+     specifying "-not -interactive" on the command-line.
+
+In all variations on connect mode, the standard input and output of
+the Lisp process are used for communication with the TA.  The TA might
+be you, if you've run O-Plan by typing one of the commands above in a
+window, or a program.
+
+If you ran O-Plan in a window, you can send a message to O-Plan by
+typing it in the window.  Any messages from O-Plan will be printed in
+that same window.  Programs see the same sort of behaviour on the
+pipes they have connected to O-Plan's standard input and output.
+
+When O-Plan starts up in connect mode, it might print various things.
+Normally, it doesn't.  But the Lisp implementation might insist, or
+something might go wrong.  In any case, once O-Plan thinks it is up
+and in control of its output, it prints a "ready message" that looks
+like this: <<<Ready>>>
+
+The message should appear on a line of its own, with a newline before
+it and another one after it.  Any output before the ready message
+indicates a possible problem and should be reported by the TA,
+(in whatever way the TA reports problems), if the TA is a program.
+
+After the ready message, the TA should see only proper messages
+(modulo bugs).  The messages themselves are described in a later
+section, below.
+
+Most Lisp implementations have some way to run a program and obtain
+a stream connected to the programs's standard input and output.
+(In C, a combination of fork and exec would be used.)
+
+For example, in Lucid Common Lisp, O-Plan could be run as a separate
+process by calling run-program:
+
+  (lcl:run-program "oplan"
+                   :arguments '("-no" "-windows" "-connect")
+                   :input :stream
+                   :output :stream
+                   :wait nil)
+
+Run-program would return an io-stream that could be used for
+communication with O-Plan.  The first step would be to read from
+the stream, looking for "<<<Ready>>>".  After that, messages could
+be sent to O-Plan by writing to the stream, and messages from 
+O-Plan could be received by reading from it.  Ordinary Common Lisp
+I/O can be used.  However, when sending a message it's important
+that the entire message is actually sent, rather than languishing
+in a buffer.  In Common Lisp, this can be accomplished by calling 
+force-output or finish-output.
+
+
+Server mode
+-----------
+Server mode is a variant of connect mode.  A program that wishes to
+use O-Plan in connect mode must run O-Plan itself, but in some cases,
+it is more convenient if O-Plan can be run separately, so that a
+program can connect to it later on.  "Server mode" takes this one
+step further by providing a daemon, or server, that creates new
+instances of O-Plan on demand.
+
+When O-Plan is run in server mode, it creates an Internet domain
+socket bound to a specified port.  A program that connects to that
+port obtains a communication channel to a new insteance of O-Plan that
+runs in non-interactive connect mode as if the command-line arguments
+"-no -windows -connect" had been used.
+
+To run O-Plan in server mode, use the "-server" command-line argument.
+You may specify the port number by using "-port".  For example:
+
+  oplan -server -port 5000
+
+If no "-port" is specified, it defaults to 5040.
+
+At present, server mode is available only when O-Plan is built using
+GNU Common Lisp.
+
+
+Subroutine mode
+---------------
+To run O-Plan in subroutine mode, use the "-subr" command-line argument,
+like this:
+
+  oplan -subr
+
+As in connect mode, there is no TA window.  The other windows will (by
+default) appear, as usual.  The window used to run O-Plan (or, looking
+at it another way, the standard input and output of the Lisp process)
+will be used for Lisp interaction.  That is, a read-eval-print loop
+will use it for reading expressions to evaluate, and printing results.
+
+But this is _not_ the usual O-Plan read-eval-print loop.  The usual
+loop is part of O-Plan, and when that loop is waiting for an
+expression, O-Plan keeps running.  _This_ loop is one from which
+you can call O-Plan as a subroutine.  When _this_ loop is waiting
+for an expression, O-Plan is not running.  (More precisely, the
+main part of O-Plan is not running.  Some O-Plan code is running,
+of course, in particular the code that implements subroutine mode.)
+
+In any case, from this read-eval-print loop, it's possible to call
+various Lisp functions that run O-Plan for a while, until O-Plan
+returns a result.  For instance,
+
+  (plan-for "house-1" "task_build_house")
+
+would get O-Plan to produce a plan for "task_build_house" in the
+"house-1" domain.  
+
+This way of using subroutine mode is ok for a person, but not very
+suitable for a program.  The read-eval-print loop usually prints a
+prompt when it is ready for an expression (it depends on the Lisp
+implementation), error messages may be printed, and so on.  But
+there are some other command-line arguments that change how subroutine
+mode works:
+
+  -no -windows
+
+     Do not put up the usual component (IM, DM, etc) windows.
+
+  -not -interactive
+
+     There is no (human) user to answer questions or say what
+     to do about Lisp errors.
+
+  -lisp
+
+     Equivalent to "-no -windows -subr".
+
+  -noinit
+
+     Do not load any oplan-init file.
+
+  -load filename
+
+     Load the indicated file.  Note that the actual file name probably
+     ends in ".lsp", and if it's been compiled there is also a ".o"
+     or ".sbin" (or whatever) object file.   If only one of the source
+     file or object file exists, it is loaded.  Otherwise, the most
+     recently modified of the two is loaded.
+
+  -load-system name
+
+     Load the indicated system, where the system is either one that's
+     provided with O-Plan (though not loaded when O-Plan is built) or
+     else a new system defined using O-Plan's defsystem.
+
+  -do expression
+
+     Evaluate the expression after successfully entering subroutine
+     mode, then exit.  All the "-do" does directly is set the value
+     of the :do parameter to be the expression.  When O-Plan starts
+     up in subroutine mode, it checks that parameter.  If the :do
+     parameter has a value, it is evaluated; otherwise break is
+     called to enter a read-eval-print loop.  When the evaluation
+     or the loop returns, Lisp exits.
+
+It doesn't matter where "-subr" is relative to the other command-line
+arguments.
+
+For example, a program might run O-Plan as follows:
+
+  oplan -not -interactive -no -windows -subr \
+        -load web-demo-support -do "(web-demo)"
+
+Indeed, that is roughly what the O-Plan CGI Web demos do.  The
+web-demo-support file defines the function web-demo which is then
+called when the value of the :do parameter is evaluated.  The web-demo
+function then calls plan-for or some other functions in the program
+interface.
+
+If the command above looks excessively complex, remember that you can
+always write a shell script that supplies some or all of the command-
+line arguments.  For example:
+
+----------------------------------------------------------------------
+#!/local/bin/bash
+
+# This script is used to run O-Plan in non-interactive subr mode.
+# It inserts some standard command-line arguments and also sets a
+# time limit.
+
+ulimit -St 180  # soft limit: 3 minutes
+
+exec oplan -not -interactive -no -windows -subr "$@"
+----------------------------------------------------------------------
+
+If that script were called "oplan-subr", you could then write:
+
+  oplan-subr -load web-demo-support -do "(web-demo)"
+
+
+So, to summarize, the two main ways of using O-Plan in subroutine mode
+are to:
+
+  1. Run it "by hand" without "-do", by typing a command in a shell
+     window; and then use the read-eval-print loop to call functions
+     that, in turn, call O-Plan.  For some purposes, this is the
+     easiest way to use O-Plan.  You may want to have the usual
+     windows, or to suppress them by using "-no -windows".  You
+     may also want to "-load" some Lisp code.  You may want to
+     write a shell script that supplies some of the command-line
+     arguments for you.
+
+  2. Run O-Plan from a program (which might just be a shell script),
+     using command-line arguments that "-load" some code and specify
+     an expression using "-do".  Since you want O-Plan to start up,
+     do something, then exit, you will probably not want the usual
+     windows ("-no -windows") and you will probably want it to be
+     "-not -interactive".  This is how the CGI Web demos work.
+
+What remains is to describe the functions available in subroutine
+mode.  That is done in a separate section, below.  First, however,
+we must consider the messages in the TA interface, because they
+are also used in subroutine mode.
+
+
+Messages in the TA interface
+----------------------------
+
+Introduction
+------------
+The message syntax is a subset of the Common Lisp syntax for data.
+A message is a list: (id arg...).  The id must be a keyword --
+a name prefixed by ":".  The arguments could be anything that Common
+Lisp can read, but at present are confined to keywords, symbols,
+numbers, and strings, possibly in sublists.
+
+For many messages sent by the TA to O-Plan, O-Plan will send a message
+in reply.  The TA can often regard the message it sends as a function
+call, and the reply as returning a result.  But that's not quite how
+things appear to O-Plan, so some care is needed.
+
+O-Plan is agenda-driven.  When a message M is received, it is converted
+to an agenda entry, AE(M), and placed on an agenda.  There may already
+be other things on the agenda, and some of them may have higher priority
+than then AE(M).  Eventually, AE(M) is selected for processing and
+is given to a knowledge source.  That knowledge source might send a
+message out to the TA as a reply to M.  That is how some messages are
+handled.  The closest we get to a function call from O-Plan's point
+of view is when such a message is received and nothing with higher
+priority is on the agenda.
+
+Some messages, however, can cause O-Plan to do some planning; and
+then there is usually not an immediate reply.  Instead, the knowledge
+source sets planning in motion by creating agenda entries.  This leads
+to other knowledge sources being run, further agenda entries, perhaps
+some backtracking, and so on.  Eventually, the TA should receive a
+"planning status message" of one of the following forms:
+
+  (:finished)
+
+     A plan has been found.
+
+  (:no-more-alternatives)
+
+     No plan can be found.
+
+  (:waiting (reason...))
+
+     Planning has stopped, for the given reasons.  A reason indicates
+     something the planner is waiting for and can be :authority or
+     :triggers.  :authority indicates that the planner has gone as far
+     has been authorized to go and could go further if its authority
+     were increased.  For instance, it may have been allowed to work
+     on only the first three levels of the plan.  :triggers indicates
+     that there are agenda entries waiting for triggers to fire.  If
+     :triggers appears without :authority, there is probably a bug in
+     O-Plan.
+
+Ordinarily, O-Plan does not send any other messages during planning 
+An exception is when it asks the TA a question by sending a message
+of the form
+
+  (:question keyword issue-description data)
+
+Such a question message will be immediately followed by a status
+message "(:waiting (:triggers))", because O-Plan needs an answer
+before it can continue planning.  This is the only case in which a
+:waiting message is expected to give :triggers without :authority.
+
+Questions will be considered in more detail later on.  For now,
+we will describe the TA interface as if they did not exist.
+
+O-Plan can be sent messages while it is planning, but it is generally
+better to wait until it has stopped.
+
+There are also some constraints on the order in which things can be
+done.  The standard sequence for generating a plan is
+
+ 1. Send "(:init)" to initialize the planner.
+    Receive "(:init-ok)".
+
+ 2. Send "(:domain domain-name)" to compile a TF file.
+    Receive "(:domain (domain-name task-name...))".
+
+ 3. Send "(:set-task task-name)".
+    Receive a planning status message: "(:finished)", "(:no-more-alternatives)"
+    or, if the planner's authority has been restricted, "(:waiting reasons)".
+
+The sequence above must be followed.  However, other messages may also
+be sent, as follows:
+
+  * "(:kill)" can be sent at any time to tell O-Plan to exit.
+
+  * Messages that change authority can be sent any time after receiving
+    "(:init-ok)".
+
+  * "(:get :action-levels)" can be sent any time after receiving
+    "(:domain (domain-name task-name...))".
+
+  * Other messages can be sent any time after sending "(:set-task
+    task-name)".  However, they should usually not be sent while
+    the planner is actively planning.  You may want to do something
+    with options _before_ any planning, in which case you must keep
+    the planner from planning by sending an appropriate authority
+    message before sending the :set-task message.
+
+At this point, it's worth looking at an example.  "=>" indicates a
+message sent by the TA.  "<=" indicates a message to the TA from the
+planner.  The indentation is only for readability.
+
+  => (:init)
+     <= (:init-ok)
+  => (:domain "house-1")
+     <= (:domain ("house-1" "task_build_house"))
+  => (:set-task "task_build_house")
+     <= (:finished)
+
+At this point, we have a plan and can examine it, e.g. by asking for
+a PostScript graph of the nodes to be displayed.
+
+  => (:get :plan-view :mode :psgraph :format :viewer-one-page)
+     <= (:finished-view)
+
+Let's see if there is another plan for the same task:
+
+  => (:replan)
+     <= (:no-more-alternatives)
+
+No, there isn't.  So we're done.
+
+  => (:kill)
+
+
+The subsections below describe the messages in the TA interface,
+grouped into categories.  The syntax of a message is described in
+a line that looks like this:
+
+(name argument...)                 <= reply-message
+
+In message descriptions, words that begin with colon are literals and
+are written as shown, including the colon.  Other words, including
+hyphenated compounds, are syntactic variables.  An ellipsis "..."
+indicates zero or more repetitions of the previous item.  Here is an
+example:
+
+(:domain domain-name)              <= (:domain (domain-name task-name...))
+
+This indicates that a :domain message is written as (:domain domain-name)
+where domain-name would be replaced the actual name of some TF file, as in
+
+  (:domain "blocks-1")
+
+The reply will have the form (:domain (domain-name task-name...)).
+For example, with indentation added for readability:
+
+  (:domain ("blocks-1" "task_stack_abc" "task_stack_abc_2"
+                       "task_stack_cba" "task_stack_bac"))
+
+
+Agent
+-----
+(:init)                            <= (:init-ok)
+
+  Tells O-Plan to reset itself to a standard initial state.  Any
+  domain, task, options, authority settings, etc will all be
+  forgotten.  An :init message must be sent before changing to
+  a new domain.
+
+  Initialization can happen automatically after an error.  If the
+  error results in an :error message, the :error message should be
+  followed by an (:init-ok).
+
+(:kill)
+
+  Tells O-Plan to exit.
+
+(:status)                          <= (:status status)
+(:status-after submessage)         <= (:status status)
+
+  Some messages (e.g. changing authority) that can cause the planner
+  to plan do not always cause planning, so how do you know whether to
+  wait for a planning status message (a :finished, :no-more-alternatives
+  or :waiting message) or not?
+
+  In some cases, you will know (for instance, you will know that you
+  are increasing the planner's authority and that this will allow it
+  to do more planning); in other cases, you will have to ask.  The
+  :status and :status-after messages are for the cases where you have
+  to ask.
+
+  A :status message will get a reply giving the status at the time the
+  :status message was taken off the agenda and processed.  A :status-after
+  message will get a reply giving the status immediately after the
+  submessage was processed.  That is, a :status-after message is
+  handled by
+    1. processing the submessage, which may involve sending a message
+       to the TA, and then immediately
+    2. sending a :status message to the TA.
+
+  For instance, if the TA sends (:status-after (:authority :level :inf)),
+  it may get the following two messages in reply:
+     (:authority :level :inf)
+     (:status (:planning))
+
+  The submessage must be an authority or option message.
+
+  A status lists what O-Plan is doing and can contain the following
+  elements: 
+
+     :handling-events      O-Plan is working on "agent level" activities
+                           -- agenda entries that correspond to messages
+                           from the TA rather than to "issues" in the plan.
+
+     :planning             O-Plan is developing a plan.
+
+     (:waiting reasons)    Planning has stopped pending a change in
+                           :authority or :triggers.
+
+  For example, the status might be (:handling-events :planning).
+  The status is the empty list, i.e. () or nil, when O-Plan is idle.
+
+
+Planning
+--------
+(:domain domain-name)              <= (:domain (domain-name task-name...))
+
+  Tells O-Plan to read/compile a TF file containing a domain description.
+  The domain-name should be a string containing a file name.  The file
+  type defaults to "tf".  If the name contains a "/", it is used as-is,
+  and hence will be taken relative to the current directory of the O-Plan
+  process.  Otherwise, it is taken relative to the value of the
+  :oplan-tf-dir parameter.
+
+  If the indicated file exists and contains no errors, O-Plan will send
+  a :domain message in reply.  The domain-name in this message is just
+  the name part of the file name: the directory and type are not included.
+
+(:set-task task-name)              <= planning-status
+
+  Selects a task.  The task-name should be a string containing the name
+  of a task schema.  All such names begin with "task_".
+
+  This must be done after establishing a domain, and the :domain
+  message sent by O-Plan (see above) will contain a list of all
+  available task names.
+
+  As a special case, the task-name :empty may be used to ask O-Plan to
+  add a task containing only the start and finish nodes.  This can be
+  useful when all of the interesting work is done using :add-to-task.
+  The :empty task written out in TF would look like this:
+
+    task empty
+      nodes
+	sequential
+	  1 start,
+	  2 finish
+	end_sequential;
+    end_task;
+
+(:add-to-task addition)            <= planning-status
+
+  Tells O-Plan to add a constraint to the task.  The addition affects
+  only the current option, but it will appear in all plans produced
+  for that option, by replanning, except where "shadowed" by a
+  suboption created before the addition was made.
+
+  The addition can be any of:
+
+     :action pattern
+
+        Tells O-Plan to add an action node to the task.  The new node
+        will be linked after the end_of node-1 and before the begin_of
+        node-2.
+
+     :initially pattern value
+
+        Tells O-Plan to add an initial effect, i.e. at end_of node-1.
+
+     :time-window from-node-end to-node-end min max
+
+        Adds a time-window / order constraint between two node-ends.
+        A node-end has the form (node-name end), where the node-name
+        is something like node-3-2 and the end is :begin or :end.  The
+        from-node-end can also be the special symbol :zero to specify
+        an "absolute" constraint on the time at which to-node-end can
+        occur.  Min and max are numbers of seconds.  Min must be a
+        nonnegative integer, and max must be a nonnegative integer or
+        the symbol :inf for positive infinity.
+
+     :task task-schema-name
+
+        Adds the constraints specified by the task schema.
+
+        Note that a task can be added only if a task has already been
+        established by a :set-task message.  However, that could be a
+        very simple task such as one that just creates the start
+        and finish nodes (node-1 and node-2, respectively).
+
+        Task-addition allows the addition of all the constraints that
+        can be specified in tasks, even if there is no independent
+        support for them :add-to-task messages.
+
+     :all-of (addition)...
+
+        Allows a number of additions to be made at once.  Later
+        additions in the list can depend, to some extent, on earlier
+        ones.  For example, a time-window might refer to a node
+        that would be created for an action.
+
+  Examples:
+     
+     (:add-to-task :action (install kitchen equipment))
+
+     (:add-to-task :initially (locked door-1) true)
+
+     (:add-to-task :time-window (node-3 :end) (node-4 :begin) 60 :inf)
+
+     (:add-to-task :task task_emergency_evacuation)
+
+     (:add-to-task :all-of
+	(:time-window :zero (node-2 :begin) 43200)
+        (:action (evacuate_injured abyss))
+        (:action (evaluate_injured barnacle))
+        (:action (evaluate_injured calypso)))
+
+  Note that patterns, such as "{install kitchen equipment}", are written
+  as lists, with ordinary parentheses.  43200 is the number of seconds
+  in 12 hours.
+
+(:replan)                          <= planning-status
+
+  Tells O-Plan to look for another plan.
+
+(:check-plan)                      <= (:checked error-count)
+
+  Runs the sanity-checker.  This should be done only when there is a
+  complete plan in which all variables are bound.
+
+(:check-plan :get-plan-statistics) <= (:checked :statistics a-list)
+
+  Asks for an association-list of planning statistics.  The values are
+  reset by :init and :replan and hence represent what has happened
+  since then.  The current set of statistics is:
+
+     :am-cycles            The number of agenda entries processed.
+     :n-alts-chosen        The number of times the planner has returned
+                            to a backtrack point.
+     :n-alts-remaining     The number of backtrack points still available.
+     :n-poisons            The number of times the planner has been
+                            forced to backtrack.
+
+  O-Plan's backtrack points are called "alternatives".  :n-poisons and
+  :n-alts-chosen can be different, because the planner can switch, without
+  being forced, to an alternative that looks more promising than the
+  current plan state.  (It records the current state as an alternative
+  when it switches, so that it can pick up where it left off if that
+  proves desirable.)
+
+(:eval-plan)                       <= (:evaluation a-list)
+
+  Asks for an association-list containing summary information about
+  the plan.  This should be done only when there is a complete plan
+  in which all variables are bound.  The a-list will contain the
+  following items:
+
+     :number-of-nodes      The number of nodes in the plan.
+     :plan-length          The number of links in the longest path from
+                             begin_of node-1 to end_of node-2.
+     :duration             The earliest finish time of end_of node-2 minus
+                             the earliest start time of begin_of node-1.
+     :psv-object-types     A list of all PSV object types, with duplicates
+                             removed.
+     :psv-values           A list of all PSV values, with duplicates removed.
+     :n-psv-object-types   The number of different PSV object types.
+     :n-psv-values         The number of different PSV values.
+
+  Here is an example, for "task_pacifica_evacuation" in domain
+  "island-rescue-web-demo".  Indentation has been added for readability.
+
+     (:evaluation
+       ((:number-of-nodes . 30)
+        (:plan-length . 29)
+        (:duration 54000 = "15 hours")
+        (:psv-object-types ground_transport)
+        (:psv-values gt1 gt2)
+        (:n-psv-object-types . 1)
+        (:n-psv-values . 2)))
+
+  Remember that (a . (b c)) is printed as (a b c), so, for instance,
+  (:psv-values gt1 gt2) is equivalent to (:psv-values . (gt1 gt2)).
+
+(:get :plan-view)                  <= (:plan-view node-descriptions)
+
+  Asks for a description of the nodes in the plan.  Each node-
+  description is a list with the following elements:
+
+    (node-name             ;e.g. node-1
+     begin-predecessors    ;e.g. ((node-1 :end) (node-3-2 :begin))
+     begin-successors      ;
+     end-predecessors      ;
+     end-successors        ;
+     time-bounds           ;(est lst eft lft)
+     node-type             ;e.g. action
+     pattern)              ;e.g. (puton a b)
+
+(:get :world-view node-id)         <= (:world-view node-id pv-pairs)
+
+  Asks for the state of the world (as seen by conditions) at the end
+  of the indicated node.  The node-id should be a string containing a
+  node-number, e.g. "2" or "3-1-2".  A pv-pair is a list that has a
+  pattern as its first element and a value as its second.  For example:
+
+    ((color block-a) blue)
+
+  The "as seen by conditions" is because any effects that are at
+  the indicated node-end are not included.  (When there are conditions
+  and effects at the same node-end, think of the conditions as being
+  "infinitesimally before" the effects in time.)
+
+(:get :plan-view viewer-arg...)    <= (:finished-view)
+(:get :world-view node-id
+      viewer-arg...)               <= (:finished-view)
+
+  These messages give O-Plan instructions ("viewer args") on how to
+  produce a plan or world view, telling it e.g. to put a PostScript
+  graph in an indicated file.  The details are currently under review,
+  are likely to change, and will not, for now, be fully documented here.
+
+  (:get :plan-view :mode :narrative :output-file file-name)
+
+  Will write a plan narrative to the indicated file.
+
+  (:get :plan-view :mode :psgraph psgraph-viewer-args)
+
+  Will cause O-Plan to construct a PostScript graph of the nodes in
+  the plan.  Valid instantiations of psgraph-viewer-args include
+
+     :format :viewer-one-page
+
+        Display the graph using the viewer that is the value of the
+	:ps-viewer parameter.  This defaults to "ghostview -landscape".
+        The viewer is run in the background.  O-Plan can go on to other
+        things without waiting for the viewer to exit, and the viewer
+        can continue to run after O-Plan has exited.
+
+     :format :file-one-page :output-file file-name
+
+        Write the PostScript to the indicated file.
+
+(:get :action-levels)              <= (:action-levels a-list)
+
+  Asks for an association-list that maps action-names (as symbols)
+  to level numbers.
+
+
+Authority
+---------
+O-Plan's authority facilities are still rather minimal but nonetheless
+provide a useful degree of control over the planning process.  Authority
+changes are often used in conjunction with options (described below)
+and :add-to-task messages (above).  The next two sections -- on planning
+paarameters and questions from O-Plan -- are also related to authority.
+
+(:authority :level value)          <= (:authority :level value)
+
+  Sets the maximum level that can be developed in the plan.  
+  The value can be an integer or :inf.
+
+  Increasing the level can cause planning to occur.  To completely
+  prevent planning, set the level to -1.
+
+(:what-authority :level)           <= (:authority :level value)
+
+  Obtains the planner's current level authority.
+
+It is important to understand that the level value specifies the
+maximum level at which expansion may be performed, not the maximum
+level at which actions may be introduced.  Expansion of an action
+at level n may involve introducing subactions at level n+1.
+However, those subactions will remain as primitives, and not be
+expanded themselves, if the level authority is n.
+
+Tasks are regarded as actions at level 0.  The levels of tasks and of
+other actions can be obtained by sending a "(:get :action-levels)"
+message or from the TF compiler.  For example:
+
+     oplan-386 -tfc -l test-tf/get-to-work.tf
+
+[Those who are familiar with the HTML Web-based matrix interface to
+O-Plan may wonder how the authority for automatic replanning is
+handled, since there is nothing about it in the TA interface.  The
+answer is that it is handled outside O-Plan by the procedures that
+implement the matrix.  They use the program interface, described
+below, to request plans and plan evaluations and, when automatic
+replanning is allowed, continue to request new plans (by replanning)
+until a satsifactory one is found or they have performed the maximum
+allowed number of replans.]
+
+
+Planning parameters
+-------------------
+Certain parameters that affect the planning process may be changed
+and examined via the TA interface.  
+
+(:set-parameters name value ...)   <= (:ok)
+
+  Changes the current values of the specified (named) parameters.
+  Note that the syntax has both the name and value repeating,
+  which is a departure from our usual use of "...".
+
+(:get-parameters name...)          <= (:values (name value ...))
+
+  Returns the current values of the specified (named) parameters.
+
+At present only two parameters are actually accessible via these
+messages, but it is expected that this will change.  Those parameters
+are:
+
+  :schema-selection-mode
+
+     The value is initially :auto and can be set to :auto or :ask.
+     When the value is :auto, O-Plan has the authority to select
+     which schema is used to expand an action when more than one
+     schema is available and satisfies the "filter" conditions
+     such as only_use_if.
+
+     When the value is :ask, then O-Plan must ask another agent
+     which schema to use.  If O-Plan backtracks to this point,
+     and the value is still :ask, the other agent will be asked
+     to pick from among the remaining schemas; and so on.
+
+     The manner of asking the other agent is determined as follows.
+     If O-Plan is running interactively, the human user will be asked
+     by writing information about the possible choices in the KS-User
+     window and putting up a menu of schema names.  Otherwise a
+     :schema-order :question message will be sent to the TA, as
+     described below.
+
+     Note that although the question is sent to the TA, it is not
+     necessarily the agent in the TA user-role who will answer.  For
+     instance, when the COA Matrix Web interface is used, it is the
+     agent in the Planner role who sees the question and must provide
+     the answer.
+
+  :psv-binding-mode
+
+     The value is initially :auto and can be set to :auto or :ask.
+     When the value is :auto, O-Plan has the authority to select a
+     value for a Plan-State Variable (PSV) when more than one value
+     appears to be consistent with the rest of the plan.  When the
+     value is :ask, then O-Plan must ask another agent which schema
+     to use.  The rules that govern this are similar to those for
+     :schema-selection-mode.  The :question sent to the TA when
+     running non-interactively is :psv-binding.
+
+
+Questions from O-Plan
+---------------------
+It was mentioned earlier that O-Plan may sometimes ask the TA a question
+by sending a :question message.
+
+The general format of a :question message is
+
+  (:question question-keyword issue-description question-data)
+
+An answer should have the form
+
+  (:answer question-keyword answer-data)
+
+where the question-keyword is the same as in the question.
+
+This section provides technical descriptions of the questions but,
+in order to avoid going too far into the inner workings of O-Plan,
+without going into full detail on all of the items that appear in
+the question data.
+
+At present, only two question types -- :schema-order and :psv-binding --
+have been implemented.
+
+(:question :schema-order issue-description question-data)
+
+  Here O-Plan is trying to pick among ways of performing an action,
+  to expand an existing action into subactions, to satisfy a condition
+  by adding a new action to the plan, or to repair the plan by adding
+  a new action.
+
+  The issue-description will be one of
+
+     (:expand node-name pattern)
+     (:achieve gost-entry)
+     (:fix :expand gost-entry after-node-end)
+
+  A gost (GOal STructure) entry has the form
+
+     (GOST condition-type pattern value condition-node-end)
+
+  The question-data will be a list of (schema-name . bindings) pairs.
+  The bindings are descriptions of the variables in the corresponding
+  schema, indicating either a value the variable would be given if
+  the schema were selected or that the value is not yet known (:undef).
+
+  The answer-data must be the same (schema-name . bindings) pairs
+  sorted to put the most preferred schema first.
+
+  Each instance of bindings is a list of the form
+
+     (variable-name value not-sames restrictions possible-values)
+
+  Of these, only the variable-name and value will normally be of
+  interest.  The value will be :undef if the variable does not yet
+  have a value.  The remaining items are likely to change in future
+  releases and will not be described here.
+
+(:question :psv-binding issue-description psv-descriptions)
+
+  A Plan State Variable (PSV) is introduced to represent an object
+  when the planner does not yet know exactly which object to use.
+  The :psv-binding question is used to ask for preferences.
+  The question is focused on one particular PSV, but all PSVs that
+  currently exist in the plan are included, and the :answer can
+  address any subset of them, including the full list.
+
+  The issue-description will be (:bind psv-name).  This indicates
+  which PSV O-Plan was trying to bind when it asked the question.
+
+  psv-descriptions is a list descriptions.  Each description is
+  a property list (ie, a list of alternating keywords and values)
+  containing at least the following properties:
+
+   :tags             a list of PSV names
+   :type             a TF type name
+   :sources          a list of source descriptions
+   :not-sames        a list of PSV names
+   :possibles-cache  a list of values
+
+  When a PSV is created, it is given a name, or tag, of the form PSV-i
+  for some integer i not already in use.  PSVs that were originally
+  separate may become unified and hence end up with more than one tag
+  and more than one source description.
+
+  The :not-sames list of a PSV, P, contains the tags of PSVs that must
+  have a value different from that of P.
+
+  The :possibles-cache is a list of values that have not yet been ruled
+  out.  It is always a subset of the values defined for the PSV's type.
+
+  Each source description has the form
+
+    (tf-var schema-name node-tag node-type node-pattern node-reason)
+
+  The answer-data is a list of entries of the form
+
+    (:tags psv-names :values possible-values)
+
+  Each psv-names is a list of psv tags which all represent the same 
+  (unified) variable.  It is not necessary to list all of a variable's
+  tags; any one will do.
+
+  The corresponding possible-values is a list of the values that
+  should be tried for that variable, in the order in which they should
+  be tried.  The list may be a subset of the values currently thought
+  to be possible for that variable, but it's an error if there are any
+  extra values.  Any omitted values are placed, in their original
+  order, after the listed values.   Hence these "possible-values"
+  are the preferred values, in decreasing order of preference.
+
+Here is an example of a :schema-order question.  As before, "=>"
+indicates a message sent by the TA, "<=" indicates a message to the TA
+from the planner, and the indentation is only for readability.
+
+  => (:init)
+     <= (:init-ok)
+  => (:set-parameters :schema-selection-mode :ask)
+     <= (:ok)
+  => (:domain "house-4")
+     <= (:domain ("house-4" "task_build_house" "task_build_house_to_time_0"
+                  "task_build_house_to_time_1" "task_build_house_to_time_2"))
+  => (:set-task "task_build_house_to_time_1")
+     <= (:question :schema-order
+                   (:expand node-3-9-7 (install kitchen equipment))
+                   ((install_kitchen_luxury) (install_kitchen_standard)))
+     <= (:waiting (:triggers))
+  => (:answer :schema-order ((install_kitchen_luxury)
+                             (install_kitchen_standard)))
+     <= (:finished)
+
+Note that in this example, the binding information for the schemas is
+always the empty list.  That is why we see "(install_kitchen_luxury)",
+for example, which is equivalent to "(install_kitchen_luxury . ())",
+rather than "(install_kitchen_luxury binding...)".
+
+
+Options
+-------
+The messages in this section can be regarded as procedure calls
+(subject to the qualifications given earlier), with the result
+returned in an :option message.  When the TA message creates an
+option, the result is the name of the new option.  In other cases,
+if the TA message changes the current option, the result is the
+name of the new current option.  At present, all messages that
+create an option also make that option the current option, so,
+in effect, only the second rule is needed.
+
+Messages that change the current option should not be sent while
+O-Plan is actively planning.  Instead, wait until planning has stopped
+and O-Plan has sent a planning status message.  The current option may
+be changed even if the status message is "(:waiting reason...)" and
+even if O-Plan has asked an as yet unanswered question.
+
+Two options are created, and become the current option, automatically.
+One named "root-option" is created when O-Plan is initialized after
+receiving an :init message.  It is an ancestor of all other options.
+The second, named "option-1", is created when the task specified
+by a :set-task message is expanded.  It therefore captures the state
+immediately after the constraints in the task schema have been added
+to the plan.  The standard way to create a new variation on a task
+is to start by making a twin of option-1 and then use :add-to-task.
+
+For more about options, see doc/options.
+
+(:make-option)                     <= (:option name)
+(:make-option :name name)          <= (:option name)
+
+  Constructs an option based on the current plan state and with the
+  current option as its parent.
+
+  A :name parameter can be used to specify a symbol to use as the new
+  option's name.  If no :name is specified, one will be generated
+  automatically.  The name must not be the name of an existing option,
+  and you should not specify names that might conflict with those
+  generated automatically.
+
+  The automatically generated names have the form P-N, where P is the
+  name of the parent of the option being created and N is 1 + the number
+  of already existing children, except when the parent is the root option.
+  In that case, P will be "OPTION".
+
+  The new option automatically becomes the (new) current option.
+
+(:get-option)                      <= (:option name)
+
+  Asks for the name of the current option.
+
+(:set-option name)                 <= (:option name)
+
+  Makes the named option current.  This can cause the planner to start
+  planning, e.g. if authority has increased since the option was last
+  current.
+
+(:push-option)                     <= (:option name)
+
+  Creates a child of the current option and makes that child the (new)
+  current option.  :push-option is effectively the same as :make-option,
+  except that you cannot specify the name.
+
+(:pop-option)                      <= (:option name)
+
+  Changes the current option to the parent, P, of the (old) current option.
+  The name returned in the :option message is that of P.
+
+(:twin-option)                     <= (:option name)
+(:twin-option :name name)          <= (:option name)
+
+  Creates a twin of the current option and makes it the (new) current
+  option.  A :name for the new option can be specified, as in :make-option;
+  otherwise a name will be generated automatically.
+
+  A twin, T, of an option, O, is based on the same plan state as O
+  (ie, on the plan state that was current when O was created).  Any
+  planning, or additions to the task, done in O will not be reflected
+  in T.  Twinning is therefore useful when you change your mind and
+  as an alternative to push/pop for asking "what if".
+
+  Note however, that O (and hence T) may be based on a state that
+  includes plan-agenda entries.  So the planner may begin planning
+  when T becomes the current option.
+
+(:clear-option)                    <= (:option name)
+
+  Clears the current option.  This is similar to twinning the option,
+  but without creating a new option.
+
+(:get-option-tree)                 <= (:option tree)
+
+  Asks for a description of the option tree.  The description has the
+  (recursive) form: 
+
+     (option-name tree-for-child ...)
+
+  For instance, if root-option has one child, option-1, and option-1
+  has two children, option-1-1 and option-1-2, the tree would be:
+
+     (root-option (option-1 (option-1-1) (option-1-2)))
+
+
+Subroutine mode
+---------------
+
+Introduction
+------------
+Subroutine mode allows Common Lisp code (either as specified by the
+"-do" parameter or typed by the user) to invoke the planner as a
+subroutine.
+
+Actually, that is somewhat misleading.  In some ways the planner is
+more like a separate process, or a coroutine, than it is like a
+subroutine.  Your code exchanges messages with the planner, just as
+in connect mode.  However, the planner runs only when you explicitly
+give it control, and the messages are ordinary Lisp data structures
+(lists, symbols, etc) rather than textual representations of those
+structures.
+
+The way to give the planner control is to call pprocess-main-loop,
+like this:
+
+   (pprocess-main-loop)
+
+The planner is a collection of "pseudo-processes", "pseudo" because
+each "process" is essentially an event-handling procedure rather than
+an independent thread of control.  Calling pprocess-main-loop allows
+the pseudo-processes to run.  pprocess-main-loop returns when either
+
+  (a) the planner sends a message to the TA (actually, as soon as the
+      pprocess that sent the message gives up control and the pprocess
+      that represents the TA can notice the message), or
+
+  (b) when no pprocess has anything to do.  
+
+This allows you to read a message (almost) as soon as it's been sent.
+You can then return control to the planner by calling pprocess-main-loop
+again.
+
+Note that, because of what's explained in parentheses in (a), the planner
+is able to send more than one message before pprocess-main-loop returns.
+Each message, even if it's the only one, is placed in a queue.
+
+Usually, pprocess-main-loop is not called directly.  Instead, a
+message is sent by calling send-to-oplan, and send-to-oplan calls
+pprocess-main-loop for you.  A message is read by calling receive-
+from-oplan, which leaves control with you (ie does _not_ call
+pprocess-main-loop).  You need to call pprocess-main-loop directly
+only when you want to let the planner run without sending it another
+message.
+
+Receive-from-oplan provides a simple pattern-matcher that lets you
+check the form of a message and extract values from it.  The message
+is removed from the queue only if it matches the pattern.  It is
+therefore possible check for several possible messages by making a
+series of calls to receive-from-oplan, using different patterns.
+
+Higher-level procedures that use the message sending and receiving
+primitives can also be defined, and a number of procedures of that
+sort are provided.
+
+
+Advantages
+----------
+Although connect mode is often the right choice, subroutine mode can
+have several advantages:
+
+  1. You can define error handlers using the Common Lisp condition
+     system and thus have greater control over what happens when an
+     error occurs.
+
+  2. You can define your own interface to an external program rather
+     than using the interface provided by connect mode.
+
+  3. You can more easily detect cases where O-Plan becomes idle
+     without sending a message to the TA.
+
+  4. You can communicate unprintable Lisp data between your code and
+     O-Plan.
+
+  5. You can access O-Plan data structures in ways that are not supported
+     by the TA interface.
+
+Point 3 needs some elaboration.  O-Plan is agenda-driven, and when
+there's nothing on the agenda(s), O-Plan does nothing except wait for
+messages.  A message would be turned into an agenda entry, giving
+O-Plan something more to do.  Suppose you send O-Plan a message, and
+you expect O-Plan to do some work and then send a reply.  After a
+while, you still haven't heard from O-Plan.  Is that because (a) it's
+still working on your request, or (b) it's run out of things to do and
+is just sitting there?  Maybe there's a bug in O-Plan that got it into
+the nothing-to-do state before it finished the work you asked it to
+do.  Or maybe you were wrong to think a reply is sent in this case.
+
+In subroutine mode, O-Plan (in the form of pprocess-main-loop) returns
+when the planner sends a message to the TA (so that your code can look
+at the message) _or_ when it has nothing to do.  That happens naturally,
+given how O-Plan works internally.  In connect mode, you can be stuck
+waiting for a message that will never come, although sending :status
+and :status-after messages can help.
+
+What we've tried to do in O-Plan is to have it send a message whenever
+it legitimately runs out of things to do in a case when the TA should
+be expecting a message.  For instance, if the TA asks O-Plan to find
+a plan for some task, and O-Plan has to stop before it finds a
+complete plan because it has not been given the authority to plan
+to enough levels, then O-Plan will send a :waiting message to say it
+is waiting for authority.
+
+But we don't want O-Plan to send such a message _whenever_ it runs
+out of things to do, because many of those messages will be
+unnecessary, and it will complicate things for the TA if it has
+to deal with them.  For example, O-Plan often runs out of things
+to do right after it's sent the TA a message the TA was expecting.
+We don't want O-Plan to send another message just to say it's now
+waiting.
+
+So there is, perhaps, still some room for things to go wrong.
+
+
+Functions in the Program interface
+----------------------------------
+
+Introduction
+------------
+The subsections below describe the procedures in the program interface,
+grouped into categories.  The syntax of a procedure is described in
+a line that looks like this:
+
+(name parameter-list) -> result-description
+
+The parameter-list may contain &optional, &rest, and &key, as in a 
+Common Lisp function definition.  The "->" notation is used, in many
+cases, to provide a brief description of the result.  The symbol "=>"
+should be read as "evaluates to" or "returns" and is used in examples
+to indicate the value of an expression.  For example:
+
+  (+ 3 4) => 7
+
+Some procedures take procedures as arguments.  The term "thunk" means
+a procedure of zero arguments that is used to "package up" some code
+so that the code can be passed to another procedure without being
+evaluated until the thunk is called.
+
+Code that uses the program interface should be in the OPLAN package
+or in a package that uses the OPLAN-INTERFACE package.
+
+
+Sending and receiving
+---------------------
+(send-to-oplan id &rest args)
+
+  Sends (id arg...) as a message to the planner and then allows the
+  planner to run by calling pprocess-main-loop.  For example:
+
+     (send-to-oplan :init)
+     (send-to-oplan :domain "house-1")
+     (send-to-oplan :authority :level 1)
+
+(receive-from-oplan pattern &key succeed fail)
+
+  Succeed and fail are functions.
+
+  Receive-from-oplan looks in the message queue for a message from the
+  planner.  If there is a message, it is matched against the pattern;
+  otherwise, the symbol :nothing is matched against the pattern.  If
+  the match succeeds, then the message (if there was one) is removed
+  from the queue, and the succeed function is called on arguments
+  extracted from the message, as described below.  If the match fails,
+  the message is left in the queue, and the fail function is called
+  with the entire message as its one argument.
+
+  Patterns can contain atoms, lists, and variables.  Atoms are compared
+  with EQL.  Variables have the form $name and match whatever single
+  object appears at the corresponding position in the data.  If a
+  variable appears more than once, it must match EQL objects.  The
+  wildcard $ matches anything and can match different objects each
+  time.
+
+  After a successful match, all of the variables will be associated
+  with values: each variable with whatever object it (first) matched.
+  The variables are considered "textually" from left to right
+  (imagine the entire pattern written out on one line) and the
+  corresponding values are given, in that order, to the succeed
+  function.
+
+  Since receive-from-oplan leaves the message in the queue if it does
+  not match the pattern, it is possible to test for different patterns
+  by writing a sequence of calls to receive-from-oplan, perhaps with a
+  call to receive-else-error at the end.
+
+  When the succeed or fail function is not given, it defaults to a
+  function that ignores its arguments.  The succeed default returns
+  t (true) and the fail default returns nil (false).  Consequently,
+  when neither function is specified, receive-from-oplan acts as a
+  test that just returns true or false.
+
+  Examples:
+
+     (receive-from-oplan '(:waiting $reasons))
+
+     (receive-from-oplan '(:authority $type $value)
+       :succeed #'(lambda (what value)
+                    ...)
+       :fail #'(lambda (message)
+                 (error "Received ~S when expecting (:authority $ $)."
+                        message)))
+  
+(receive-else-error pattern &optional succeed)
+
+  This is like receive-from-oplan except that an error is signalled
+  if the message does not match the pattern.  Note that here succeed
+  is an optional parameter, not a keyword parameter.  Examples:
+
+     (receive-else-error '(:init-ok))
+
+     (receive-else-error '(:plan-view $node-descriptions)
+       #'(lambda (nodes)
+           ...))
+
+(ask-oplan id &rest args)
+
+  Sends a message in the same way as send-to-oplan, allows the planner
+  to run, and then returns the first message sent by the planner (or nil
+  if the planner returned without sending a message).  Example:
+
+     (ask-oplan :init) => (:init-ok)
+
+  Ask-oplan is intended primarily as something a human user can type
+  to a read-eval-print loop in order to send a message and and have
+  the reply printed.  In Lisp code, it is better to use a combination
+  of send-to-oplan and either receive-from-oplan or receive-else-error.
+
+
+Planning
+--------
+(plan-for domain-name task-name)   -> t or nil
+
+  Sends an :init message and then conducts an exchange of messages to
+  obtain a plan (if there is one) for the indicated task in the indicated
+  domain.  Plan-for returns t (true) if there is a plan and nil (false)
+  if the planner could not find one.  If there is a plan, it can then
+  be examined by sending other messages.  Example:
+
+     (if (plan-for "house-1" "task_build_house")
+         (request-plan-view-list)
+       (error "No plan!"))
+
+  Plan-for determines whether there is a plan or not by seeing whether
+  it is sent (:finished) or (:no-more-alternatives).  An error is signalled
+  if any other message is received at that point.  The examples section,
+  below, contains an annotated definition of plan-for.
+
+(replan)                           -> t or nil
+
+  Sends a :replan message and expects (:finished) or (:no-more-alternatives)
+  in reply.  The reply is handled as by plan-for.
+
+(generate-plans domain-name task-name
+                &optional (how-many :all)
+                          (thunk #'(lambda () nil)))
+
+  Plans and then replans to get the indicated number of solutions.
+  The thunk is called after each plan is found, and it can request
+  a list of node-descriptions or examine the plan in other ways.
+
+  Generate-plans returns when no more plans are available (ie, when
+  it gets a :no-more-alternatives message), even if a greater number
+  of plans was requested.
+
+(generate-plans-as-options domain-name task-name &optional (how-many :all))
+   -> list-of-option-names
+
+  Like generate-plans but creates an option based on each plan,
+  rather than calling a procedure.  A list of option names is
+  returned.  Example:
+
+     (generate-plans-as-options "house-4" "task_build_house" :all)
+        => (option-1-1 option-1-2)
+
+  The examples section, below, provides a definition of generate-plans-
+  as-options and an extended example of its use.
+
+(plan-by-levels domain-name task-name) -> t or nil
+
+  Like plan-for but uses :authority messages to restrict planning to
+  successively increasing levels.  It is used chiefly to test the
+  authority mechanism.  The examples section, below, contains an
+  annotated definition of plan-by-levels.
+
+
+Authority
+---------
+(set-authority what value)
+
+  Sends an :authority message and expects to receive an :authority
+  message in reply.  And error is signalled if the reply is not as
+  expected.
+
+
+Requests for plan information
+-----------------------------
+(request-plan-statistics-list)     -> a-list
+
+  Returns an association list of plan statistics.  See the description
+  of the (:check-plan :get-plan-statistics) message.
+
+(request-plan-view-list)           -> node-descriptions
+
+  Returns a list of node descriptions.  See the description of the
+  (:get :plan-view) message.
+
+(request-world-view-list node-id)  -> pv-pairs
+
+  Returns a list of pattern-value pairs.  See the description of
+  the (:get :world-view node-id) message.
+
+(request-plan-view &rest viewer-args)
+(request-psgraph format &rest viewer-args)
+(request-world-view node-id &rest viewer-args)
+
+  These functions give O-Plan instructions ("viewer args") on how to
+  produce a plan or world view, telling it e.g. to put a PostScript
+  graph in an indicated file.  The details are currently under review,
+  are likely to change, and will not, for now, be fully documented here.
+
+  Request-psgraph causes O-Plan to construct a PostScript graph of
+  the nodes in the plan.  Valid formats include :viewer-one-page and
+  :file-one-page.  If the format is :file-one-page, an :output-file
+  must also be specified.  For more on how these formats are interpreted,
+  see the description of the (:get :plan-view viewer-arg...) message.
+
+(request-action-level-alist)       -> a-list
+
+  Returns an association list mapping action names to level numbers.
+  See the description of the (:get :action-levels) message. 
+
+(request-time-bounds end-tag)      -> (min max)
+
+  Obtains the bounds on the time-point that corresponds to a node-end.
+  Examples:
+
+    (request-time-bounds '(node-1 :end)) => (0 :inf)
+    (request-time-bounds (etag 'node-1 :end)) => (0 :inf)
+
+  The second example uses the proper constructor for a node-end tag: etag.
+  It works to give a list such as (node-1 :end), as in the first example, 
+  but it may not continue to work in the future, since the representation
+  of node-end tags may change.
+
+
+Component output
+----------------
+The "components" are the main (pseudo-)processes in the planner:
+the controller (:AM), database manager (:DM), KS platform (:KP),
+etc.  As the planner runs, the components can output information
+about what they are doing, to various levels of detail.  The
+procedures in this section let you control the level of detail
+and where the information is sent.
+
+The name :all can be used to affect all components, but only in
+calls to set-component-debug-level.  The other procedures do not
+accept :all.
+
+(output-off)
+
+  Turns off all output by setting the debug-levels of all components
+  to :none.
+
+(redirect-component-output component file-name)
+
+  Redirects output to a file and adds an exit action (see add-exit-action)
+  that ensures the file is closed.
+
+(set-component-output-stream component stream)
+
+  Redirects output to a Common Lisp stream.  No exit action is added.
+
+(set-component-debug-level component level)
+
+  Sets the debug level of the indicated component, or of all components
+  if the component parameter is :all.  Some useful levels, from most to
+  least inclusive, are:
+
+     :everything
+     :detail
+     :trace
+     :minimal
+     :warning
+     :error
+     :nothing
+
+
+Timeouts
+--------
+(define-condition timeout (simple-condition) ())
+(define-condition timeout-not-handled (simple-error) ())
+
+(set-timeout seconds)
+(cancel-timeout)
+
+(with-timeout seconds &body forms)
+(call-with-timeout seconds thunk)
+
+(set-timeout n) causes a timeout condition to be signaled if the
+planner is running n seconds from now.  If that condition is not
+handled, a timeout-not-handled condition is signaled as an error.
+
+With-timeout and call-with-timeout allow you to set a timeout, do
+some things (which typically include letting the planner run), then
+cancel the timeout.  (with-timeout seconds form...) is equivalent to
+
+  (call-with-timeout seconds #'(lambda () form...))
+
+And call-with-timeout can be defined as follows:
+
+  (defun call-with-timeout (seconds thunk)
+    (unwind-protect
+         (progn (set-timeout seconds)
+	        (funcall thunk))
+       (cancel-timeout)))
+
+Here is an example from the support code for one of the Web demos:
+
+   (defparameter *demo-tf-planning-time-limit* (* 3 60)) ;3 minutes real time
+
+   (defun plan-for-demo-tf (dom task)
+     (with-timeout *demo-tf-planning-time-limit*
+       (handler-case
+	   (plan-for dom task)
+	 (timeout ()
+	   (error "Planning took more than the time limit of ~S seconds"
+		  *demo-tf-planning-time-limit*)))))
+
+
+Etc
+---
+(pprocess-main-loop)
+
+  Lets the pseudo-processes (i.e. the planner) run until either a message
+  is sent to the TA or no pprocess has anything to do.
+
+(exit-oplan)
+
+  Causes Lisp to exit.
+
+(add-exit-action thunk)
+
+  Records an action (in the form of a function of no arguments) to be
+  executed when O-Plan exits.  This is useful if, for instance, you
+  want to ensure that a temporary file is deleted.
+
+(go-faster)
+
+  Calls output-off and performs any reasonably safe "instant speedups"
+  available in the Lisp implementation, such as (use-fast-links t) in
+  AKCL and GCL.
+
+
+Program interface examples
+--------------------------
+
+This section presents a number of examples of Common Lisp code that
+uses the program interface.  Most of the examples are definitions of
+higher-level procedures in the interface (such as plan-for) and hence
+serve to show both how the lower-level message sending and receiving
+procedures can be used, and what messages must be exchanged in order
+to accomplish certain tasks.  Such examples may therefore be useful
+even if you plan to use only connect mode.
+
+We will begin, however, with an example that shows the entire process
+of running O-Plan in subroutine mode and getting it to perform a task.
+
+
+A program that finds and draws a plan
+-------------------------------------
+Our aim here is to define a command that will run O-Plan, get a plan
+for a given domain and task, and display a PostScript graph of the
+plan.  If no plan is possible, it can just print "No plan."  We'll
+call the command "oplan-psgraph".  Once it's defined, it will be
+possible to type something like the following to your Unix shell:
+
+  oplan-psgraph house-1 task_build_house
+
+Since O-Plan runs the PostScript viewer in the background, it's
+possible that oplan-psgraph will finish, and you'll see a new
+shell prompt, before the graph appears.
+
+Here is a shell script that can serve as oplan-psgraph:  
+
+--------------------------- oplan-psgraph ----------------------------
+#!/bin/sh
+
+if [ "$#" -ne 2 ]
+then
+    echo "usage: oplan-psgraph domain task"
+    exit 1
+fi
+
+exec oplan -subr \
+	-no -windows -not -interactive  \
+	-load /home/oplan/lib/draw-psgraph \
+	-domain $1 -task $2 \
+	-do "(draw-psgraph-for-plan)"
+----------------------------------------------------------------------
+
+The script first checks the number of arguments.  There must be
+exactly two.  If the number is not two, the script prints a "usage"
+message and exits.  Otherwise, it runs O-Plan in subroutine mode
+("-subr").  The other command-line arguments are as follows:
+
+  -no -windows
+
+     Tells O-Plan not to create the component windows (for the AM,
+     DM, etc).
+
+  -not -interactive
+
+     Tells O-Plan that it cannot call on the user.
+
+  -load /home/oplan/lib/draw-psgraph
+
+     Tells O-Plan to load the file /home/oplan/lib/draw-psgraph.
+
+  -domain $1
+
+     Sets the value of the :domain parameter so that Lisp code in
+     the O-Plan process can get the domain name by calling
+
+        (get-parameter :domain)
+
+     [For more on parameters and on get-parameter, see doc/parameters
+     in the source subdirectory of the O-Plan distribution]
+
+  -task $2
+
+     Like -domain, but sets the :task parameter.
+
+  -do "(draw-psgraph-for-plan)"
+
+     Tells O-Plan what to do once it's entered subroutine more.
+
+What this chiefly amounts to is that O-Plan will be controlled by
+the Lisp function draw-psgraph-for-plan.  The function will be called,
+and, when it returns, the Lisp running O-Plan will exit.
+
+We now have to define that function in a file draw-psgraph.lsp which
+we assume will be placed in the /home/oplan/lib/ directory.  Since we
+did not specify a file type (extension) such as ".lsp" when telling
+O-Plan what to -load, O-Plan will load whichever of the source or
+object file is most recent.
+
+
+Here is one way to define draw-psgraph-for-plan:
+
+--------------------------- draw-psgraph.lsp -------------------------
+;;; Lisp code for the oplan-psgraph command
+
+(in-package :oplan)
+
+(defun draw-psgraph-for-plan ()
+  (let ((domain (get-parameter :domain))
+	(task (get-parameter :task)))
+    (go-faster)
+    (set-component-debug-level :all :warning)
+    (if (plan-for domain task)
+	(request-psgraph :viewer-one-page)
+      (format t "No plan.~%"))))
+----------------------------------------------------------------------
+
+And here is an annotated version of the definition:
+
+(defun draw-psgraph-for-plan ()
+
+  ;; Get the domain and task names.
+
+  (let ((domain (get-parameter :domain))
+	(task (get-parameter :task)))
+
+    ;; We want to turn off most of O-Plan's output -- everything
+    ;; except warning and error messages -- and we also want get
+    ;; O-Plan to run as quickly as possible, by calling go-faster.
+    ;; Since go-faster turns off all output, we have to reset
+    ;; the output level afterwards.
+
+    (go-faster)
+    (set-component-debug-level :all :warning)
+
+    ;; Ask O-Plan to find a plan.  If it finds one, ask O-Plan to display
+    ;; a PostScript graph.  Otherwise, just print "No plan.".
+
+    (if (plan-for domain task)
+	(request-psgraph :viewer-one-page)
+      (format t "No plan.~%"))))
+
+You might wonder what happens if the domain or task name is invalid.
+The answer is that O-Plan signals an error condition and, since
+draw-psgraph-for-plan does not define a condition handler, the
+condition is caught by a handler supplied by O-Plan.  That handler
+reports the error and gets Lisp to exit.  For example, suppose
+you forget the "task_" in the task name:
+
+  shell$ oplan-psgraph house-1 build_house
+
+  The following condition was not handled:
+
+   There is no task named "build_house".
+
+
+The plan-for function
+---------------------
+Plan-for sends the standard sequence of messages for generating a
+plan -- :init, then :domain, then :set-task -- and checks that the
+replies are as they should be.
+
+(defun plan-for (domain-name task-name)
+  (send-to-oplan :init)
+  (receive-else-error '(:init-ok))
+  (send-to-oplan :domain domain-name)
+  (receive-else-error '(:domain ($tf-file-name . $task-names)))
+  (send-to-oplan :set-task task-name)
+  (receive-plan-status))
+
+After sending the :set-task message, plan-for will return t (true)
+if it receives a :finished message and nil (false) if it receives a
+:no-more-alternatives.  Anything else is an error.
+
+(defun receive-plan-status ()
+  (receive-else-error '($status)
+    #'(lambda (status)
+	(ecase status
+	  (:finished t)
+	  (:no-more-alternatives nil)))))
+
+Receive-plan-status is also used by the replan function:
+
+(defun replan ()
+  (send-to-oplan :replan)
+  (receive-plan-status))
+
+
+
+The plan-by-levels function
+---------------------------
+Plan-by-levels obtains a plan by progressively increasing the planner's
+authority, level by level.  Note that the level authority is a maximum.
+The planner can also work at shallower (lower numbered) levels if that's
+necessary because of backtracking or other reasons.
+
+(defun plan-by-levels (domain-name task-name)
+
+  ;; Start with the standard sequence of messages for establishing
+  ;; the domain.
+  (send-to-oplan :init)
+  (receive-else-error '(:init-ok))
+  (send-to-oplan :domain domain-name)
+  (receive-else-error '(:domain ($tf-file-name . $task-names)))
+
+  ;; We can now look at the mapping from action names to levels
+  ;; in order to find the deepest (highest numbered) level that
+  ;; can appear in a plan in this domain.
+  (let ((max-level (max-value #'alist-value (request-action-level-alist))))
+
+    ;; Prevent the planner from doing any planning by restricting
+    ;; it to level -1.
+    (set-authority :level -1)
+
+    ;; Now set the task.  Since no planning can occur, the planner
+    ;; will not send a planning status message.
+    (send-to-oplan :set-task task-name)
+    (receive-else-error :nothing)
+
+    ;; Increase the planner's authority level by level.  Nothing
+    ;; higher than max-level will be needed, but we may get a plan
+    ;; before getting that far.
+    (loop for level from 0 to max-level do
+
+      ;; Grant increased authority.  Set-authority sends an :authority
+      ;; massage and receives a reply.  We then have to give control
+      ;; back to the planner before it can take advantage of the
+      ;; increase.
+      (set-authority :level level)
+      (pprocess-main-loop)		;a chance to use the new authority
+
+      ;; The planner should send a status message, and we can use a
+      ;; series of calls to receive-from-oplan, finishing with a call
+      ;; to receive-else-error, to see what the message is.  
+
+      (cond ((receive-from-oplan '(:finished))
+             ;; There is a plan.  Return true.
+	     (return-from plan-by-levels t))
+	    ((receive-from-oplan '(:no-more-alternatives))
+             ;; No plan is possible.  Return false.
+	     (return-from plan-by-levels nil))
+	    ((receive-else-error '(:waiting $why))
+             ;; The planner's gone as far as it can, so let the loop
+             ;; give it more authority.  We could check that $why
+             ;; includes :authority, but we don't.
+             )))
+
+    ;; We should never get here.
+    (error "Planing by levels failed somehow.")))
+
+Plan-by-levels calls set-authority to change the planner's authority.
+Here is the definition:
+
+(defun set-authority (type value)
+  (send-to-oplan :authority type value)
+  (receive-else-error '(:authority $ty $v)
+    #'(lambda (ty v)
+	(unless (and (eql ty type) (eql v value))
+	  (error "Expected authority ~S = ~S but received ~S = ~S."
+		 type value ty v))
+	v)))
+
+We cannot use "t" as a variable, because "t" is the name of a constant
+in Common Lisp.  Hence the use of "ty".
+
+
+The generate-plans-as-options function
+--------------------------------------
+We want use replanning to generate a series of plans for a given
+domain and task, and there's already a function that does that:
+generate-plans.  Generate-plans has a functional argument that is
+called after each plan is found, and we can supply a function that
+creates an option and records its name.  So we should be able to
+define generate-plans-as-options by having it call generate-plans:
+
+(defun generate-plans-as-options (domain-name task-name
+				  &optional (how-many :all))
+  ;; We'll build a list of option names:
+  (let ((options '()))
+    ;; Call generate-plans, ...
+    (generate-plans domain-name task-name how-many
+      ;; ... giving it a function that creates and records an option:
+      #'(lambda ()
+          ;; Create the option.
+	  (send-to-oplan :push-option)
+	  ;; The reply will give the new option's name.
+	  (receive-else-error '(:option $name)
+	    #'(lambda (name)
+                ;; Record the option name.
+		(push name options)
+                ;; Return to the previous current option so that
+                ;; generate-plans can replan.
+		(send-to-oplan :pop-option)
+		(receive-else-error '(:option $parent-name))))))
+    ;; Now we have the list of option names; but since we built it
+    ;; by pushing names onto the front, the options are in the reverse
+    ;; of the order in which they were generated.  So reverse the
+    ;; list before returning it.
+    (nreverse options)))
+
+Once a plan has been found, that plan state can be "remembered" by
+creating an option.  That can be done by sending a :make-option or
+:push-option message.  Here we choose :push-option.  The new option
+automatically becomes the current option.  However, we don't actually
+want to make it the current option.  We want to find the next plan
+by replanning, and for that we must go back to the previous current
+option.  So we do that by sending a :pop-option message.  In effect,
+:push-option followed by :pop-option creates a new option without
+making it the current option.
+
+Now for an example.  Suppose O-Plan is run by the following command:
+
+  oplan -subr -no -windows
+
+Since there's no "-do" command-line argument, O-Plan will enter a
+read-eval-print loop.  Here we'll assume that the loop prints "oplan> "
+as a prompt.  So the text on the same line after "oplan> " is an
+expression typed by the user.  The following line or lines (up to
+the next prompt) show the value(s) of the expression as printed
+by Lisp.  (O-Plan has Lisp "pretty print" the values so they will
+make more readable by indenting.)  Comments on what is happening
+will be written in indented blocks.
+
+oplan> (set-component-debug-level :all :warning)
+nil
+
+     The default level is :minimal, which is more than we want.
+     We don't want to see anything but error and warning messages.
+
+oplan> (generate-plans-as-options "house-4" "task_build_house" :all)
+(option-1-1 option-1-2)
+
+     There are two possible plans for that task, and so we get two
+     options.  Option-1 was created automatically right after the
+     task schema was expanded, and it is the parent of the two
+     options that represent the plans.  Option-1 should still be
+     the current option.
+
+oplan> (ask-oplan :get-option)
+(:option option-1)
+
+     Yes, it is.  Now let's see what the whole option tree looks like.
+
+oplan> (ask-oplan :get-option-tree)
+(:option (root-option (option-1 (option-1-1) (option-1-2))))
+
+     If we draw that as a tree, it looks like this:
+
+                    root-option
+                         |
+                         |
+                      option-1
+                        / \
+                       /   \
+                      /     \
+              option-1-1   option-1-2
+
+     Next, we'll visit the two plan options and ask for a plan evaluation
+     in each.
+
+oplan> (ask-oplan :set-option 'option-1-1)
+(:option option-1-1)
+
+oplan> (ask-oplan :eval-plan)
+(:evaluation
+    ((:number-of-nodes . 27) (:plan-length . 26)
+     (:duration 2678400 = "31 days") (:psv-object-types) (:psv-values)
+     (:n-psv-object-types . 0) (:n-psv-values . 0)))
+
+     That's the evaluation result for the first plan.
+
+oplan> (ask-oplan :set-option 'option-1-2)
+(:option option-1-2)
+
+oplan> (ask-oplan :eval-plan)
+(:evaluation
+    ((:number-of-nodes . 27) (:plan-length . 26)
+     (:duration 2592000 = "30 days") (:psv-object-types) (:psv-values)
+     (:n-psv-object-types . 0) (:n-psv-values . 0)))
+
+     The second plan looks very like the first, but it takes one
+     day less.  If we looked at the plans in more detail, we'd find
+     that the first plan includes a luxury kitchen while the second
+     has a standard kitchen.
+
+     But that's all for now.
+
+oplan> (exit-oplan)
+
+     (Lisp exits.)
+
+----------------------------------------------------------------------

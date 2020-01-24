@@ -1,0 +1,141 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+  <title>Agent extensions</title>
+  <link rel="stylesheet" href="note-style.css">
+</head>
+
+<!-- Updated: Wed Sep 19 22:14:21 2007 by Jeff Dalton
+-->
+
+<body bgcolor="#ffffff">
+
+<h1>AgentExtensions</h1>
+
+Author: Jeff Dalton
+
+<h2>Notes on a general-purpose plug-in / extension mechanism</h2>
+
+<h2>Rationale</h2>
+
+<p>I-X agents typically have a number of points where objects of
+certain types can be "plugged-in".  For example, it's possible
+to add a new tool to an I-P2's "Tools" menu, or to add a handler.</p>
+
+<p>It's easy to do this in Java code, but you may have to
+define an Ip2 subclass that creates and plugs-in the desired
+objects at appropriate points.  That can be awkward when
+you want to be able to use several different combinations
+of plug-ins; and when when two or more people are making
+changes by subclassing, it takes work to combine them.</p>
+
+<p>In some cases, there is a more flexible mechanism.  For
+instance, if you want to add issue or activity handlers,
+there's a command-line argument, "additional-handlers",
+that lets you specify them by giving a list of class names.</p>
+
+<p>To avoid a proliferation of such special-purpose mechanisms,
+and to cover cases where no mechanism already exists, as well
+as unanticipated cases that aren't supported as plug-ins,
+a more general-purpose mechanism is provided.  In effect,
+it lets you specify Java code that is run when an agent
+starts up.  It can create objects and plug them in, or it
+can do something else.  We use "extension" as a convenient
+term for all such additions to an agent.</p>
+
+
+<h2>Using agent extensions</h2>
+
+<p>There's a command-line argument / props file entry called
+"extension-classes".  The value should be a comma-separated list
+of fully-qualified class names.  (You also have to make sure
+the CLASSPATH includes those classes.)</p>
+
+
+<h2>Writing agent extensions</h2>
+
+<p>Each such class must implement the ix.icore.IXAgentExtension
+interface and must have a public 1-argument constructor that
+declares its parameter as IXAgent or an IXAgent subclass
+(such as Ip2 or IPlan).</p>
+
+<p>When an I-P2 starts up, it makes one instance of
+each of the specified classes and calls the instance's
+installExtension() method.  The classes are processed
+in the order specified by the "extension-classes" parameter.</p>
+
+<p>The class definition will look something like this:
+<pre>
+    import ix.icore.IXAgentExtension;
+    import ix.ip2.Ip2;
+
+    public class SomeIp2Extension implements IXAgentExtension {
+
+        private Ip2 agent;  // Ip2 is a subclass of IXAgent
+
+        public SomeIp2Extension(Ip2 agent) {
+            this.agent = agent;
+        }
+
+        public void installExtension() {
+            ...
+        }
+    }
+</pre></p>
+
+<p>The exact point at which all of this happens may need some
+adjusting.  Right now it happens after all of startup /
+initialisation except for initialising options and loading
+the initial plan.</p>
+
+<p>It's possible that a future version will have several methods
+that are invoked at different points.</p>
+
+
+<h3>Adding a tool</h3>
+
+<p>An installExtension method that added a tool to the "Tools"
+menu would look something like this:
+<pre>
+    import ix.iface.util.ToolController;
+
+    public void installExtension() {
+        agent.addTool(new ToolController("Menu Text") {
+            public Object createTool() {
+                return new ToolClass(ip2);
+            }
+        });
+    }
+</pre></p>
+
+
+<h3>Adding functions for use in compute conditions</h3>
+
+Here's an installExtension method that defines a function
+in the interpreter used for 
+<a href="compute-conditions.html">"compute" conditions</a>:
+<pre>
+    import ix.util.lisp.*;
+
+    public void installExtension() {
+	ComputeInterpreter c =
+	    ip2.getIp2ModelManager().getComputeInterpreter();
+	c.define(new ExampleFunction());
+    }
+
+    class ExampleFunction extends Interpreter.JFunction {
+	ExampleFunction() {
+	    super("example", 1); // function "example" of 1 argument
+	}
+	public Object applyTo(Object[] args) {
+	    Number arg = mustBe(Number.class, args[0]);
+	    return Lisp.list("arg =", arg);
+	}
+    }
+</pre>
+
+<hr>
+<small><address>Jeff Dalton &lt;J.Dalton@ed.ac.uk&gt;</address></small>
+</body>
+</html>

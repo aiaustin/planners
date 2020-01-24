@@ -1,0 +1,148 @@
+% Some commands for O-Plan source/doc/*.tex files.
+
+% Author: Jeff Dalton
+
+% Updated: Tue Feb 18 06:08:44 1997 by Jeff Dalton
+
+
+% Commands for BNF, etc.
+
+\newcommand{\var}[1]{\mbox{\em #1\/}}
+\newcommand{\meta}[1]{{\rm $\langle$#1\/$\rangle$}}
+% \newcommand{\meta}[1]{{$\langle$\var{#1}$\rangle$}}
+\newcommand{\arbno}[1]{#1{$\;\ldots$}} % ie, zero or more
+\newcommand{\optional}[1]{{\rm [}#1{\rm ]}}
+\newcommand{\evalsto}{{$\Rightarrow\;$}}
+\newcommand{\equivto}{{$\equiv\;\,$}}
+\newcommand{\expandsto}{{$\Longrightarrow\;$}}
+\newcommand{\MapsTo}{{$\rightarrow\;\,$}}
+\newcommand{\BNFdef}{{\rm ::=\ }}
+\newcommand{\ordef}{$\;\mid\;$}
+
+\newcommand{\bool}{{\it true\/} {\rm or} {\it false}}
+
+\newcommand{\listof}[1]{\mbox{{\rm list of #1}}}
+
+% The @{} in the "cols" of the tabular env eliminates the extra space
+% before the first column and after the last.  (See LaTeX section C.9.2)
+
+\newenvironment{syntaxtable}{
+   \begin{tt}
+   \begin{trivlist}
+           \item[]
+   \begin{tabular}{@{}lll@{}}
+ }{\end{tabular}
+   \end{trivlist}
+   \end{tt}}
+
+
+% Program text may be given in a verbatim environment or, when some parts
+% should not be in the typewriter font, in a tabbing environment.  Progtab
+% is intended for the latter case.  It makes tt the default font.
+
+% progt is similar to progtab but indents on the left.  Perhaps better
+% names could be chosen.  ttab?
+
+\newenvironment{progtab}{
+   \begin{tt}
+   \begin{tabbing}
+ }{\end{tabbing}
+   \end{tt}}
+
+\newenvironment{progt}{
+   \begin{Lindent}
+   \begin{tt}
+   \begin{tabbing}
+ }{\end{tabbing}
+   \end{tt}
+   \end{Lindent}}
+
+
+% Lindent is indented on the left as if in a \quote, but without
+% having a similar indent on the right.  It therefore has more room
+% before it's ``too wide''.
+
+\newenvironment{Lindent}{
+   \begin{tt}
+   \begin{list}{}%
+               {}
+               \item[]
+ }{\end{list}
+   \end{tt}}
+
+
+% Function, variable, and other definitions can be provided by a
+% lispdef environment.  It produces a one-line "syntax" specification
+% followed by an indented block similar to the Lindent block defined above.
+% For example,
+%
+%   \begin{lispdef}{(f \var{x})}{Function}
+%      Applies {\tt f} to \var{x}.
+%   \end{lispdef}
+%
+% would produce something roughly like this:
+%
+%   (f x)                     [Function]
+%
+%      Applies f to x.
+%
+% "f" would be in tt font, "x" would be italic (since that's what \var does).
+% The "[Function]" would be out at the right margin.
+%
+% The lispdef env is used to define other envs; it is not normally
+% used directly.  For instance, the above example would normally be
+% written using a defun env, as defined below.
+%
+% \parskip is set to 0 to undo the usual way of writing a document
+% with unindented paragraphs: setting \parindent to 0pt and \parskip
+% to, say, 8pt.
+%
+
+\newenvironment{lispdef}[2]{
+   \begin{tabbing}
+     {\tt #1} \` [{\it #2\/}]
+   \end{tabbing}
+   \begin{list}{}%
+         {
+%         \setlength{\leftmargin}{\parindent}
+%         \setlength{\rightmargin}{\leftmargin}
+%         \setlength{\leftmargin}{0pt}
+          \setlength{\parskip}{0pt}
+         }
+         \item[]
+         \vspace{-\topsep}
+ }{\end{list}}
+
+% Defining variables and parameters.
+%   #1 = the variable name
+
+\newenvironment{defvar}[1]{
+   \begin{lispdef}{#1\index{#1}}{Variable}
+ }{\end{lispdef}}
+
+\newenvironment{defparameter}[1]{
+   \begin{lispdef}{#1\index{#1}}{Parameter}
+ }{\end{lispdef}}
+
+% Defining functions, macros, and messages
+%   #1 = the function, macro, or message name
+%   #2 = a description of the arguments.
+% The argument description should begin with a space to separate it
+% from #1.  We can't add the space automatically, because sometimes
+% the argument description should be null.  #1 is a spearate argument
+% so it can be indexed.
+
+\newenvironment{defun}[2]{
+   \begin{lispdef}{(#1\index{#1}#2)}{Function}
+ }{\end{lispdef}}
+
+\newenvironment{defmacro}[2]{
+   \begin{lispdef}{(#1\index{#1}#2)}{Macro}
+ }{\end{lispdef}}
+
+\newenvironment{defmessage}[2]{
+   \begin{lispdef}{(#1\index{#1}#2)}{Message}
+ }{\end{lispdef}}
+
+
+% End

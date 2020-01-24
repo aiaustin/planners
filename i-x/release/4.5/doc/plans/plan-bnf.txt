@@ -1,0 +1,155 @@
+Syntax for plan and related classes:
+
+PLAN ::=
+   <plan
+      <plan-variable-declarations>
+         <list>PLAN-VARIABLE-DECLARATION...</list>
+      </plan-variable-declarations>
+      <plan-issues><list>PLAN-ISSUE...</list></plan-issues>
+      <plan-issue-refinements>
+         <list>PLAN-ISSUE-REFINEMENT...</list>
+      </plan-issue-refinements>
+      <plan-nodes><list>PLAN-NODE...</list></plan-nodes>
+      <plan-refinements><list>PLAN-REFINEMENT...</list></plan-refinements>
+      <constraints><list>CONSTRAINER...</list></constraints>
+      <world-state><list>PATTERN-ASSIGNMENT...</list></world-state>
+      <annotations><map>MAP-ENTRY...</map></annotations>
+   </plan>
+
+MAP-ENTRY ::=
+   <map-entry>
+      <key>OBJECT</key>
+      <value>OBJECT</value>
+   </map-entry>
+
+PLAN-VARIABLE-DECLARATION ::=
+   <plan-variable-declaration
+         id="NAME"
+         name="SYMBOL"
+         scope="VARIABLE-SCOPE">
+      <annotations><map>MAP-ENTRY...</map></annotations>
+   </plan-variable-declaration>
+
+VARIABLE-SCOPE ::= local | global
+
+PLAN-ISSUE ::=
+   <plan-issue
+         id="NAME"
+         expansion="NAME">
+      <issue>ISSUE</issue>
+      <annotations><map>MAP-ENTRY...</map></annotations>
+   </plan-issue>
+
+ISSUE ::=
+   <issue
+         status="STATUS"
+         priority="PRIORITY"
+         sender-id="NAME"
+         ref="NAME"
+         report-back="YES-NO">
+      <pattern><list>...</list></pattern>
+      <annotations><map>MAP-ENTRY...</map></annotations>
+   </issue>
+
+STATUS ::= blank | complete | executing | possible | impossible | n/a
+
+PRIORITY ::= lowest | low | normal | high | highest
+
+YES-NO ::= yes | no
+
+PLAN-ISSUE-REFINEMENT ::=
+   <plan-issue-refinement
+         id="NAME"
+         expands="NAME">
+      <plan-variable-declarations>
+         <list>PLAN-VARIABLE-DECLARATION...</list>
+      </plan-variable-declarations>
+      <plan-issues><list>PLAN-ISSUE...</list></plan-issues>
+      <annotations><map>MAP-ENTRY...</map></annotations>
+   </plan-issue-refinement>
+
+PLAN-NODE ::=
+   <plan-node
+         id="NAME"
+         expansion="NAME">
+      <activity>ACTIVITY</activity>
+      <annotations><map>MAP-ENTRY...</map></annotations>
+   </plan-node>
+
+ACTIVITY ::=
+   <activity
+         status="STATUS"
+         priority="PRIORITY"
+         sender-id="NAME"
+         ref="NAME"
+         report-back="YES-NO">
+      <pattern><list>...</list></pattern>
+      <annotations><map>MAP-ENTRY...</map></annotations>
+   </activity>
+
+PLAN-REFINEMENT ::=
+   <plan-refinement
+         id="NAME"
+         expands="NAME">
+      <plan-variable-declarations>
+         <list>PLAN-VARIABLE-DECLARATION...</list>
+      </plan-variable-declarations>
+      <plan-nodes><list>PLAN-NODE...</list></plan-nodes>
+      <constraints><list>CONSTRAINER...</list></constraints>
+      <annotations><map>MAP-ENTRY...</map></annotations>
+   </plan-refinement>
+
+CONSTRAINER ::= CONSTRAINT | ORDERING
+
+PATTERN-ASSIGNMENT ::=
+   <pattern-assignment
+      <pattern><list>...</list></pattern>
+      <value>OBJECT</value>
+   </pattern-assignment>
+
+PLAN-VARIABLE ::=
+   <plan-variable
+         id="NAME"
+         name="SYMBOL">
+      <annotations><map>MAP-ENTRY...</map></annotations>
+   </plan-variable>
+
+CONSTRAINT ::=
+   <constraint
+         type="SYMBOL"
+         relation="SYMBOL"
+         sender-id="NAME">
+      <parameters><list>...</list></parameters>
+      <annotations><map>MAP-ENTRY...</map></annotations>
+   </constraint>
+
+CONSTRAINT ::= KNOWN-CONSTRAINT
+
+KNOWN-CONSTRAINT ::=
+   <constraint type="world-state" relation="condition">
+      <parameters>
+         <list>PATTERN-ASSIGNMENT</list>
+      </parameters>
+   </constraint>
+
+KNOWN-CONSTRAINT ::=
+   <constraint type="world-state" relation="effect">
+      <parameters>
+         <list>PATTERN-ASSIGNMENT</list>
+      </parameters>
+   </constraint>
+
+ORDERING ::=
+   <ordering
+      <from>NODE-END-REF</from>
+      <to>NODE-END-REF</to>
+      <annotations><map>MAP-ENTRY...</map></annotations>
+   </ordering>
+
+NODE-END-REF ::=
+   <node-end-ref
+         end="END"
+         node="NAME">
+   </node-end-ref>
+
+END ::= begin | end

@@ -1,0 +1,587 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>I-X Plans</title>
+</head>
+
+<body bgcolor="#ffffff">
+
+<h1>I-X Plans</h1>
+
+<h2>Resources</h2>
+
+<ul>
+
+<li><a name="syntax-defs">Syntactic descriptions</a>
+<ul>
+<li>A <a href="bnf.html">BNF-style description</a> of plan syntax.</li>
+<li>An <a href="xml-schema.html">XML Schema</a> for plans.</li>
+<li>A <a href="relax-ng-schema.html">Relax NG schema</a> for plans.</li>
+</ul>
+</li>
+
+<li><a href="example-plans/examples.html">Examples</a> of plans.</li>
+
+</ul>
+
+<p>Of the formal syntax definitions, probably the most readable is
+the <a href="plan-rnc.html">compact syntax Relax NG schema written as
+html</a>.  It contains an index and links that make it easier to
+find definitions; however, it requires a browser that understands
+cascading style sheets (css).  For more information about that schema,
+and for the same schema in other forms, see the 
+<a href="relax-ng-schema.html">Relax NG schema</a> page.
+</p>
+
+<h2>I-X XML Syntax</h2>
+
+<h3>Namespaces</h3>
+
+<p>The element tags in I-X XML should be in the I-X namespace
+appropriate for the version of the I-X software being used.</p>
+
+<p>At present, the only such namespace is
+"<tt>http://www.aiai.ed.ac.uk/project/ix/</tt>".
+</p>
+
+
+<h3>Object Syntax</h3>
+
+<p>I-X systems understand an XML syntax for representing objects.
+Nested elements usually alternate between class and field names:
+<pre><![CDATA[<class-1>
+   <field-1>
+      <class-1-1>
+         ...
+      </class-1-1>
+   </field-1>
+   <field-2>
+      <class-1-2>
+         ...
+      </class-1-2>
+   </field-2>
+   ...
+</class-1>
+]]></pre>
+</p>
+
+<p>Exceptions to this rule are:
+<ul>
+<li>Fields that have simple, atomic values are often written as
+    attributes rather than subelements.</li>
+<li>Atomic objects do not have fields.</li>
+<li>Lists and sets do not have field names for their members.</li>
+<li>Maps do not have field names for their map-entries.</li>
+<li>An XML element that should not be interpreted as the I-X
+    representation of an object is written inside a
+    <a href="#literal-xml"><tt>literal-document</tt> element</a>.
+    <tt>literal-document</tt> is a class-name, but there is no
+    field-name element around the contents, and the element
+    inside the <tt>literal-document</tt> needn't obey any of
+    the I-X syntax rules..</li>
+</ul>
+</p>
+
+<h4>Class Names</h4>
+
+<p>Class names are lower-case with words within the name
+separated by "-".  An exception to this rule is that words
+that are meant to be all upper-case are given in upper-case.
+This allows a straightforward transformation in both directions
+between these names and Java class and field names.  For
+example, the Java class name "<tt>XMLTranslator</tt> maps
+to "<tt>XML-translator</tt>", while the Java name
+"<tt>XmlTranslator</tt> maps to "<tt>xml-translator</tt>".
+</p>
+
+<!-- Explain qualification with a package name.  Does the
+     package name have to be all lower-case?  -->
+
+<h4>Atomic Objects</h4>
+
+<p>Atomic objects are things such as numbers, strings, and the
+values of enumeration types.  Atomic objects are written as
+<pre>&lt;<i>class-name</i>&gt;<i>text</i>&lt;/<i>class-name</i>&gt;
+</pre>
+where <i>text</i> is the textual representation of an instance
+of the class named <i>class-name</i>.
+</p>
+
+<p>Examples:
+<blockquote>
+<pre><![CDATA[<string>This is a string</string>
+
+<symbol>arctan</symbol>
+
+<name>issue-1</name>
+
+<priority>high</priority>
+
+<float>3.75</float>
+
+<integer>12</integer>
+
+<long>-8192542030985258682</long>
+]]></pre>
+</blockquote>
+</p>
+
+<h5>Names and Symbols</h5>
+
+<p>Names and symbols are essentially short, relatively simple, strings
+that could reasonably be written as attribute values.</p>
+
+<p>Symbols are most often used as words in <a href="#patterns">patterns</a>.
+The Symbol class corresponds to the symbol or atom type familiar to
+Lisp and Prolog programmers.
+</p>
+
+<!-- Symbols have the property that there is only one symbol (in a JVM)
+with a given name. -->
+
+<h4>Lists and Sets</h4>
+
+<p>A list is written as a <tt>list</tt> element containing
+zero or more elements that are I-X XML representations of objects.
+For example,
+<pre><![CDATA[<list>
+  <string>Here is a list</string>
+  <list>
+    <string>containing</string>
+    <integer>1</integer>
+    <string>sublist</string>
+  </list>
+</list>
+]]></pre>
+</p>
+
+<p>Sets are the same as lists, except that the element name
+is <tt>set</tt> rather than <tt>list</tt>.</p>
+
+<h4><a name="maps">Maps</a></h4>
+
+<p>A map is written as a <tt>map</tt> element containing
+zero or more <tt>map-entry</tt> elements.  Each <tt>map-entry</tt>
+contains a <tt>key</tt> element and a <tt>value</tt> element,
+each of which may contain any I-X XML representation of an object.
+</p>
+
+<p>A map is thus written as
+<pre><![CDATA[<map>
+  <map-entry>
+    <key>OBJECT</key>
+    <value>OBJECT</value>
+  <map-entry>
+  ...
+</map>
+]]></pre>
+where each occurrence of "<tt>OBJECT</tt>" may independently be
+replaced by the XML for any representable object.
+</p>
+
+<h4><a name="literal-xml">Embedded XML</a></h4>
+
+<p>A <tt>literal-document</tt> object contains an XML element,
+and such objects can be used to include XML that should be
+left as-is rather than being treated as if intended to represent
+an I-X object.</p>
+
+<p>For example, the following piece of XML
+<pre><![CDATA[<test-element xmlns="" test-attrib="attrib-value">
+  <test-subelement />
+</test-element>
+]]></pre>
+could be placed in I-X XML (where any object could appear) by writing
+this:
+<pre><![CDATA[<literal-document>
+  <test-element xmlns="" test-attrib="atrib-value">
+    <test-subelement />
+  </test-element>
+</literal-document>
+]]></pre>
+</p>
+
+<p>(The main places "where any object could appear" in plans are
+as the key or value of an annotation.)</p>
+
+<h3>I-X Objects</h3>
+
+<p>This section describes the principal objects manipulated by I-X
+systems: issues, activities, constraints, and annotations.</p>
+
+<p>On this page, we will use a semi-formal notation for
+describing the syntax of objects:
+<pre><i>class-name</i>:
+   attribute<i>-or-</i>element <i>field-name</i>: <i>field-value</i>
+   <i>...</i>
+</pre>
+where <i>field-value</i> is one of
+<ul>
+<li><i>class-name</i>.</li>
+<li><tt>list of </tt><i>class-name</i>.</li>
+</ul>
+Enumerations will be described as
+<pre><i>class-name</i>: <i>value1</i> | <i>value2</i> | <i>...</i></pre>
+The subclasses of an abstract class will be listed in a similar
+fashion:
+<pre><i>class-name</i>: <i>subclass-name</i> | <i>...</i></pre>
+</p>
+
+<p>
+The notation "<tt>list of </tt><i>class-name</i>" indicates a
+list of instances of the named class.
+</p>
+
+<h4><a name="patterns">Patterns</a></h4>
+
+<p>Each issue or activity contains a sentence called, partly for
+historical reasons, a "pattern".</p>
+
+<p>For an activity, the pattern states what the action would be
+performed, for example "go from Edinburgh to Glasgow".  That activity
+might have subactivities such as "go to Waverley station" and "buy a
+ticket".  A pattern for an activity should begin with a verb.</p>
+
+<p>For issues, the patterns are meant to be questions, such as
+"why Glasgow?".</p>
+
+<p>However, patterns are not single strings.  Instead, they are lists
+of objects.  Any object that can be represented in I-X XML may appear
+in a pattern.  (Indeed, inside an I-X system even objects that cannot
+be represented in XML could appear in a pattern.)  However, patterns
+are normally composed of simple atomic objects and, in some cases,
+subpatterns.  Words in patterns are usually represented as symbols
+or strings.  The sentence "go to Glasgow" would be a 3-element
+list, for example
+<pre><![CDATA[<list>
+  <symbol>go</symbol>
+  <symbol>to</symbol>
+  <symbol>Glasgow</symbol>
+</list>
+]]></pre>
+or perhaps
+<pre><![CDATA[<list>
+  <symbol>go</symbol>
+  <symbol>to</symbol>
+  <string>Glasgow</string>
+</list>
+]]></pre>
+</p>
+
+<p>The "?" at the end of a question would normally not be included
+in a pattern, and attempting to include it could lead to subtle
+problems.</p>
+
+<h4>Issues</h4>
+
+<p>An issue attaches some information to a pattern.</p>
+
+<pre>issue:
+   attribute status: status
+   attribute priority: priority
+   attribute sender-id: name
+   attribute ref: name
+   attribute report-back: yes-no
+   element pattern: list
+   element annotations: map
+</pre>
+
+<pre>status: blank | complete | executing | possible | impossible | n/a</pre>
+
+<pre>priority: lowest | low | normal | high | highest</pre>
+
+<pre>yes-no: yes | no</pre>
+
+<p>The <tt>sender-id</tt>, <tt>ref</tt>, and <tt>report-back</tt>
+fields are used when an issue is forwarded from one agent to another,
+for instance when delegating an issue to a subordinate.  A
+<tt>report-back</tt> value "<tt>yes</tt>" indicates that the
+recipient should send progress reports about its handling of the
+issue.  The reports should be sent to the agent whose name is
+given as the value of <tt>sender-id</tt>, and the <tt>ref</tt>
+attribute allows the agent receiving such reports to determine
+which issue the reports are about.</p>
+
+<p><i>The forwarding and report-back mechanisms, and the fields they
+use, are likely to change in the near future.</i></p>
+
+<h4>Activities</h4>
+
+<p>The representation of activities parallels that of issues.</p>
+
+<pre>activity:
+   attribute status: status
+   attribute priority: priority
+   attribute sender-id: name
+   attribute ref: name
+   attribute report-back: yes-no
+   element pattern: list
+   element annotations: map
+</pre>
+
+<h4>Constraints</h4>
+
+<p>We will sometimes need the notion of a <code>constrainer</code>.
+This is because temporal "before" constraints are not yet represented
+by <code>constraint</code> objects; instead, they are represented by
+instances of a separate class, <code>ordering</code>.  A more general
+notion that includes both <code>constraint</code> and
+<code>ordering</code> is therefore needed.</p>
+
+<pre>constrainer: constraint | ordering</pre>
+
+<pre>constraint:
+   attribute type: symbol
+   attribute relation: symbol
+   attribute sender-id: name
+   element parameters: list
+   element annotations: map
+</pre>
+
+<pre>ordering:
+   element from: node-end-ref
+   element to: node-end-ref
+   element annotations: map
+</pre>
+
+<pre>node-end-ref:
+   attribute end: end
+   attribute node: name
+</pre>
+
+<pre>end: begin | end</pre>
+
+<p><i>Explain orderings and some constraint types.</i></p>
+
+<p>Pattern-assignments appear in the <tt>parameters</tt> list of
+certain constraints.</p>
+
+<pre>pattern-assignment:
+   element pattern: list
+   element value: object
+</pre>
+
+
+<h4>Annotations</h4>
+
+Annotations are represented by a map (see <a href="#maps">above</a>)
+in which any object that can be represented in I-X XML may appear as
+a key or value.
+
+
+<h3><a name="plans">Plans</a></h3>
+
+<pre>plan:
+   element plan-variable-declarations: list of plan-variable-declaration
+   element plan-issues: list of plan-issue
+   element plan-issue-refinements: list of plan-issue-refinement
+   element plan-nodes: list of plan-node
+   element plan-refinements: list of plan-refinement
+   element constraints: list of constrainer
+   element world-state: list of pattern-assignment
+   element annotations: map
+</pre>
+
+<p>Plans are made from I-X objects of the sorts discussed above
+together with "structural" objects that show how the I-X objects
+are related.  For example, a <tt>plan-issue</tt> is a structural
+object that is wrapped around an <tt>issue</tt> and associated
+with another structural object, a <tt>plan-issue-refinement</tt>,
+to show how the issue is broken down into subissues.  A
+<tt>plan-node</tt> and a <tt>plan-refinement</tt> perform a
+similar function for an <tt>activity</tt>.</p> 
+
+<p>The structural objects are not of much interest in themselves
+and are not retained (outside of the plan object) when a plan is
+loaded into an I-X system.  Any annotations on such objects will
+therefore be lost if a plan is loaded and then the resulting
+"state" is used to construct a new plan object.  (Annotations
+on issues and activities, on the other hand, will be retained.)</p>
+
+<p><i>Explain world-state.</i></p>
+
+<h4>Plan-Variables and Declarations</h4>
+
+<p><i>To be written</i></p>
+
+<h4>Issues in a Plan</h4>
+
+<p>Issues are not included directly in a plan.  Instead, each is
+wrapped in a <tt>plan-issue</tt>.</p>
+
+<pre>plan-issue:
+   attribute id: name
+   attribute expansion: name
+   element issue: issue
+   element annotations: map
+</pre>
+
+<pre>plan-issue-refinement:
+   attribute id: name
+   attribute expands: name
+   element plan-variable-declarations: list of plan-variable-declaration
+   element plan-issues: list of plan-issue
+   element annotations: map
+</pre>
+
+<p>A paired <tt>plan-issue</tt> and <tt>plan-issue-refinement</tt> are
+used to relate an issue to its subissues.</p>
+
+<p>If an issue, <i>i</i>, has subissues, and is wrapped in <tt>plan-issue</tt>
+<i>pi</i>, the value of <i>pi</i>'s <tt>expansion</tt> attribute should
+be the id of a <tt>plan-issue-refinement</tt>; and then the value of
+the <tt>expands</tt> attribute of that <tt>plan-issue-refinement</tt>
+should be <i>pi</i>'s id.  <i>i</i>'s subissues are the issues inside the 
+plan-issues of that refinement.</p>
+
+<p>For example, if <i>issue-a</i> has subissues <i>issue-a.1</i>
+and <i>issue-a.2</i>, they would be placed in a plan as follows:
+<pre><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<plan xmlns="http://www.aiai.ed.ac.uk/project/ix/">
+ <plan-issues>
+  <list>
+   <plan-issue id="issue-0" expansion="issue-refinement-0">
+    <issue>
+     <issue> ... XML for issue-a ... </issue>
+    </issue>
+   </plan-issue>
+ </plan-issues>
+ <plan-issue-refinements>
+  <list>
+   <plan-issue-refinement id="issue-refinement-0" expands="issue-0">
+    <plan-issues>
+     <list>
+      <plan-issue id="issue-0-0">
+       <issue>
+        <issue> ... XML for issue-a.1 ... </issue>
+       </issue>
+      </plan-issue>
+      <plan-issue id="issue-0-1">
+       <issue>
+        <issue> ... XML for issue-a.2 ... </issue>
+       </issue>
+      </plan-issue>
+     </list>
+    </plan-issues>
+   </plan-issue-refinement>
+  </list>
+ </plan-issue-refinements>
+ ...
+</plan>
+]]></pre>
+</p>
+
+<p>If a subissue has subissues of its own, they are specified
+by a further plan-issue-refinemement.  All of the refinements
+required by such relationships are held in a single list in the
+<tt>plan-issue-refinements</tt> field of the plan.</p>
+
+<p>A tree of issues thus has a "flattened" representation in a
+plan.
+</p>
+
+<p>Another potentially confusing point is that the XML for a
+plan-issue will typically have an <tt>issue</tt> tag
+inside an <tt>issue</tt> tag, like this:
+<pre><![CDATA[
+   <plan-issue id="issue-0" expansion="issue-refinement-0">
+    <issue>
+     <issue> ... XML for issue-a ... </issue>
+    </issue>
+   </plan-issue>
+]]></pre></p>
+
+<p>The outer <tt>issue</tt> tag represents a field in the
+plan-issue object, while the inner <tt>issue</tt> represents
+the class of the issue object that is the value of that field.
+If the value of the field were instead an instance of a subclass
+of Issue, the inner tag would be based on the name of that
+subclass instead.</p>
+
+
+<h4>Activities in a Plan</h4>
+
+<p>Like issues, activities are not included directly in a plan.
+Instead, <tt>plan-node</tt> and <tt>plan-refinement</tt> do for
+activities what <tt>plan-issue</tt> and <tt>plan-issue-refinement</tt>,
+respectively, do for for issues.</p>
+
+<pre>plan-node:
+   attribute id: name
+   attribute expansion: name
+   element activity: activity
+   element annotations: map
+</pre>
+
+<pre>plan-refinement:
+   attribute id: name
+   attribute expands: name
+   element plan-variable-declarations: list of plan-variable-declaration
+   element plan-nodes: list of plan-node
+   element constraints: list of constrainer
+   element annotations: map
+</pre>
+
+<h4>Constraints in Plan-Refinements</h4>
+
+<p>A <tt>plan-refinement</tt>, unlike a <tt>plan-issue-refinement</tt>, 
+may contain constraints; and those constraints may refer to a
+<tt>plan-node</tt> within the same <tt>plan-refinement</tt> by
+using the node's id, if the constraint is of a kind that allows
+such a reference.</p>
+
+<p>Here, as an example, are the relevant parts of a plan with a
+single top-level activity that has three sequential subactivities.
+The <a href="example-plans/sequential-subplan.txt">full plan</a>
+is also available.</p>
+
+<pre><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<plan xmlns="http://www.aiai.ed.ac.uk/project/ix/">
+ <plan-nodes>
+  <list>
+   <plan-node id="node-0" expansion="refinement-0">...</plan-node>
+  </list>
+ </plan-nodes>
+ <plan-refinements>
+  <list>
+   <plan-refinement id="refinement-0" expands="node-0">
+    <plan-nodes>
+     <list>
+      <plan-node id="node-0-0">...</plan-node>
+      <plan-node id="node-0-1">...</plan-node>
+      <plan-node id="node-0-2">...</plan-node>
+     </list>
+    </plan-nodes>
+    <constraints>
+     <list>
+      <ordering>
+       <from><node-end-ref end="end" node="node-0-0" /></from>
+       <to><node-end-ref end="begin" node="node-0-1" /></to>
+      </ordering>
+      <ordering>
+       <from><node-end-ref end="end" node="node-0-1" /></from>
+       <to><node-end-ref end="begin" node="node-0-2" /></to>
+      </ordering>
+     </list>
+    </constraints>
+   </plan-refinement>
+  </list>
+ </plan-refinements>
+</plan>
+]]></pre>
+
+<p>The <tt>ordering</tt>
+<pre><![CDATA[  <ordering>
+   <from><node-end-ref end="end" node="node-0-1" /></from>
+   <to><node-end-ref end="begin" node="node-0-2" /></to>
+  </ordering>
+]]></pre>
+says that the activity contained in the <tt>plan-node</tt>
+with id "<tt>node-0-1</tt>" must end before activity contained
+in the <tt>plan-node</tt> with id "<tt>node-0-2</tt>" begins.
+</p>
+
+<hr/>
+<small><address>Jeff Dalton &lt;J.Dalton@ed.ac.uk&gt;</address></small>
+</body>
+</html>

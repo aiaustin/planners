@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Using checklists as domains</title>
+  <link rel="stylesheet" href="note-style.css" />
+</head>
+
+<!-- Updated: Wed Oct 31 15:34:02 2007 by Jeff Dalton
+-->
+
+<body bgcolor="#ffffff">
+
+<h1>Using checklists as domains</h1>
+
+Author: Jeff Dalton
+
+<p>This note describes the initial version of a checklist importer.</p>
+
+<p>There are obviously a number of changes that could be made,
+and the "sentence" parsing is pretty unsophisticated at present,
+but it can act as a basis for future versions.</p>
+
+Some rules:
+<ul>
+<li>
+  <p>Define a "checklist" as lines with indentation to indicate
+  grouping.  Indentation can be nested; blank lines are allowed
+  only at the top level.</p>
+</li>
+
+<li>
+  Any top-level line will produce a refinement.
+
+  <p>Lines at the next level of indentation will become nodes
+  in that refinement.</p>
+
+  <p>If any line has more deeply indented lines under it,
+  it also produces a refinement with lines at the next
+  level (relative to it) as its nodes; and so on.</p>
+</li>
+
+<li>
+  <p>Lines should NOT be numbered.  (If necessary, we can introduce
+  handling for numbered lines later.)</p>
+</li>
+</ul>
+
+<p>How to use this new feature:
+<ol>
+  <li>Name your file whatever.checklist</li>
+  <li>Treat it as a domain.</li>
+</ol></p>
+
+<p>If you look at "Help" -> "About I-X Process Panel", the
+list of "File syntaxes" will include:
+<pre>
+   Checklist files as domains ("checklist")
+      Input only
+      Input must be a domain
+</pre></p>
+
+An example:
+<pre>
+Go to London
+  Prepare for trip.
+    Buy train tickets
+    Book hotel
+    Arrange meetings
+    Pack clothes
+    Buy food to eat on train.
+       Buy sandwiches
+       Buy wine
+       Buy snacks
+    Get enough money for taxi food etc
+  To do the night before
+    Book taxi
+    Check train times
+    Set alarm clock
+  Go to Waverley.
+  Take train
+
+Return trip
+  Check tickets
+</pre>
+
+In <a href="ltf-for-domains.html">LTF syntax</a>, that becomes:
+<pre>
+(refinement Go-0 (Go to London)
+  (nodes
+    (1 (Prepare for trip.))
+    (2 (To do the night before))
+    (3 (Go to Waverley.))
+    (4 (Take train))))
+
+(refinement Prepare-0 (Prepare for trip.)
+  (nodes
+    (1 (Buy train tickets))
+    (2 (Book hotel))
+    (3 (Arrange meetings))
+    (4 (Pack clothes))
+    (5 (Buy food to eat on train.))
+    (6 (Get enough money for taxi food etc))))
+
+(refinement Buy-0 (Buy food to eat on train.)
+  (nodes
+    (1 (Buy sandwiches))
+    (2 (Buy wine))
+    (3 (Buy snacks))))
+
+(refinement To-0 (To do the night before)
+  (nodes
+    (1 (Book taxi))
+    (2 (Check train times))
+    (3 (Set alarm clock))))
+
+(refinement Return-0 (Return trip)
+  (nodes
+    (1 (Check tickets))))
+</pre>
+
+<p>It could obviously be better about generating refinement names
+and at handling punctiation and capitalisation in the source.</p>
+
+<p>There is a case for restricting the refinement that can be used in
+"nested" cases to the one that was produced from the nested lines
+(rather than just linking them through the expands-pattern); but
+there's also a pretty good case for <strong>not</strong> doing that.</p>
+
+<hr/>
+<small><address>Jeff Dalton &lt;J.Dalton@ed.ac.uk&gt;</address></small>
+</body>
+</html>

@@ -1,0 +1,202 @@
+The University of Edinburgh
+Licence for NON-COMMERCIAL use ONLY 
+for I-X Software
+
+Copyright (C), 2006, The University Court of the University of
+Edinburgh, Old College, Edinburgh EH8 9YL, UK
+
+The Artificial Intelligence Applications Institute, part of the
+University Court of the University of Edinburgh ("Edinburgh") has
+developed the I-X Software ("Software").
+
+The use of this Software, which is limited to non-commercial purposes
+only, is subject to the terms of this Licence.
+
+Edinburgh is willing to grant you a licence to use the Software for
+non-commercial purposes only as set out in on the following terms and
+conditions. Licences for commercial use with limited warranties are
+available from Edinburgh for suitable uses. Contact:
+
+   Artificial Intelligence Applications Institute
+   University of Edinburgh
+   Appleton Tower
+   Crichton Street
+   Edinburgh EH8 9LE, UK
+
+   E-mail: aiai@ed.ac.uk
+
+By using this Software you (the "Licensee") acknowledge that you
+have read and understood this licence and will be bound by its terms
+and conditions.
+
+LICENCE CONDITIONS
+
+1	Ownership
+
+1.1 Edinburgh is the owner and proprietor of copyright, database right
+and all other intellectual property rights in and to Software and
+related documentation.
+
+1.2 Software is proprietary to Edinburgh and Edinburgh retains title
+and ownership of Software and related documentation at all times. All
+copies of Software and related documentation are the property of
+Edinburgh regardless of the medium in which such copies may exist.
+
+1.3 The Licensee undertakes to adopt any security measures needed to
+protect Edinburgh's copyright, database right and other intellectual
+property rights in Software and related documentation and undertakes
+to take all reasonable steps to ensure that no unauthorised use is
+made of Software and related documentation.
+
+2	Licence
+
+2.1 Subject to the conditions of this Licence Edinburgh grants to the
+Licensee a limited non-exclusive, non-transferable, world-wide,
+royalty-free, perpetual licence to use the Software, without the right
+to sub-licence, on computers within the possession or control of the
+Licensee and to make any necessary copies for back-up.
+
+2.2 The Licensee undertakes to use Software and related documentation
+only for non- commercial purposes (such as academic research) or for
+evaluation or demonstrating the Software as a potential part of its
+own products while making no charge for such use.  The Licensee is
+otherwise prohibited from exploiting the Software commercially and
+from using the Software for any direct or indirect commercial or
+financial benefit whether such benefit is achieved or not.
+
+2.3 The Licensee is prohibited from granting or purporting to grant to
+any third party any sub-licence or other rights to use Software.
+
+3	Licence Restrictions
+
+3.1 The Licensee may, for its use as permitted by this Licence only,
+enhance, modify, expand and create derivative works of the Software;
+and/or merge or incorporate in whole or in part the Software into
+third party owned computer code. Any and all such incorporations shall
+include a text file containing the terms of this licence. Any and all
+such modifications shall be considered part of the Software and shall
+be subject to the terms of this licence.
+
+3.2 The Licensee may not translate, reverse engineer, decompile,
+disassemble, modify or create derivative works based on Software
+except as expressly permitted by law or by this Licence.
+
+3.3 The Licensee may not rent, lease, sublicense, sell, assign,
+pledge, transfer or otherwise dispose of Software, on a temporary or
+permanent basis.
+
+4	Term 
+
+4.1 Subject to Licensee complying fully with these Licence Conditions,
+this Licence shall remain in force in perpetuity.
+
+4.2 This licence may be terminated by the Licensee at any time by
+destroying its copy of Software together with all copies in any form.
+
+4.3 If Licensee fails to comply fully with these Licence Conditions
+this Licence shall automatically terminate and the Licensee shall
+cease use immediately of the Software.
+
+5	Acknowledgement
+
+If the Licensee publishes any papers the content of which has in way
+involved or benefited from the use of Software, then the Licensee must
+include in such publication a written acknowledgement that Software
+was used, that Software was developed by the Artificial Intelligence
+Applications Institute at the University of Edinburgh and that
+Software was used under licence.
+
+6	No Maintenance
+
+Edinburgh is not obliged to continue to make Software available
+provide any maintenance, fault correction, patches, technical support
+or updates to the Licensee for Software.
+
+7	Disclaimer of Warranty and Limitation of Liability
+
+7.1 EDINBURGH GIVES NO WARRANTY TO THE LICENSEE THAT SOFTWARE IS FREE
+FROM DEFECTS OR FAULTS. SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE. EDINBURGH MAKES NO REPRESENTATION ABOUT THE SUITABILITY OF
+SOFTWARE FOR ANY PURPOSE. EDINBURGH DOES NOT WARRANT THAT THE SOFTWARE
+WILL MEET YOUR REQUIREMENTS OR THAT THE OPERATION OF THE SOFTWARE WILL
+BE UNINTERRUPTED OR ERROR-FREE OR THAT ANY ERRORS IN THE SOFTWARE CAN
+BE CORRECTED.
+ 
+7.2 TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+EDINBURGH AND/OR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL LOSS AND/OR DAMAGES
+OF ANY KIND WHATSOEVER (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; FAILURE
+TO MAKE ANTICIPATED SAVINGS; COSTS OF WASTED TIME; COSTS OF MISSED
+BUSINESS OPPORTUNITIES; GOODWILL; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR DELICT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF, OR INABILITY TO USE, THIS SOFTWARE, EVEN IF
+SUCH WAS REASONABLY FORESEEABLE OR IF EDINBURGH AND/OR ITS EMPLOYEES
+WERE ADVISED OF THE POSSIBILITY OF SUCH LOSS AND/OR
+DAMAGE. EDINBURGH DOES NOT EXCLUDE LIABILITY FOR DEATH OR PERSONAL
+INJURY CAUSED BY THE NEGLICENCE OF EDINBURGH OR ITS EMPLOYEES.
+
+8	No Waiver
+
+Failure by Edinburgh to exercise or enforce any rights in this licence
+shall not be deemed to be a waiver of any such right nor operate so as
+to bar the exercise or enforcement thereof at any time or times
+thereafter.
+
+9	Indemnification
+
+The Licensee agrees to indemnify and keep indemnified at all times
+Edinburgh on demand against any liability, loss or damage incurred by
+Edinburgh which arises directly or indirectly out of any breach of any
+of the undertakings or obligations on the part of the Licensee
+contained in this licence or in respect of the use of Software by the
+Licensee howsoever arising.
+
+
+10	Entire Licence and Severability
+
+10.1 This licence constitutes the entire agreement between Edinburgh
+and the Licensee with respect to the subject matter hereof and
+supersedes all prior written or oral understandings, communications or
+agreements. This licence may be modified only by written agreement
+duly signed by authorised representatives of both Edinburgh and the
+Licensee.
+
+10.2 If any part of the conditions or exclusions contained in this
+licence is held to be void or unenforceable, such part shall be deemed
+to be deleted from this licence and the remainder of the provision in
+question shall continue in full force and effect.
+
+11	Authorisation Warranty
+
+If the Software is to be used for the purposes of an organisation the
+person completing the Licence warrants to Edinburgh that s/he is
+authorised to enter into this Licence on the organisation's behalf.
+
+12	Use and Export Control
+
+THE SOFTWARE MUST NOT BE
+
+12.1 EXPORTED TO ANY COUNTRY ON WHICH EXPORT RESTRICTIONS ARE
+CURRENTLY IMPOSED BY ANY LEGISLATION, REGULATIONS, ORDERS OR OTHER
+RESTRICTIONS MADE FROM TIME TO TIME BY EITHER THE UNITED KINGDOM OR
+THE EUROPEAN UNION;
+
+AND/OR
+
+12.2 USED (IN WHOLE OR PART) CONTRARY TO ANY RESTRICTION ON USE
+IMPOSED BY ANY LEGISLATION, REGULATIONS, ORDERS OR OTHER RESTRICTIONS
+MADE FROM TIME TO TIME BY EITHER THE UNITED KINGDOM OR THE EUROPEAN
+UNION.
+
+13	Governing Law
+
+This licence shall be governed by and construed in accordance with the
+law of Scotland and the parties hereby prorogate the exclusive
+jurisdiction of the courts in Scotland.
+      
+
+I-X Non-commercial Use Licence (20-April-2006)

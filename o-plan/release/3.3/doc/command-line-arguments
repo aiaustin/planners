@@ -1,0 +1,134 @@
+Command-line arguments
+------------ ---------
+The syntax of the "oplan" command is:
+
+  oplan [ <image-name> ] <argument>...
+
+This is disambiguated by treating the 1st argument as an image-name
+if it does not begin with "-".  Each of the remaining arguments is
+either a name that begins with "-" or a "-"name followed by a value
+whose syntax depends on the "-"name in question.  For example:
+
+  oplan kcl-image -break -config oplan-planner-small -eval '(break "init")' 
+
+Here the image is "kcl-image" and the arguments are:
+
+  -break
+  -config oplan-planner-small
+  -eval '(break "init")'
+
+The default image is "kcl-image" in the image directory defined
+when O-Plan was installed.  So the command above is equivalent to
+this one:
+
+  oplan -break -config oplan-planner-small -eval '(break "init")' 
+
+To ignore the image directory, and specify an image directly, use 
+a name that contains "/".  For instance:
+
+  oplan ./my-local-image
+
+Arguments are processed from left to right.  If an argument causes
+some action to take place, the action will happen before later arguments
+have been processed.  The only action caused by most arguments is
+for their value to be recorded in a "parameter table" for reference 
+later on, but other arguments such as -eval can do more.
+
+In this section, we'll describe all arguments that do something other
+than record their value.  In order to talk about these arguments
+collectively, we'll call them the "special arguments".  All arguments
+that do not have to occur in name/value pairs are considered special
+arguments, though some special arguments do have name/value form.
+
+The other arguments are called "parameters", and their significance 
+can be determined by consulting the "Parameters" section.  Note that
+some special arguments also set the values of parameters.
+
+Any name that is not the name of a special argument can be used as
+a parameter.  The value will be stored as a string under the keyword
+that corresponds to the parameter name and can be retrieved from
+within O-Plan by calling (GET-PARAMETER keyword).  For instance, to
+set the value of :oplan-tf-dir, use the command-line argument
+
+  -oplan-tf-dir directory-name
+
+Since parameters correspond to Lisp keywords, O-Plan allows ":" as
+well as "-" when setting a parameter.  So the following command-line
+argument is equivalent to the one above:
+
+  :oplan-tf-dir directory-name
+
+Of course, only certain names have meaning to O-Plan.  Other names
+would have to be interpreted (if at all) by code that you have loaded
+in.
+
+  Argument           Description
+  --------           -----------
+
+  -break             Enter a Lisp break loop.  This allows you to examine
+                     the state of the world before O-Plan starts up or
+                     to call O-Plan procedures without starting O-Plan.
+
+  -config filename   Use the indicated configuration file.  See the
+                     "Config file" section for more information.
+                     This argument also sets the :CONFIG parameter.
+
+  -connect           Operate in "connected mode".  See the "TA interface"
+                     section for a description.  This argument also sets
+                     the :CONNECT parameter to T.
+
+  -eval form         Evaluate form, where form is a Common Lisp expression.
+
+  -http              Operate in "HTTP server mode".  This provides an
+                     HTML-based interface to O-Plan suitable for use with
+                     a Web browser.  On some platforms, a browser will be
+                     started, or redirected, automatically.  See the
+		     "HTTP mode" section for more information.
+
+                     -http is available only when O-Plan was built
+                     using GNU Common Lisp (GCL).
+
+  -load filename     Load the indicated file.
+
+  -load-system name  Load the indicated system, where the system is either
+		     one that's provided with O-Plan (though not loaded
+                     when O-Plan is built) or else a new system defined
+                     using O-Plan's defsystem.
+
+  -no parameter      Sets the value of the parameter to false (Lisp NIL).
+                     The parameter must written with an initial "-" or ":"
+                     and corresponds to a Lisp keyword in the usual way.
+
+  -noinit            Do not load any "oplan-init" file.  Note that you
+                     cannot say "-no -init" instead.
+
+  -not parameter     Equivalent to "-no parameter".
+
+  -server            Operate in "server mode".  O-Plan creates an Internet
+                     domain socket on the port specified by the :PORT
+                     parameter (defaulting to 5040); and then a program
+                     that connects to that port gets a new O-Plan which
+                     behaves as if it were run with "-no -windows -connect".
+                     See the "TA interface" section.  "-server" also sets
+                     the :SERVER parameter to T and :WINDOWS to NIL.
+
+                     -server is available only when O-Plan was built
+                     using GNU Common Lisp (GCL).
+
+  -subr              Operate in "subroutine mode".  O-Plan then can be 
+                     called as a subroutine via the program interface.
+                     This argument also sets the :SUBR parameter to T.
+                     See the "TA interface" section for more information.
+
+  -lisp              Run as a Lisp system.  This is equivalent to
+                     the arguments "-no -windows -subr".
+
+  -tfc tfc-arg...    Run as the TF syntax-checker rather than as O-Plan.
+                     All arguments after "-tfc" will be processed by the
+                     syntax-checker. See the "tf-syntax-checking" section
+                     for an explanation.
+
+Note that all arguments are processed before O-Plan considers loading
+an "oplan-init" file.  If you need something to happen earlier, use
+-eval or -load.
+

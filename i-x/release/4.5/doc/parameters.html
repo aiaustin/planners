@@ -1,0 +1,576 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>I-X Parameters</title>
+  <link rel="stylesheet" href="notes/note-style.css"></link>
+</head>
+
+<!-- Updated: Wed Oct 31 13:42:26 2007 by Jeff Dalton
+-->
+
+<body bgcolor="#ffffff">
+
+
+<h1>I-X Parameters</h1>
+
+<h2>Contents</h2>
+
+<p>
+<a href="#intro">Introduction</a><br></br>
+<a href="#parameters">Parameters grouped by class or purpose</a>
+<ul>
+<li><a href="#ixagent">IXAgent</a></li>
+<li><a href="#ip2">I-P2</a></li>
+<li><a href="#iplan">I-Plan</a></li>
+<li><a href="#options">Options</a></li>
+<li><a href="#planning">Planning</a></li>
+<li><a href="#plan-sim">Plan-checking simulator</a></li>
+<li><a href="#auto-tester">I-Plan auto-tester</a></li>
+<li><a href="#isim">I-Sim</a></li>
+<li><a href="#iserve">I-Serve</a></li>
+<li><a href="#ltf-parser">LTF (List Task Formalism) parser</a></li>
+<li><a href="#tree-editor">XML Tree Editor</a></li>
+<li><a href="#ipc">IPC</a></li>
+<ul>
+  <li><a href="#simple-ipc">Default/simple and XML communication strategies</a></li>
+  <li><a href="#parameterized-ipc">Parameterized communication strategies</a></li>
+</ul>
+</ul>
+</p>
+
+<h2><a name="intro">Introduction</a></h2>
+
+<p>This document does not cover the parameters used with specialised
+utility programs.  For that, see the
+<a href="notes/index.html#utility-programs">documentation</a>
+for those programs.</p>
+
+<p>By a "parameter" we mean a value that's assigned to a name when an
+application begins execution, so that it can be looked up in a table
+by code in the application.   I-X parameters are normally specified as
+command-line arguments or as entries in a "properties file".</p>
+
+<p>When using the <tt>java</tt> command, the command-line arguements
+that are given to the application are the ones that follow the name of
+the main program class.  The arguments are separated by spaces and
+most have the form <tt>-<i>name</i>=<i>value</i></tt>.  For example:
+<pre>
+   java -cp ix.jar ix.ip2.Ip2 -domain=domain-library/mydomain.xml
+</pre>
+There, the main program class is <tt>ix.ip2.Ip2</tt> and the one
+command-line argument that will be accessible in the application
+is
+<pre>
+   -domain=domain-library/mydomain.xml
+</pre>
+</p>
+<p>The "-" is not part of the parameter name; it is just part of the
+I-X syntax for command-line arguments.  (No "-"s are used when
+paramater are specified in a properties file.)</p>
+
+<p>For boolean-valued parameters, the <i>value</i> is assumed to be
+true if only the name is given.   If the name isn't given at all, the
+parameter is assumed to have whatever default value the application
+desires.</p>
+
+<p><tt>-no</tt> and <tt>-not</tt> can negate the following parameter
+(which is written without the initial "-").  It is equivalent to
+giving the parameter the value "<tt>false</tt>" but can be used in cases where
+it would seem odd to explicitly say "<tt>=false</tt>".   For example,
+<pre>
+   -not interactive
+</pre></p>
+
+<p>A "properties file" of parameter assignments may be loaded by using the
+command-line argument
+<pre>
+   -load <i>resource</i>
+</pre>
+where the <i>resource</i> can be a file name or a URL.
+</p>
+
+<p>N.B. <tt>-load</tt> is not a parameter.  It is syntax that says to load
+<i>name</i>=<i>value</i> lines from a file or other resource.  More than
+one <tt>-load</tt> may be specified.  Note that in such files a
+parameter name does not have a "-" in front of it.</p>
+
+<p>A properties file is processed by the <tt>load</tt> method of the
+Java <tt>Properties</tt> class.  All-whitespace lines are ignored.
+Comment lines can begin with <tt>#</tt> or <tt>!</tt>.  A <tt>\</tt>
+at the end of a line indicates a continued line.  Within a line,
+the escape sequences <tt>\t, \n, \r, \\, \", \', \ </tt> (a backslash
+and a space), and <tt>\u</tt><i>xxxx</i> are converted
+to single characters.</p>
+
+
+<h2><a name="parameters">Parameters grouped by class or purpose</a></h2>
+
+<h2><a name="ixagent">IXAgent</a></h2>
+
+<dl>
+<dt><tt>-debug=</tt><i>boolean, default true</i></dt>
+
+<dt><tt>-interactive=</tt><i>boolean, default true</i></dt>
+
+<dt><tt>-log-directory=</tt><i>directory-name</i></dt>
+<dd>
+    <p>If this parameter is given, a log file will be created in
+    the specified diretory when the agent starts up and
+    XML descriptions of significant events (such as messages
+    sent and received) will be written to that file while
+    the agent runs.</p>
+</dd>
+
+<dt><tt>-ipc-name=</tt><i>name</i></dt>
+
+<dt><tt>-symbol-name=</tt><i>text</i></dt>
+
+<dt><tt>-display-name=</tt><i>text</i></dt>
+<dd>
+    <p>ipc-name is essentially a synonym for symbol-name.</p>
+</dd>
+
+<dt><tt>-metal-theme-secondary3=</tt><i>colour</i></dt>
+
+<dt><tt>-font-increment=</tt><i>int</i></dt>
+
+<dt><tt>-superiors=</tt><i>namelist</i></dt>
+
+<dt><tt>-subordinates=</tt><i>namelist</i></dt>
+
+<dt><tt>-peers=</tt><i>namelist</i></dt>
+
+<dt><tt>-contacts=</tt><i>namelist</i></dt>
+<dd>
+    <p>For the relationship parameters above, a namelist is
+    a list of agent symbol-names separated by commas.</p>
+</dd>
+
+<dt><tt>-external-capabilities=<i>agent</i>:<i>verb</i>,<i>agent</i>:<i>verb</i>,<i>...</i></tt></dt>
+<dd>
+    <p>For each pair agent:verb, if an issue or activity with that
+    verb appears, an action item will be added that says "invoke
+    <i>agent</i>".  The agents are given by their symbol-names.</p>
+
+    <p>When such an action item is selected, the corresponding issue or
+    activity is forwarded to the indicated agent with
+    report-back=yes.</p>
+</dd>
+
+<dt><tt>-extension-classes=<i>classname</i>,<i>classname</i>,<i>...</i></tt></dt>
+<dd>
+    <p>Here a class name must be a full Java class name, including
+    the package.  Each named class must implement the IXAgentExtension
+    interface. For more, see
+    <a href="notes/agent-extensions.html">Agent Extensions</a>.</p>
+</dd>
+
+<dt><tt>-use-long-ids=</tt><i>boolean, default true</i></dt>
+
+<dt><tt>-use-hash-ids=</tt><i>boolean, default false</i></dt>
+
+<dt><tt>-allow-random-device=</tt><i>boolean, default false</i></dt>
+
+<dt><tt>-send-received-reports=</tt><i>boolean, default true</i></dt>
+<dd>
+    <p>Controls whether or not the agent sends a "Received" report
+    when it receives an issue or activity that has report-back="yes".
+    Although this parameter is checked at the I-X agent level,
+    it currently affects only process panels.</p>
+</dd>
+</dl>
+
+<p>The parameters in the IPC section also apply to all agents.</p>
+
+<h2><a name="ip2">I-P2</a></h2>
+
+<dl>
+<dt><tt>-library-directory=</tt><i>pathname</i></dt>
+
+<dt><tt>-domain-library=</tt><i>pathname -- only for backward compatibility</i></dt>
+
+<dt><tt>-domain=<i>resource</i>,<i>resource</i>,<i>...</i></tt></dt>
+
+<dt><tt>-plan=</tt><i>resource</i>,<i>resource</i>,<i>...</i></dt>
+<dd>
+    <p>A "resource" is a URL, a file-name for an existing file,
+    or the name of a resource that can be obtained from the
+    agent's classpath by a ClassLoader.</p>
+</dd>
+
+<dt><tt>-plan-state-to-save=</tt><i>namelist or *</i></dt>
+
+<dt><tt>-test-menu=<i>resource</i>,<i>resource</i>,<i>...</i></tt></dt>
+<dd>
+  Specifies the contents of the "Test" menu in this agent.
+  See <a href="notes/test-menus.txt">Test Menus</a>
+</dd>
+
+<dt><tt>-initial-html-viewer-home=</tt><i>resource</i></dt>
+
+<dt><tt>-logo-line-1=</tt><i>text</i></dt>
+
+<dt><tt>-logo-line-2=</tt><i>text</i></dt>
+
+<dt><tt>-logo-image=</tt><i>resource</i></dt>
+
+<dt><tt>-frame-size=<i>width</i><b>x</b><i>height</i></tt> (e.g. <tt>800x400</tt>)</dt>
+
+<dt><tt>-additional-handers=<i>classname</i>,<i>classname</i>,<i>...</i></tt></dt>
+<dd>
+    <p>Here a class name can be a full Java class name (including package),
+    but classes in the packages that are expected to supply handlers
+    can be given in the "dash-syntax" style used in the XML, e.g.
+    <tt>test-handler</tt> rather than <tt>ix.test.TestHandler</tt>.</p>
+
+    <p>Handlers may also be added by an activity with pattern:
+    <pre>
+       add-handlers <i>className className ...</i>
+    </pre>
+    The reason for the language difference ("additional-handlers" vs
+    "add-handlers") is that the "additional-handlers" parameter is
+    not an "active" command. It just says what they are.</p>
+</dd>
+
+<dt><tt>-domain-editor-class=</tt><i>classname</i></dt>
+
+<dt><tt>-issue-viewer-class=</tt><i>classname</i></dt>
+
+<dt><tt>-activity-viewer-class=</tt><i>classname</i></dt>
+
+<dt><tt>-state-viewer-class=</tt><i>classname</i></dt>
+
+<dt><tt>-annotation-viewer-class=</tt><i>classname</i></dt>
+
+<dt><tt>-classic=</tt><i>boolean, default false</i></dt>
+<dd>
+    <p>Use the old issue and activity viewers</p>
+
+    <p>Parameters for "classic" issue and activity viewers:
+       <dl>
+	 <dt><tt>-description-column-width=</tt><i>int</i></dt>
+	 <dt><tt>-annotations-column-width=</tt><i>int</i></dt>
+       </dl>
+    </p>
+</dd>
+
+<dt><tt>-max-menu-items=</tt><i>int</i></dt>
+<dd>
+    <p>Some menus can handle long lists of items and "chain"
+    to a "More" submenu after some number of items.
+    This parameter gives that number.</p>
+</dd>
+</dl>
+
+
+<h2><a name="iplan">I-Plan</a></h2>
+
+<p>I-Plan is much the same as I-P2, but with a different set of
+initial handlers and with show-options true by default.</p>
+
+<p>I-Plan also tends to force <tt>plan-state-to-save=*</tt>.</p>
+
+<h2><a name="options">Options</a></h2>
+
+These parameters affect agents that provide options, which
+currently means I-Plan and I-P2.
+
+<dl>
+<dt><tt>-option-directory=</tt><i>pathname</i></dt>
+
+<dt><tt>-show-options=</tt><i>boolean</i></dt>
+<dd>
+     <p>The default is false in I-P2 and true in I-Plan.
+     "option-directory" takes precedence.  If an option-directory
+     is specified, show-options is always treated as true.</p>
+</dd>
+
+<dt><tt>-option-for-input=</tt><i>name</i></dt>
+
+<dt><tt>-filter-duplicate-plans=</tt><i>boolean, default true</i></dt>
+
+<dt><tt>-plan-splits-option=</tt><i>boolean, default false</i></dt>
+<dd>
+     <p>If true, it changes the way the "Plan" command treats options.
+     Instead of changing the plan in the current option, it creates
+     a child of the current option and puts the new plan there.</p>
+</dd>
+</dl>
+
+<h2><a name="planning">Planning</a></h2>
+
+Parameters that affect the planning algorithm in any agent that
+includes a planner:
+
+<dl>
+<dt><tt>-step-limit=</tt><i>int</i></dt>
+
+<dt><tt>-single-step=</tt><i>boolean, default false</i></dt>
+</dl>
+
+Parameters that affect standalone, GUI-less planners:
+
+<dl>
+<dt><tt>-plan=</tt><i>resource</i></dt>
+
+<dt><tt>-output=</tt><i>filename</i></dt>
+
+<dt><tt>-output-psgraph-data=</tt><i>filename</i></dt>
+
+<dt><tt>-owls-out=</tt><i>filename</i></dt>
+</dl>
+
+<h2><a name="plan-sim">Plan-checking simulator</a></h2>
+
+<dl>
+<dt><tt>-trace=</tt><i>boolean, default true</i></dt>
+
+<dt><tt>-shuffle=</tt><i>boolean, default false</i></dt>
+
+<dt><tt>-randomize=</tt><i>boolean, default false</i></dt>
+</dl>
+
+<h2><a name="auto-tester">I-Plan auto-tester</a></h2>
+
+<dl>
+<dt><tt>-test-list=</tt><i>resource</i></dt>
+<dd><p>Defaults to "<tt>test-domains/standard-tests.xml</tt>".</p></dd>
+
+<dt><tt>-plan-from-plans=</tt><i>boolean  [default false]</i></dt>
+</dl>
+
+<h2><a name="isim">I-Sim</a></h2>
+
+<dl>
+<dt><tt>-isim-agent-name=</tt><i>text</i></dt>
+<dd><p>The symbol-name of the I-Sim agent to use.</p></dd>
+</dl>
+
+<h2><a name="iserve">I-Serve</a></h2>
+
+<dl>
+<dt><tt>-http-server-port=</tt><i>int</i></dt>
+<dd>
+  <p>Tells I-Serve what port to listen on for the requests it serves.
+  If no port is specified, I-Serve asks for OS for a free port, and
+  the number will be included in "Help" -&gt; "About I-X Server".</p>
+</dd>
+
+<dt><tt>-http-root-directory=</tt><i>pathname</i></dt>
+<dd>
+  <p>Specifies the root directory of a file tree that I-Serve will
+  serve as "static content".  (You can, of course, put new files
+  there while I-Serve is running, but the content is in the files
+  rather than generated when a request is received.)
+  The URLs look like this:
+  <blockquote>
+    <tt>http://<i>iserveHost</i>:<i>iservePort</i>/files/<i>...</i></tt>
+  </blockquote>
+  where <i>iserveHost</i> and <i>iservePort</i> are replaced by the
+  name of the machine that is running I-Serve and the port that I-Serve
+  is using.
+  </p>
+</dd>
+</dl>
+
+<h2><a name="ltf-parser">LTF (List Task Formalism) parser</a></h2>
+
+<dl>
+<dt><tt>-force-numeric-node-ids=</tt><i>boolean  [default false]</i></dt>
+</dl>
+
+<h2><a name="tree-editor">XML Tree Editor</a></h2>
+
+<dl>
+<dt><tt>-document=</tt><i>resource</i></dt>
+</dl>
+
+<h2><a name="ipc">IPC</a></h2>
+
+<dl>
+<dt><tt>-ipc</tt></dt>
+
+<dt><tt>-ipc=</tt><i>strategyName</i></dt>
+
+<dt><tt>-ipc=</tt><i>class</i></dt>
+<dd>
+    <p>See the javadoc for 
+    <a href="javadoc/ix/util/IPC.html#makeCommunicationStrategy(java.lang.String)">IPC.makeCommunicationStrategy(String strategyName)</a></p>
+</dd>
+
+<dt><tt>-enqueue-incoming-messages=</tt><i>boolean, default false</i></dt>
+<dd>
+    <p>If true, tells the I-X agent to place a thread and message queue
+    between the communication strategy and the agent, so that any
+    thread that delivers an incoming message needn't wait for the
+    message to be processed by the agent.</p>
+
+    <p>Ordinarily, a thread that delivers a message must wait until
+    the message has been fully processed before its call to the
+    agent's message-receiving method returns.  If, during
+    that time, the thread is needed for sending messages, or if
+    it has locked an object that is needed for sending messages,
+    an attempt to send a message will hang.  This is something
+    that might happen, for example, when a panel receives
+    an issue or activity that has report-back=yes and attempts
+    to send a "Received" report.</p>
+
+    <p>Most comm strategies use threads in a way that naturally
+    avoids this problem, so in practice this parameter is
+    almost never used.</p>
+</dd>
+
+<dt><tt>-rename-variables-in-input=</tt><i>boolean, default true</i></dt>
+<dd>
+    <p>Tells it to rename any "?name" variables in patterns in
+    incoming issues and activities so that they don't conflict
+    with any existing variables in the receiving agent.</p>
+</dd>
+</dl>
+
+<h3><a name="simple-ipc">Default/simple and XML communication strategies</a></h3>
+
+<dl>
+<dt><tt>-run-name-server</tt></dt>
+<dd>
+    <p>Tells the agent to run a name-server in addition to what
+    it normally does.  The name-server can also be run as a separate,
+    stand-alone agent.</p>
+</dd>
+
+<dt><tt>-name-server</tt></dt>
+
+<dt><tt>-name-server=<i>host</i>:<i>port</i></tt></dt>
+
+<dt><tt>-no name-server</tt></dt>
+<dd>
+    <p>Tells the agent whether to use a name-server to look up the
+    addresses of other agents, and if so what host and port to
+    connect to.  By default, a name-server will be used.</p>
+
+    <p>The host:port defaults to <tt>localhost:5555</tt></p>
+</dd>
+
+<dt><tt>-host=</tt><i>hostname</i></dt>
+<dd>
+    <p>Used to tell the agent what to call the machine it is
+    running on when the default name would not work
+    when used on other machines.  This parameter can also
+    be used to specify a (dot-separated) numeric IP address
+    as the host name.  (See also ns-use-ip-addrs, below.)</p>
+
+    <p>The default is the name returned by
+    <pre>
+      InetAddress.getLocalHost().getCanonicalHostName()
+    </pre>
+    which should usually be right.</p>
+</dd>
+
+<dt><tt>-port=</tt><i>int</i></dt>
+<dd>
+    <p>The port number used to connect to the agent in order to send
+    it a message.  The agent registers its host and port with the
+    name-server and then listens on that port.</p>
+</dd>
+
+<dt><tt>-ns-use-ip-addrs=</tt><i>boolean, default false</i></dt>
+<dd>
+    <p>Tells the name-server to record numeric IP addresses extracted
+    from the connections agents make to the name-server instead of
+    using the host-names those agents provide.  This is for "emergency"
+    use when hostname lookup isn't available or doesn't work correctly.</p>
+
+    <p>Note that this parameter must be given to the name-server
+    (if it's stand-alone) or to the agent that runs the name-server.
+    It does not have any effect on other agents.</p>
+
+    <p>For this to work for agents on the same machine as the name-server,
+    they have to be using an as-if-remote addr for the name-server,
+    not "localhost".  So they cannot use the <tt>localhost:5555</tt> default
+    for the "name-server" parameter.  (Otherwise the IP addr the
+    name-server extracts from the connection will be the one for
+    localhost.)</p>
+
+    <p>Examples:</p>
+
+    <p>Running the name-server:
+    <pre>
+      etc/nameserver -ipc=xml -ns-use-ip-addrs
+    </pre></p>
+  
+    <p>Running an agent that registers with the name-server:
+    <pre>
+      etc/ip2 -ipc=xml -ipc-name=myagent \
+              -name-server=somehost.someplace.org:5555
+    </pre>
+    </p>
+</dd>
+</dl>
+
+<h3><a name="parameterized-ipc">Parameterized communication strategies</a></h3>
+
+<p>Some communication strategies take other strategies as parameters.
+The syntax is
+<pre>
+     <i>strategy</i> = <i>name</i> | <i>name</i>:<i>strategy</i>,<i>strategy</i>,<i>...</i>
+</pre>
+</p>
+A parameterized strategy typically provides a "wrapper" around
+"inner" strategies specified by its parameters. The ones provided are:
+<dl>
+
+<dt><tt>tracing:</tt><i>strategy</i></dt>
+<dd><p>Prints an XML description of the message contents when a message
+    is sent or received by the specified inner strategy.</p>
+</dd>
+
+<dt><tt>separate:</tt><i>stategy</i></dt>
+<dd><p>Creates a dummy I-X agent for the inner strategy to use.
+    This protects the main I-X agent from some operations
+    a comm strategy might perform, such as changing the
+    agent's symbol-name.  "separate" is often used together
+    with "dispatching".</p>
+</dd>
+
+<dt><tt>dispatching:<i>strategy</i>,<i>strategy</i>,<i>...</i></tt></dt>
+<dd><p>Allows different inner strategies to be used for communicating
+    with different agents.  One of the arguments must be prefixed
+    by "default:".  Strategies are assigned to agents as follows.
+    If a message is received from an agent A via strategy S, then
+    A gets S as its strategy; otherwise a tab in the I-Space tool
+    can be used to assign strategies explicitly.</p>
+</dd>
+</dl>
+Examples:
+<pre>
+     tracing:xml
+     dispatching:jabber,default:xml,tracing:xml
+     dispatching:jabber,xml,default:tracing:xml
+     dispatching:separate:jabber,default:kaos
+</pre>
+The notation for comm strategy combinations is fairly general,
+but not quite to the point of allowing parens for grouping.
+For example,
+<pre>
+     dispatching:tracing:jabber,default:tracing:xml
+</pre>
+works, but
+<pre>
+     tracing:dispatching:jabber,default:xml
+</pre>
+doesn't, because the tracing strategy gets parameters
+dispatching:jabber and default:xml.
+
+<p>Some strategy combinations won't work semantically despite being
+valid syntax.  For example, you can't do
+<pre>
+     dispatching:xml,simple
+</pre>
+because they both expect a name-server on the same port
+(but with different syntaxes for its messages).
+</p>
+
+
+<hr></hr>
+<small><address>Jeff Dalton &lt;J.Dalton@ed.ac.uk&gt;</address></small>
+</body>
+</html>

@@ -1,0 +1,17 @@
+OpenVCE Presenter  v3.1
+http://openvce.net/presenter
+
+Copyright 2011 -  AIAI, School of Informatics, University of Edinburgh  
+Davie Munro - vue.ed.ac.uk & www.inf.ed.ac.uk
+SP Pizzicato - www.aiai.ed.ac.uk & hopenvce.net
+Ai Austin - www.aiai.ed.ac.uk & hopenvce.net
+
+Object must be owned by plot owner to be able to change the media URL for the plot. 
+On group owned land, deed the screen to the group.
+
+Object requires corresponding web-server-side scripts to select and display URLs.
+
+Intelligent Virtual Worlds Programme & OpenVCE.net Project
+Artificial Inteligence Applications Institute
+School of Informatics
+University of Edinburgh

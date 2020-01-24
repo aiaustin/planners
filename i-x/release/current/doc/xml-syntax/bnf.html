@@ -1,0 +1,101 @@
+<html>
+<head>
+  <title>A BNF-like Description</title>
+  <link rel="stylesheet" href="doc-style.css" />
+</head>
+
+<body bgcolor="#ffffff">
+
+<p>
+[<a href="index.html">Top</a>]
+</p>
+
+<h1>A BNF-like Description</h1>
+
+<p><a href="ix-bnf.txt">The grammar</a> was derived from the
+Java class definitions, plus a small amount of additional information.
+<a href="xml-schema.html">XML</a> and
+<a href="relax-ng-schema.html">Relax NG</a> schemas were produced
+in a similar way and are more useful for some purposes.</p>
+
+<p>In the grammar, non-terminal synbols are written in upper case.
+Most of them correspond to class names.  Alternatives for a given
+non-terminal are separated by "<tt> | </tt>" or listed in separate
+rules for the same non-terminal.  Repetition (zero or more instances)
+is shown as "<tt>...</tt>".  For example, a list of plan-nodes
+would be described like this:
+<pre>&lt;list&gt;PLAN-NODE...&lt;/list&gt;</pre>
+</p>
+
+<p>All fields represented as elements are implicitly optional
+and may occur in any order</p>
+
+<p>There is a close correspondence with the semi-formal notation
+used earlier.  For example,
+<pre>plan:
+   element plan-variable-declarations: list of plan-variable-declaration
+   element plan-issues: list of plan-issue
+   element plan-issue-refinements: list of plan-issue-refinement
+   element plan-nodes: list of plan-node
+   element plan-refinements: list of plan-refinement
+   element constraints: list of constrainer
+   element world-state: list of pattern-assignment
+   element annotations: map
+</pre>
+becomes
+<pre>PLAN ::=
+   &lt;plan
+      &lt;plan-variable-declarations&gt;
+         &lt;list&gt;PLAN-VARIABLE-DECLARATION...&lt;/list&gt;
+      &lt;/plan-variable-declarations&gt;
+      &lt;plan-issues&gt;&lt;list&gt;PLAN-ISSUE...&lt;/list&gt;&lt;/plan-issues&gt;
+      &lt;plan-issue-refinements&gt;
+         &lt;list&gt;PLAN-ISSUE-REFINEMENT...&lt;/list&gt;
+      &lt;/plan-issue-refinements&gt;
+      &lt;plan-nodes&gt;&lt;list&gt;PLAN-NODE...&lt;/list&gt;&lt;/plan-nodes&gt;
+      &lt;plan-refinements&gt;&lt;list&gt;PLAN-REFINEMENT...&lt;/list&gt;&lt;/plan-refinements&gt;
+      &lt;constraints&gt;&lt;list&gt;CONSTRAINER...&lt;/list&gt;&lt;/constraints&gt;
+      &lt;world-state&gt;&lt;list&gt;PATTERN-ASSIGNMENT...&lt;/list&gt;&lt;/world-state&gt;
+      &lt;annotations&gt;&lt;map&gt;MAP-ENTRY...&lt;/map&gt;&lt;/annotations&gt;
+   &lt;/plan&gt;
+</pre>
+</p>
+
+<p><tt>OBJECT</tt> should be understood as standing for any object
+represented in I-X XML.  For example, the syntax for a map is
+<tt>&lt;map&gt;MAP-ENTRY...&lt;/map&gt;</tt>
+where
+<pre>MAP-ENTRY ::=
+   &lt;map-entry&gt;
+      &lt;key&gt;OBJECT&lt;/key&gt;
+      &lt;value&gt;OBJECT&lt;/value&gt;
+   &lt;/map-entry&gt;
+</pre>
+A map therefore contains a sequence of zero or more map-entries,
+and the keys and values in the map-entries map be any representable
+objects.</p>
+
+<h2>Comparison with the XML and RELAX NG Schemas</h2>
+
+<p>The syntax of atomic objects other than enumerations is not
+included in the BNF-style grammar.</p>
+
+<p>The <a href="xml-schema.html">XML</a> and
+<a href="relax-ng-schema.html">RELAX NG</a> schemas give a syntax for
+everything that would normally appear.  [It is not possible
+to give an absolutely complete syntax in a file prepared in advance,
+because new representable classes may be defined at any time.]</p>
+
+<p>However, the XML schema cannot give the syntax of particular constraint
+types, because the contents of their <tt>parameters</tt> field varies
+depending on the values of the <tt>type</tt> and <tt>relation</tt>
+fields.  For that level of detail about constraint syntax, see the
+rules for <tt>KNOWN-CONSTRAINT</tt> in the BNF-style
+<a href="ix-bnf.txt">grammar</a> or in the
+<a href="relax-ng-schema.html">RELAX NG</a> constraint schema.
+</p>
+
+<hr>
+<small><address>Jeff Dalton &lt;J.Dalton@ed.ac.uk&gt;</address></small>
+</body>
+</html>

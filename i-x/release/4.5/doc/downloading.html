@@ -1,0 +1,169 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="en" dir="ltr" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="generator" content="HTML Tidy, see www.w3.org" />
+<meta http-equiv="Content-Type"
+content="text/html; charset=ISO-8859-1" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<link href="../../inc/ix.css" rel="stylesheet" type="text/css" />
+<link rel="SHORTCUT ICON" href="../../inc/ix-web.ico" />
+<title>I-X Downloading and Installing</title>
+</head>
+<body bgcolor="white">
+<table width="100%" cellspacing="1" cellpadding="1"
+summary="head with I-X logo">
+<tr>
+<td>
+<h1>I-X Downloading and Installing</h1>
+</td>
+<td><img align="right" width="72" height="72"
+src="ip2-logo-72x72.gif" alt="I-X logo" /></td>
+</tr>
+</table>
+
+<hr />
+<p align="center"><font size="-2"><a
+href="introduction.html">Introduction</a> | <a
+href="components.html">I-X Components</a> | <a
+href="index.html">I-X Documentation</a> | Downloading and
+Installing I-X | <a href="applications.html">Applications</a> |
+<a href="background.html">More Background</a></font></p>
+
+<hr />
+<p>From this page the complete current public release of the I-X
+software can be downloaded. The release includes:</p>
+
+<ul>
+<li>the complete I-X system (Java classes to run in a JRE)</li>
+
+<li>the complete documentation including examples</li>
+
+<li>some project-specific application packages</li>
+
+<li>the full software licence</li>
+</ul>
+
+<p>Note that the public release does not include the source code.</p>
+<p>Note also that to run I-X, <a href="#java">Java</a> needs to be 
+installed on your machine.
+
+<p>I-X is Copyright (C) 2000 - 2008, AIAI, The University of Edinburgh</p>
+
+<p>I-X is distributed under an open source licence.
+Read the <a href="../doc/ix-licence.html">full licence</a> for details.</p>
+
+<h2><a id="instructions" name="instructions">Instructions for
+Downloading and Installing I-X</a></h2>
+
+<p>Downloading and installing I-X consists of three major
+steps:</p>
+
+<ol>
+<li><b>Download the zip-file</b>: Go to the <a href="#release">public
+release section</a> below and press the download button. The file that
+must be downloaded is called something like "<code>ix-core.zip</code>"
+or "<code>ix-</code><i>N</i><code>-core.zip</code>", where <i>N</i> is
+the latest version number (e.g. the I-X version 4.2 is called
+"<code>ix-4.2-core.zip</code>"). Your browser should then bring up a
+window asking you what you want to do with this file type
+(<code>".zip"</code>). The best way to proceed is to save the file
+somewhere on your computer (remember where!).</li>
+
+<li><b>Unpack the zip-file</b>: Unzip the I-X core. The exact
+method for doing this depends on the operating system you are
+using. For instance, under Windows, you can unzip the core using a
+tool such as Winzip. For example, if you unzip the core into the D
+drive, this will generate the "<code>D:\ix-4.2\...</code>"
+directory. Under Unix, you can use the <code>unzip</code>-command
+to unzip the file to a location of your choosing. In the
+documentation, we use the term <i>base directory</i>, or
+<code>&lt;ix-base&gt;</code>, to refer to this directory.</li>
+
+<li><b>Run the test-script</b>: If you use Windows, go to the
+directory "&lt;ix-base&gt;/scripts/win/" and run the script called
+"<code>test-setup.bat</code>". This should produce a few lines of
+output, essentially telling you which version of Java is being
+used. Unless one of the lines reads "'java' is not recognized as an
+internal or external command, operable program or batch file.", it
+should be fine. Currently there is no equivalent script for Unix or
+other operating systems, but a simple "<code>java -version</code>"
+should at least tell you whether a JRE can be found in your
+environment.</li>
+</ol>
+
+<p>I-X is now successfully installed on your machine. (For a quick
+look at an I-X Process Panel, double-click on the <a
+href="../ix.jar">I-X Jar File</a> at &lt;ix-base&gt;/ix.jar.)</p>
+
+<!--
+<p><i><font color="red">If we had an applet version of I-X we could
+model this process and have the user use I-X for the first time
+while installing I-X (optionally).</font></i></p>
+-->
+
+<h2><a id="release" name="release">The I-X Public Release</a></h2>
+
+<form
+action="http://www.aiai.ed.ac.uk/project/ix/release/current/">
+<div align="center"><input type="submit"
+value="Download I-X (current version)" /></div>
+</form>
+
+<h2><a id="java" name="java">Java</a></h2>
+
+<p>Since it is written in the Java programming language, to use I-X
+you will need to have a Java runtime system (the Java Virtual Machine
+(JVM)) installed on your computer, and its location specified in the
+value of your path environment variable.  (To test whether you have a
+JVM installed, type "java" at command-line prompt - if it is correctly
+installed this should return a message about how to use Java.) </p>
+
+<p>If you need to install Java, you should download the Java Runtime
+Environment (JRE) which contains the JVM. If you intend to do any Java
+development, download the Java Software Development Kit (SDK) instead
+- in addition to the JVM this also contains a Java compiler and
+debugger, useful if you then go on to develop code to extend the I-X
+system for your own applications. Both JRE and SDK are available from
+<a href="http://java.sun.com">http://java.sun.com</a>. Alternatively,
+ask your local computing support staff - they should be able to help
+you install and run a JVM.
+</p>
+
+<h2><a id="support" name="support">Support</a></h2>
+
+<p>Currently, the support for I-X is rather limited. In the first
+instance, you should consult the documentation that is part of the
+public release version (see "&lt;ix-base&gt;/doc/"). If this does
+not answer all your questions, try the following:</p>
+
+<ul>
+<li>The <a href="index.html">online documentation</a> is
+identical to what is provided in the current public release.</li>
+
+<!--
+<li>Visit the FAQ page for I-X. <i><font color="red">(not yet
+available)</font></i></li>
+-->
+
+<!--
+<li>Subscribe to the I-X mailing list or visit the archives.
+<i><font color="red">(not yet available)</font></i></li>
+-->
+
+<li>Send an e-mail to <a
+href="mailto:i-x@aiai.ed.ac.uk">i-x@aiai.ed.ac.uk</a>.</li>
+</ul>
+
+<hr />
+<p align="center"><font size="-2"><a
+href="introduction.html">Introduction</a> | <a
+href="components.html">I-X Components</a> | <a
+href="index.html">I-X Documentation</a> | Downloading and
+Installing I-X | <a href="applications.html">Applications</a> |
+<a href="background.html">More Background</a></font></p>
+
+<hr />
+</body>
+</html>

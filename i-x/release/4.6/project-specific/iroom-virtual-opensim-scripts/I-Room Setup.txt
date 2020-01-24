@@ -1,0 +1,15 @@
+# Assumes that we communicate with objects by saying  things on specific channels.
+# Syntax:
+#
+# capability <object-name> <capability-verb>
+# channel <object-name> <channel-number>
+# use-verb <object-name> true | false
+#
+# Note: first item in list with requested capability is invoked by default.
+capability screen1 display
+channel screen1 10
+capability screen2 display
+channel screen2 11
+capability led-display show
+channel led-display 88
+use-verb led-display false

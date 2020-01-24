@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Notes on writing a communication strategy</title>
+  <link rel="stylesheet" href="note-style.css" />
+</head>
+
+<!-- Updated: Sun Nov  4 03:10:47 2007 by Jeff Dalton
+-->
+
+<body bgcolor="#ffffff">
+
+<h1>Notes on writing a communication strategy</h1>
+
+Author: Jeff Dalton
+
+
+<h2>Overview</h2>
+
+<p>"Strategy" is too grand, but "method" could be confusing in Java.</p>
+
+<p>From the point of view of the rest of the system, a communication 
+strategy is responsible only for sending and receiving messages, and
+it's ordinary Java objects that are sent and received.  The rest of
+the system knows nothing about how an object might be encoded when
+it's sent, and it doesn't have to construct special message objects
+in order to send something.</p>
+
+<p>However, there are some restrictions.  A comm strategy doesn't have to
+be able to handle every kind of Object.  For example, the "simple"
+strategy requires that the objects be Serializable, and the simple
+"xml" strategy requires that they be defined in ways that can be
+handled by the I-X XML-translation code.  (They have to have get- and
+set-methods for the fields that need to be encoded, for example.)</p>
+
+<p>However, all strategies have to be able to handle the objects that
+we're actually going to send: instances of Issue, Activity, etc.
+This list will get longer, so special-case code should not be used.
+However, these objects will all be ones that the XML translator can
+handle, and that means there's support for extracting the relevant
+fields, etc, which can be used independently of the specifically
+XML-related code.  They will also all be serializable.</p>
+
+<p>Moreover, if a new strategy wants to use an encoding that we'd like
+to support (an example might be the Java 1.4 XML serialization for
+beans), the class definitions of the objects we want to send will be
+adjusted as required, or else some kind of translation support would
+be developed.</p>
+
+<p>(A strategy that wants to use an XML encoding should use the usual I-X
+translation code unless there's a good reason not to.)</p>
+
+<p>A strategy normally supports only one way of doing things and so can
+be used only with agents that are using a compatible approach.  A
+kind of "meta strategy" that picks the required strategy for each
+case could be created, but so far this has not been necessary.</p>
+
+
+<h2>Some interfaces</h2>
+
+<p>Many objects that we send will implement the Sendable interface,
+which presently contains
+<pre>
+    public Name getSenderId();
+    public void setSenderId(Name id);
+    public Object clone() throws CloneNotSupportedException;
+</pre></p>
+
+<p>It is not required that they implement that interface, but if they do,
+the comm strategy might find the sender-id useful in error messages
+or for other purposes.</p>
+
+<p>The main strategy-related interfaces have "IPC." at the front
+of their name, because they are all defined inside the ix.util.IPC
+class.</p>
+
+<p>The strategy itself must implement the IPC.CommunicatonStrategy
+interface which contains:
+<pre>
+    public void sendObject(Object destination, Object contents);
+    public void setupServer(Object destination,
+	                    IPC.MessageListener listener);
+</pre></p>
+
+<p>When a new message arrives, it should be passed to a message-listener
+object that implements the IPC.MessageListener interface:
+<pre>
+    public void messageReceived(IPC.InputMessage message);
+</pre></p>
+
+<p>IPC.InputMessage is another interface, containing:
+<pre>
+    public Object getContents();
+</pre></p>
+
+<p>So there are special message objects on the *receiving* side.  It is
+also possible for them to be created *inside* the sendObject method.
+This allows the communication strategy to include any information it
+wants to "wrap" around the message contents when sending and, on the
+receiving end, to give this information to the message-listener in
+case it is useful for debugging output or some other purpose.  Of
+course, further "wrapping" may also be used, but it would be invisible
+to the message-listener as well as to the code that calls sendObject.</p>
+
+<p>A minimal implementation of IPC.InputMessage, IPC.BasicInputMessage,
+is provided.  It has a 1-argument constructor that takes the contents
+object as a parameter.</p>
+
+
+<h2>Sending</h2>
+
+<pre>
+    public void sendObject(Object destination, Object contents);
+</pre>
+
+<p>The sendObject method is responsible for sending the contents to the
+destination.  So in that case, the destination identifies the remote
+agent we're sending to.  Code that calls this method will expect to be
+able to catch an exception if anything goes wrong.  sendObject
+should not return until the send has (so far as it knows) completed.
+If for some reason a strategy would need to do some of the sending in
+another thread, and it's impractical to wait until that finishes,
+we will have to decide on a case-by-case basis what should be done.
+It is possible that a new mechanism for reporting such problems
+would be created (and could then be used by other strategies).</p>
+
+<p>In practice, the destinations will all be Strings, but it's best
+for the comm strategy not to depend on that.</p>
+
+<p>The sendObject method will often be called from the AWT / Swing
+event-dispatching thread, but that should not be assumed.  (See
+the JDK documentation for SwingUtilities.invokeAndWait(Runnable)
+and SwingUtilities.invokeLater(Runnable) to see how to deal
+with such situations.)</p>
+
+<p>However, within the comm strategy, sending should not normally
+try to do anything with the GUI; it should just report problems
+by throwing exceptions.</p>
+
+<p>Note that these destination objects are meant to be meaningful
+at the user level, and the same ones will be used with all comm
+strategies.  They are not whatever low-level name or address
+the comm strategy ultimately uses.  Some comm strategies use
+an agent-communication package that can use "destinations" directly
+as agent names (at least the destination objects we actually use).
+In other cases, some way of translating between I-X "destinations"
+and lower-level entities must be provided.</p>
+
+
+<h2>Receiving</h2>
+
+<pre>
+    public void setupServer(Object destination,
+	                    IPC.MessageListener listener);
+</pre>
+
+<p>The setupServer method is responsible for doing whatever is required
+to allow this agent to receive messages.  In this case, the
+"destination" parameter is the object that should be used to refer to
+this agent when remote agents want to send to it.  It is not strictly
+necessary to communicate this destination object to the remote agents,
+just so long as they are somehow able to send to us, but it will
+typically be used in some sort of registration process for this agent
+and thus become known to the remote ones.</p>
+
+<p>The setupServer method is called exactly once.  It is called from the
+main thread, during the initialisation of the I-X agent, and before
+the agent's GUI has been created.</p>
+
+<p>In any case, setupServer must return once it thinks it has things
+set up, having created any additional threads needed to handle the
+actual receiving of messages.</p>
+
+<p>Those threads are meant to run independently of the rest of the system
+and to report problems to the user via the SwingUtilities.invokeAndWait
+method.</p>
+
+<p>The IPC.MessageListener used by I-X agents has a synchronized
+messageReceived method in case multiple receiving threads want
+to call it.  It also handles the transition to the thread that
+is running the main body of the agent.</p>
+
+<p>When an existing agent-communication package / system is used as the
+basis of a communication strategy, it may not be visible in the source
+code written to use that package that any threads are being created;
+but they must be for the rest of the I-X agent to be able to run
+independently.  You may therefore need to be aware of this when
+writing the strategy.</p>
+
+<p>If the package does not create any message-receiving threads,
+you will have to do it yourself.</p>
+
+
+<h2>Using / testing a strategy</h2>
+
+<p>The strategy is specified when an I-X agent is run.  It can be
+specified on the command line or in a .props file.  The details of
+this will depend on what scripts you are using to run I-X agents,
+but the aim is to give a strategy name as the value of the "ipc"
+parameter.  For example, using a script that approximates the
+normal "java" command (but with the class-path set up for I-X):
+<pre>
+   scrips/unix/ix-java ix.ip2.Ip2 -ipc=simple
+</pre></p>
+
+<p>A strategy may require or allow additional parameters, for example:
+<pre>
+   scrips/unix/ix-java ix.ip2.Ip2 -ipc=simple -run-name-server
+</pre></p>
+
+<p>These should tyically be examined in the setupServer method.
+For information on how to get parameter values, see the javadoc
+for the class
+<a href="../javadoc/index.html?ix/util/Parameters.html">ix.util.Parameters</a>. It
+is not necessary that any additional parameters be supported,
+however.  "run-name-server" is specific to the "xml" and "simple"
+strategies.</p>
+
+<p>The "-" in "-ipc" is part of the syntax for command-line arguments,
+not part of the parameter name, which is just "ipc".  So in a .props
+file, the "-" would not appear.</p>
+
+<p>The above description is not meant to be enough unless you already
+know how to run I-X agents and to specify such "parameters", but it
+should give you the basic idea, namely that there is a parameter
+called "ipc", specified when the agent is started, that has a value
+that is the name of the communication strategy to be used.</p>
+
+<p>Now, this strategy-name can be a class name, or it can be an
+abbreviation.  "simple", "xml", and "grid" are examples of
+abbreviations.  If the class name (and package) of your new
+communication strategy take a certain form, an abbreviation
+is automatically defined.  Otherwise, the full, package-qualified,
+class name will have to be used.  For an abbreviation, name, the
+full class name is ix.name.NameCommunicationStrategy.  For
+instance the abbreviation "grid" corresponds to
+<pre>
+   ix.grid.GridCommunicationStrategy
+</pre></p>
+
+<p>You might wonder how you can get something into the "ix" package
+without making it part of the main I-X code.  The answer is that
+any "ix" directory can be used, so long as it is on the class-path.</p>
+
+<p>Note that when an I-X agent's "Messenger" is used to send to "me",
+the message does not go through the communication strategy at all;
+but if you send to the agent's own "destination", it does.  All
+communication strategies should handle an agent sending to itself
+in that way.</p>
+
+<p>The destination an agent uses for itself (and thus for other agents to
+send to it) can be specified via the "symbol-name" parameter.  For
+example,
+<pre>
+scrips/unix/ix-java ix.ip2.Ip2 -symbol-name=jack -ipc=xml -run-name-server
+</pre></p>
+
+<p>Finally, note that some debugging messages that appear with all
+communication strategies print XML representations of objecs
+using the standard I-X encoding.  Don't be misled by this if you
+are using a different XML encoding or are not using XML at all.</p>
+
+
+<hr/>
+<small><address>Jeff Dalton &lt;J.Dalton@ed.ac.uk&gt;</address></small>
+</body>
+</html>

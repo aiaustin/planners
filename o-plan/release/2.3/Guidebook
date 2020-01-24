@@ -1,0 +1,28 @@
+Guidebook for ARPA/Rome Lab. Planning Initiative
+              Common Prototyping Environment
+              O-Plan Technology Package
+
+Updated: Fri Jul  7 10:58:16 1995
+----------------------------------------------------------------------
+
+See the Contents file in this directory for details of documents
+available publicly about O-Plan and which are held in this directory.
+
+Contact information for the O-Plan Team is provided in the README
+file in this directory.
+
+If you have a casual interest in O-Plan obtain and print the handout
+(handout.ps.Z).
+
+If you are more interested in O-Plan and the technical details of
+what it does, obtain and print the Architecture Guide
+(architecture-guide.ps.Z) and the Task Formalism (TF) Manual
+(tf-manual.ps.Z).
+
+If you are part of the ARPA/Rome Laboratory Planing Initiative (ARPI) and wish
+to obtain the O-Plan release, it is suggested you first obtain and print the
+Installation Guide (installation-guide.ps.Z) and the Release Status Notes
+(oplan-status.ps.Z).
+
+The Contents file in this directory then explains how to obtain the O-Plan
+release image if you are authorised to do so.

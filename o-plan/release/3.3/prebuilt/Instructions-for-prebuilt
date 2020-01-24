@@ -1,0 +1,119 @@
+Instructions for 3.3 prebuilt in GCL
+------------------------------------
+
+If you want to use O-Plan version 3.3 but do not have a suitable
+implementation of Common Lisp, you may be able to use a version that
+has been compiled and built in advance using GCL (GNU Common Lisp)
+
+It is packaged in a gzipped tar file together with statically linked
+versions of the two C programs used with O-Plan: xmenu and xuim.
+
+Since the GCL O-Plan is already in executable form, you do not
+need a separate Lisp system in order to use it.
+
+The statically linked programs are useful if you are, for some
+reason, unable to build them from the sources supplied with
+O-Plan.
+
+To use the prebuilt release, you will need to
+
+ 1. Get a copy of the ordinary O-plan release tar file from
+
+      http://www.aiai.ed.ac.uk/~oplan/release/
+
+ 2. Get a copy of the "prebuilt" release tar file for the machine/OS
+    combination you are using by going to
+
+      http://www.aiai.ed.ac.uk/~oplan/release/3.3/prebuilt/
+
+    and looking in the appropriate subdirectory for a file that
+    has a name that looks like
+
+      oplan-3.3-bin-DATE.tar.gz
+
+    but with "DATE" replaced by some actual date such as "25May00".
+
+    AT present, there are versions for pc-linux and sun-solaris.
+
+ 3. Make a (new) directory to contain the O-Plan files and
+    unpack the release tar file there, e.g. as follows:
+
+      zcat oplan-3.3-25May00.tar.gz | tar xpf -
+
+ 4. In the same directory, unpack the prebuilt release.
+
+      zcat oplan-3.3-bin-DATE.tar.gz | tar xpf -
+
+    where again "DATE" is replaced by some particular date.
+
+    This will accomplish something equivalent to what "make all install"
+    does in the normal install procedure.  (See the INSTALL file in
+    the O-Plan distribution.)  Do not follow the instructions in
+    that file.
+
+ 5. Edit the file bin/oplan to indicate the directory in which
+    you have unpacked the files.  For instance:
+
+      base_dir=/home/oplan/3.3/
+
+ 6. If you want to be able to use O-Plan in HTTP mode (see the
+    file source/doc/http-mode), create a directory called "web-tmp"
+    at the top level of the directory created in step 3, and make it
+    writable by everyone who will be using O-Plan.  This directory is
+    used for log files.  If you would like the directory to be in a
+    different place, change the symbolic link source/web/demo/tmp.
+
+The script bin/oplan is what you should use to run O-Plan.  Put a copy
+of it, or a symbolic link to it, in an appropriate directory in your
+PATH.  To test the system after step 4 above, just type
+
+     bin/oplan
+
+A number of windows should appear, and the prompt "form> " will be
+printed in the window in which you typed bin/oplan.
+
+Here is a minimal test:
+
+In the upper left of the screen there will be a window with the title
+"O-Plan Task Assignment".  In that window should be a textual menu
+with some numbered items followed by the prompt "Please choose a
+number:- ".  Item 1 should be labelled "Initialise Planner".  There
+will be an asterisk ("*") in front of the "1", but not in front of
+the "2" in the line below.
+
+Go to that window and type the character "1" followed by return.
+Small changes should happen in some of the windows and after that
+there will be a "*" in front of the "2" as well as the "1".
+
+Now exit O-Plan by clicking on the "QUIT" button in the control
+panel (which should be at the top center of the screen).  O-Plan
+should exit and all the windows it created should disappear.
+
+Further information on using O-Plan can be found in the "documentation"
+and "source/doc" subdirectories of the O-Plan release.  Note that O-Plan
+can operate in several different "modes".  Some are designed for cases
+where O-Plan is controlled by other software (see source/doc/ta-interface),
+while others are for interaction with a human user.  A recent addition
+is "HTTP mode" in which O-Plan provides an HTML-based interface suitable
+for use with a Web browser (see source/doc/http-mode).  O-Plan can also
+be run as a Task Formalism (TF) syntax-checker.  (see source/doc/
+tf-syntax-checking).  A manual for the TF language used to define
+planning problems can be found in documentation/tf-manual.
+
+The choice of mode is determined by command-line arguments when O-Plan
+is run.  (See source/doc/command-line-arguments and source/doc/parameters.)
+
+If there are some command-line arguments that you repeatedly use, a
+convenient solution is to create a short shell script that supplies
+them automatically while still allowing other parameters to be
+specified on the command line.  For example:
+
+#!/bin/sh
+exec oplan -http -browser netscape -domain house-4 "$@"
+
+The "$@" is used to pass along any command-line arguments given
+when the script is run.
+
+If you have problems with O-Plan, you can ask for help by sending
+e-mail to oplan@aiai.ed.ac.uk.  You should also check the O-Plan
+release page, http://www.aiai.ed.ac.uk/~oplan/release/.

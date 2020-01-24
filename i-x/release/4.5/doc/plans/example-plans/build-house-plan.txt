@@ -1,0 +1,1816 @@
+<plan xmlns="http://www.aiai.ed.ac.uk/project/ix/">
+  <plan-nodes>
+    <list>
+      <plan-node id="node-3" expansion="refinement-1">
+        <activity>
+          <activity priority="normal">
+            <pattern>
+              <list>
+                <symbol>build</symbol>
+                <symbol>house</symbol>
+              </list>
+            </pattern>
+          </activity>
+        </activity>
+      </plan-node>
+    </list>
+  </plan-nodes>
+  <plan-refinements>
+    <list>
+      <plan-refinement id="refinement-1" expands="node-3">
+        <plan-nodes>
+          <list>
+            <plan-node id="node-3-1" expansion="refinement-2">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>excavate</symbol>
+                      <symbol>and</symbol>
+                      <symbol>pour</symbol>
+                      <symbol>footers</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-2" expansion="refinement-3">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>pour</symbol>
+                      <symbol>concrete</symbol>
+                      <symbol>foundations</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-3" expansion="refinement-4">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>erect</symbol>
+                      <symbol>frame</symbol>
+                      <symbol>and</symbol>
+                      <symbol>roof</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-4" expansion="refinement-5">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>lay</symbol>
+                      <symbol>brickwork</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-5" expansion="refinement-6">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>finish</symbol>
+                      <symbol>roofing</symbol>
+                      <symbol>and</symbol>
+                      <symbol>flashing</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-6" expansion="refinement-7">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>fasten</symbol>
+                      <symbol>gutters</symbol>
+                      <symbol>and</symbol>
+                      <symbol>downspouts</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-7" expansion="refinement-8">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>finish</symbol>
+                      <symbol>grading</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-8" expansion="refinement-9">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>pour</symbol>
+                      <symbol>walks</symbol>
+                      <symbol>and</symbol>
+                      <symbol>landscape</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-9" expansion="refinement-10">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>install</symbol>
+                      <symbol>services</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-10" expansion="refinement-19">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>decorate</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+          </list>
+        </plan-nodes>
+        <constraints>
+          <list>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-1"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-2"/>
+              </to>
+            </ordering>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-2"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-3"/>
+              </to>
+            </ordering>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-3"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-4"/>
+              </to>
+            </ordering>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-4"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-5"/>
+              </to>
+            </ordering>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-5"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-6"/>
+              </to>
+            </ordering>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-6"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-7"/>
+              </to>
+            </ordering>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-7"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-8"/>
+              </to>
+            </ordering>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-2" expands="node-3-1">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>ground_condition</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>ready</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>footers</symbol>
+                        <symbol>poured</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-3" expands="node-3-2">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>footers</symbol>
+                        <symbol>poured</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>foundations</symbol>
+                        <symbol>laid</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-4" expands="node-3-3">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>foundations</symbol>
+                        <symbol>laid</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>frame</symbol>
+                        <symbol>and</symbol>
+                        <symbol>roof</symbol>
+                        <symbol>erected</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-5" expands="node-3-4">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>frame</symbol>
+                        <symbol>and</symbol>
+                        <symbol>roof</symbol>
+                        <symbol>erected</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>brickwork</symbol>
+                        <symbol>done</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-6" expands="node-3-5">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>brickwork</symbol>
+                        <symbol>done</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>roofing</symbol>
+                        <symbol>finished</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-7" expands="node-3-6">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>roofing</symbol>
+                        <symbol>finished</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>gutters</symbol>
+                        <symbol>etc</symbol>
+                        <symbol>fastened</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-8" expands="node-3-7">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>gutters</symbol>
+                        <symbol>etc</symbol>
+                        <symbol>fastened</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>storm</symbol>
+                        <symbol>drains</symbol>
+                        <symbol>laid</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>grading</symbol>
+                        <symbol>done</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-9" expands="node-3-8">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>grading</symbol>
+                        <symbol>done</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>landscaping</symbol>
+                        <symbol>done</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-10" expands="node-3-9">
+        <plan-nodes>
+          <list>
+            <plan-node id="node-3-9-1" expansion="refinement-11">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>install</symbol>
+                      <symbol>drains</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-9-2" expansion="refinement-12">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>lay</symbol>
+                      <symbol>storm</symbol>
+                      <symbol>drains</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-9-3" expansion="refinement-13">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>install</symbol>
+                      <symbol>rough</symbol>
+                      <symbol>plumbing</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-9-4" expansion="refinement-14">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>install</symbol>
+                      <symbol>finished</symbol>
+                      <symbol>plumbing</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-9-5" expansion="refinement-15">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>install</symbol>
+                      <symbol>rough</symbol>
+                      <symbol>wiring</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-9-6" expansion="refinement-16">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>finish</symbol>
+                      <symbol>electrical</symbol>
+                      <symbol>work</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-9-7" expansion="refinement-17">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>install</symbol>
+                      <symbol>kitchen</symbol>
+                      <symbol>equipment</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-9-8" expansion="refinement-18">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>install</symbol>
+                      <symbol>air</symbol>
+                      <symbol>conditioning</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+          </list>
+        </plan-nodes>
+        <constraints>
+          <list>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-9-1"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-9-3"/>
+              </to>
+            </ordering>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-9-3"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-9-7"/>
+              </to>
+            </ordering>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-9-3"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-9-4"/>
+              </to>
+            </ordering>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-9-5"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-9-7"/>
+              </to>
+            </ordering>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-9-5"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-9-6"/>
+              </to>
+            </ordering>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>installed</symbol>
+                        <symbol>services</symbol>
+                        <integer>1</integer>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-11" expands="node-3-9-1">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>foundations</symbol>
+                        <symbol>laid</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>drains</symbol>
+                        <symbol>installed</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-12" expands="node-3-9-2">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>foundations</symbol>
+                        <symbol>laid</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>storm</symbol>
+                        <symbol>drains</symbol>
+                        <symbol>laid</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-13" expands="node-3-9-3">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>drains</symbol>
+                        <symbol>installed</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>rough</symbol>
+                        <symbol>plumbing</symbol>
+                        <symbol>installed</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-14" expands="node-3-9-4">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>rough</symbol>
+                        <symbol>plumbing</symbol>
+                        <symbol>installed</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>flooring</symbol>
+                        <symbol>finished</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>plumbing</symbol>
+                        <symbol>finished</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-15" expands="node-3-9-5">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>frame</symbol>
+                        <symbol>and</symbol>
+                        <symbol>roof</symbol>
+                        <symbol>erected</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>rough</symbol>
+                        <symbol>wiring</symbol>
+                        <symbol>installed</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-16" expands="node-3-9-6">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>rough</symbol>
+                        <symbol>wiring</symbol>
+                        <symbol>installed</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>painted</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>electrical</symbol>
+                        <symbol>work</symbol>
+                        <symbol>finished</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-17" expands="node-3-9-7">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>rough</symbol>
+                        <symbol>plumbing</symbol>
+                        <symbol>installed</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>rough</symbol>
+                        <symbol>wiring</symbol>
+                        <symbol>installed</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>flooring</symbol>
+                        <symbol>finished</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>kitchen</symbol>
+                        <symbol>equipment</symbol>
+                        <symbol>installed</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>installed_level</symbol>
+                        <symbol>kitchen</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>luxury</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-18" expands="node-3-9-8">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>frame</symbol>
+                        <symbol>and</symbol>
+                        <symbol>roof</symbol>
+                        <symbol>erected</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>basement</symbol>
+                        <symbol>floor</symbol>
+                        <symbol>laid</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>air</symbol>
+                        <symbol>conditioning</symbol>
+                        <symbol>installed</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-19" expands="node-3-10">
+        <plan-nodes>
+          <list>
+            <plan-node id="node-3-10-1" expansion="refinement-20">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>fasten</symbol>
+                      <symbol>plaster</symbol>
+                      <symbol>and</symbol>
+                      <symbol>plaster</symbol>
+                      <symbol>board</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-10-2" expansion="refinement-21">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>pour</symbol>
+                      <symbol>basement</symbol>
+                      <symbol>floor</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-10-3" expansion="refinement-22">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>lay</symbol>
+                      <symbol>finished</symbol>
+                      <symbol>flooring</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-10-4" expansion="refinement-23">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>finish</symbol>
+                      <symbol>carpentry</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-10-5" expansion="refinement-24">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>sand</symbol>
+                      <symbol>and</symbol>
+                      <symbol>varnish</symbol>
+                      <symbol>floors</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+            <plan-node id="node-3-10-6" expansion="refinement-25">
+              <activity>
+                <activity priority="normal">
+                  <pattern>
+                    <list>
+                      <symbol>paint</symbol>
+                    </list>
+                  </pattern>
+                </activity>
+              </activity>
+            </plan-node>
+          </list>
+        </plan-nodes>
+        <constraints>
+          <list>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-10-1"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-10-3"/>
+              </to>
+            </ordering>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-10-2"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-10-3"/>
+              </to>
+            </ordering>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-10-3"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-10-4"/>
+              </to>
+            </ordering>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-10-4"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-10-5"/>
+              </to>
+            </ordering>
+            <ordering>
+              <from>
+                <node-end-ref end="end" node="node-3-10-6"/>
+              </from>
+              <to>
+                <node-end-ref end="begin" node="node-3-10-5"/>
+              </to>
+            </ordering>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-20" expands="node-3-10-1">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>rough</symbol>
+                        <symbol>plumbing</symbol>
+                        <symbol>installed</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>rough</symbol>
+                        <symbol>wiring</symbol>
+                        <symbol>installed</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>air</symbol>
+                        <symbol>conditioning</symbol>
+                        <symbol>installed</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>plastering</symbol>
+                        <symbol>finished</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-21" expands="node-3-10-2">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>drains</symbol>
+                        <symbol>installed</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>basement</symbol>
+                        <symbol>floor</symbol>
+                        <symbol>laid</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-22" expands="node-3-10-3">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>plastering</symbol>
+                        <symbol>finished</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>basement</symbol>
+                        <symbol>floor</symbol>
+                        <symbol>laid</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>flooring</symbol>
+                        <symbol>finished</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-23" expands="node-3-10-4">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>flooring</symbol>
+                        <symbol>finished</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>carpentry</symbol>
+                        <symbol>finished</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-24" expands="node-3-10-5">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>carpentry</symbol>
+                        <symbol>finished</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>painted</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>floors</symbol>
+                        <symbol>finished</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+      <plan-refinement id="refinement-25" expands="node-3-10-6">
+        <constraints>
+          <list>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>plumbing</symbol>
+                        <symbol>finished</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="condition">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>kitchen</symbol>
+                        <symbol>equipment</symbol>
+                        <symbol>installed</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+            <constraint type="world-state" relation="effect">
+              <parameters>
+                <list>
+                  <pattern-assignment>
+                    <pattern>
+                      <list>
+                        <symbol>painted</symbol>
+                      </list>
+                    </pattern>
+                    <value>
+                      <symbol>true</symbol>
+                    </value>
+                  </pattern-assignment>
+                </list>
+              </parameters>
+            </constraint>
+          </list>
+        </constraints>
+      </plan-refinement>
+    </list>
+  </plan-refinements>
+  <plan-issues>
+    <list>
+      <plan-issue id="issue-1">
+        <issue>
+          <issue priority="normal">
+            <pattern>
+              <list>
+                <symbol>note</symbol>
+                <symbol>could</symbol>
+                <symbol>not</symbol>
+                <symbol>handle</symbol>
+                <symbol>all</symbol>
+                <symbol>constraints</symbol>
+                <symbol>for</symbol>
+                <symbol>node-3-9-4</symbol>
+                <string>
+(gost supervised (rough wiring installed) true (node-3-9-6 :begin))
+(gost supervised (rough wiring installed) true (node-3-9-6 :begin))</string>
+              </list>
+            </pattern>
+          </issue>
+        </issue>
+      </plan-issue>
+      <plan-issue id="issue-2">
+        <issue>
+          <issue priority="normal">
+            <pattern>
+              <list>
+                <symbol>note</symbol>
+                <symbol>could</symbol>
+                <symbol>not</symbol>
+                <symbol>handle</symbol>
+                <symbol>all</symbol>
+                <symbol>constraints</symbol>
+                <symbol>for</symbol>
+                <symbol>node-3-9-7</symbol>
+                <string>
+(gost supervised (rough wiring installed) true (node-3-9-6 :begin))
+(gost supervised (rough wiring installed) true (node-3-9-6 :begin))</string>
+              </list>
+            </pattern>
+          </issue>
+        </issue>
+      </plan-issue>
+      <plan-issue id="issue-3">
+        <issue>
+          <issue priority="normal">
+            <pattern>
+              <list>
+                <symbol>note</symbol>
+                <symbol>could</symbol>
+                <symbol>not</symbol>
+                <symbol>handle</symbol>
+                <symbol>all</symbol>
+                <symbol>constraints</symbol>
+                <symbol>for</symbol>
+                <symbol>node-3-10-1</symbol>
+                <string>
+(gost supervised (basement floor laid) true (node-3-10-3 :begin))
+(gost supervised (basement floor laid) true (node-3-10-3 :begin))</string>
+              </list>
+            </pattern>
+          </issue>
+        </issue>
+      </plan-issue>
+    </list>
+  </plan-issues>
+  <constraints>
+    <list>
+      <ordering>
+        <from>
+          <node-end-ref end="end" node="node-3-9-1"/>
+        </from>
+        <to>
+          <node-end-ref end="begin" node="node-3-10-2"/>
+        </to>
+      </ordering>
+      <ordering>
+        <from>
+          <node-end-ref end="end" node="node-3-9-2"/>
+        </from>
+        <to>
+          <node-end-ref end="begin" node="node-3-7"/>
+        </to>
+      </ordering>
+      <ordering>
+        <from>
+          <node-end-ref end="end" node="node-3-9-3"/>
+        </from>
+        <to>
+          <node-end-ref end="begin" node="node-3-10-1"/>
+        </to>
+      </ordering>
+      <ordering>
+        <from>
+          <node-end-ref end="end" node="node-3-9-4"/>
+        </from>
+        <to>
+          <node-end-ref end="begin" node="node-3-10-6"/>
+        </to>
+      </ordering>
+      <ordering>
+        <from>
+          <node-end-ref end="end" node="node-3-9-5"/>
+        </from>
+        <to>
+          <node-end-ref end="begin" node="node-3-10-1"/>
+        </to>
+      </ordering>
+      <ordering>
+        <from>
+          <node-end-ref end="end" node="node-3-9-7"/>
+        </from>
+        <to>
+          <node-end-ref end="begin" node="node-3-10-6"/>
+        </to>
+      </ordering>
+      <ordering>
+        <from>
+          <node-end-ref end="end" node="node-3-9-8"/>
+        </from>
+        <to>
+          <node-end-ref end="begin" node="node-3-10-1"/>
+        </to>
+      </ordering>
+      <ordering>
+        <from>
+          <node-end-ref end="end" node="node-3-10-2"/>
+        </from>
+        <to>
+          <node-end-ref end="begin" node="node-3-9-8"/>
+        </to>
+      </ordering>
+      <ordering>
+        <from>
+          <node-end-ref end="end" node="node-3-10-3"/>
+        </from>
+        <to>
+          <node-end-ref end="begin" node="node-3-9-7"/>
+        </to>
+      </ordering>
+      <ordering>
+        <from>
+          <node-end-ref end="end" node="node-3-10-3"/>
+        </from>
+        <to>
+          <node-end-ref end="begin" node="node-3-9-4"/>
+        </to>
+      </ordering>
+      <ordering>
+        <from>
+          <node-end-ref end="end" node="node-3-10-6"/>
+        </from>
+        <to>
+          <node-end-ref end="begin" node="node-3-9-6"/>
+        </to>
+      </ordering>
+      <ordering>
+        <from>
+          <node-end-ref end="end" node="node-3-2"/>
+        </from>
+        <to>
+          <node-end-ref end="begin" node="node-3-9-2"/>
+        </to>
+      </ordering>
+      <ordering>
+        <from>
+          <node-end-ref end="end" node="node-3-2"/>
+        </from>
+        <to>
+          <node-end-ref end="begin" node="node-3-9-1"/>
+        </to>
+      </ordering>
+      <ordering>
+        <from>
+          <node-end-ref end="end" node="node-3-3"/>
+        </from>
+        <to>
+          <node-end-ref end="begin" node="node-3-9-8"/>
+        </to>
+      </ordering>
+      <ordering>
+        <from>
+          <node-end-ref end="end" node="node-3-3"/>
+        </from>
+        <to>
+          <node-end-ref end="begin" node="node-3-9-5"/>
+        </to>
+      </ordering>
+    </list>
+  </constraints>
+</plan>

@@ -1,0 +1,213 @@
+<html>
+<head>
+<title>Iterated Nodes and variables</title>
+</head>
+
+<body bgcolor=#ffffff>
+
+<h1>Iterated Nodes and variables</h1>
+
+<b>Question:</b>
+<blockquote><i>
+I have begun using oplan for a robot planning task and I have a
+question about the <code>foreach</code> operator.   I am unable to
+get <code>foreach</code> to work with anything but an explicit set. In
+the task formalism manual it states that since the expansion of the
+iteration set is done while planning, the set may be read from an
+external source or instantiated through variables. I would be very
+interested in doing this.  For example i would like to have a team
+move schema that would move each member of the team. Where the
+particular team is variable of the schema.
+</i>
+</blockquote>
+
+While it's true that the expansion of the iteration set is done while
+planning, it is not fully general.  The values of all variables involved
+must be known at the time the schema containing the iteration is
+selected for expansion.  So "plan state variables" (PSVs), whose value
+is determined later on, cannot occur.
+
+<p>This is a subtle and non-obvious property of O-Plan that comes up
+from time to time.  Some things can be done only with so-called
+"schema variables", but not with PSVs.
+
+<p>When O-Plan selects a schema to use when expanding a node, it's
+possible to determine the values of some of the schema's variables
+right then and there.  The remaining variables each become a
+sub-problem of the overall planning problem.  O-Plan accumulates
+constraints about these variables - while working on all the
+rest of the plan - until it becomes clear what values the variables
+must have.  If more than one possibility remains when the plan
+is complete - complete except for PSVs that still lack values -
+O-Plan tries to find a consistent set of values for all such PSVs
+by picking from among the remaining possible values.
+
+<p>There are two reasons why the expansion of iteration sets cannot
+involve PSVs.  One is that O-Plan wants to know right then and
+there what nodes the schema will introduce into the plan.  In
+principle, O-Plan could wait until any PSVs involved are given
+values, and introduce the iteration nodes then, but that way
+of doing things has not been implemented and its consequences
+have not been fully explored.
+
+<p>The second reason is that a PSV must have a single object - from
+a declared type - as a value.  But the iteration needs a variable
+that has a set as a value instead.  That's something that's possible
+for variables whose values can be determined at "expansion time",
+but not for PSVs.  Again, something more general could be done
+in principle, but we haven't yet done so, and the consequences
+have not been fully explored.
+
+<p>So what <i>can</i> you do?
+
+<p>I'll give a couple of examples below.  In the first, we assert
+a team-membership fact that is picked up by an <code>only_use_if</code>
+condition.  (Technically, <code>only_use_for_query</code> might be more
+correct, but the behaviour of the planner is much less
+predictable / explainable / understandable in that case.)
+
+<p>A <code>compute</code> condition might be used instead if, say,
+the team membership were stored in a database somewhere.  That's
+illustrated by the second example which is just a demonstration of
+recursive expansion.  It uses a Lisp procedure called
+<code>enumerate</code> that returns a list of integers as in the
+following examples:
+
+<pre>
+  (enumerate 1 3)  returns (1 2 3)
+
+  (enumerate 1 10) returns (1 2 3 4 5 6 7 8 9 10)
+</pre>
+
+<p>The difficult case is when team-membership varies in "interesting"
+ways as a result of actions in the plan, such as when an action 
+moves someone from one team to another.  Some cases of that sort
+will work using the only_use_if technique while others will not,
+and it's difficult to explain in a simple way which cases are
+in each category.
+
+<p>The way it <i>ought</i> to be is something like this: it will work
+so long as the membership is assigned at less detailed levels of the
+plan than the level at which the membership is picked up by an
+<code>only_use_if</code> and used in an iteration, or at the same
+level but at a node that has already been constrained to be earlier
+than the node at which the value is picked up by the <code>only_use_if</code>.
+
+<p>In the example below, the membership is asserted at the least detailed
+level and at the earliest node, so it should (and does) work.
+
+<p>In other cases, it will depend on the order in which O-Plan expands
+nodes, which in the current implementation is not quite what the above
+"way it ought to work" rule requires.
+
+<hr>
+<pre>
+;;; An iteration test
+
+;;; Author: Jeff Dlaton
+
+types team = (team1 team2),
+      member = (m1 m2 m3 m4 m5),
+      place = (paris london berlin);
+
+task move_team1_from_london_to_paris;
+  nodes 1 start,
+        2 finish,
+        3 action {move_team team1 london paris};
+  orderings 1 ---> 3, 3 ---> 2;
+  effects {team_members team1} = {m1 m3} at 1;
+end_task;
+
+schema move_team;
+   vars ?team = ?{type team},
+        ?from = ?{type place},
+        ?to   = ?{type place},
+        ?members;
+   expands {move_team ?team ?from ?to};
+   nodes 
+      1 foreach action {move_individual ?m ?from ?to}
+           for ?m over ?members;
+   conditions
+      only_use_if {team_members ?team} = ?members;
+end_schema;
+
+schema move_individual;
+   vars ?individual = ?{type member},
+        ?from       = ?{type place},
+        ?to         = ?{type place};
+   expands {move_individual ?individual ?from ?to};
+end_schema;
+</pre>
+<hr>
+
+<p>Note that the variable ?members is not given a type.  It could have
+been declared "<code>?member = ?{satisfies listp}</code>", because its
+value will  be a list.  However, such declarations seem more appropriate
+when using <code>compute</code> conditions that explicitly provide
+lists.  It's not possible to define an O-Plan type that has lists
+(or sets) as its members, so there is no <code>?{type <i>T</i>}</code>
+declaration that could be used.
+<p>
+
+<hr>
+<pre>
+;;; Recursive expansion test
+
+;;; Author: Jeff Dalton
+
+;;; Updated: Thu May 28 15:14:31 1998 by Jeff Dalton
+
+task expand_2_3;
+  nodes 1 start,
+        2 finish,
+        3 action {expand top 2 3};
+  orderings 1 ---> 3, 3 ---> 2;
+end_task;
+
+;;; ... other tasks omitted ...
+
+schema expand;
+  vars ?branching = ?{satisfies numberp},
+       ?depth     = ?{satisfies numberp},
+       ?d         = ?{satisfies numberp},
+       ?children  = ?{satisfies listp};
+  expands {expand ?? ?branching ?depth};
+  nodes 
+    1 foreach action {expand ?c ?branching ?d}
+        for ?c over ?children;
+  conditions 
+    compute {> ?depth 0},
+    compute {- ?depth 1} = ?d,
+    compute {enumerate 1 ?branching} = ?children;
+end_schema;
+
+schema leaf;
+  expands {expand ?? ?? 0};
+end_schema;
+
+language lisp;
+
+  (defun enumerate (fr to) (loop for i from fr to to collect i))
+
+end_language;
+</pre>
+<hr>
+
+The first compute condition in the <code>expand<code> schema,
+"<code>compute {&gt; ?depth 0}</code>",
+is required to ensure that only the <code>leaf</code>
+schema applies at depth 0.
+
+<p>
+<a href="http://www.aiai.ed.ac.uk"
+><img width=82 height=37 alt="AIAI" align=right border=0
+src="../../IMG/LOGO/aiai-small.gif"></a>
+
+<font size="-2">
+Author: Jeff Dalton, April 27, 2001<br>
+Page maintained by <a href="mailto:oplan@ed.ac.uk">oplan@ed.ac.uk</a>,
+Last updated: Fri Apr  27 18:59:07 2001
+</font><p>
+
+</body>
+</html>

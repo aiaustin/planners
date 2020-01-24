@@ -1,0 +1,168 @@
+Messages
+--------
+
+Agent
+
+(:init)                            <= (:init-ok)
+(:kill)
+
+(:status)                          <= (:status status)
+(:status-after submessage)         <= (:status status)
+
+   The submessage must be an authority or options message.
+
+   A status lists what O-plan is doing and can contain the following
+   elements: :handling-events, :planning, (:waiting reasons).
+
+
+Planning
+
+(:domain domain-name)              <= (:domain (domain-name task-name...))
+(:set-task task-name)              <= planning-status
+(:add-to-task addition)            <= planning-status
+(:replan)                          <= planning-status
+
+   A planning-status is one of (:finished), (:no-more-alternatives),
+   or (:waiting reasons) where reasons is a non-empty subset of
+   (:triggers :authority).  It is also possible for O-Plan to
+   ask a question by sending (:question keyword issue-description data),
+   which will immediately be followed by (:waiting (:triggers)).
+   A question is answered by sending (:answer keyword data) to O-Plan.
+   
+   An addition given with :add-to-task is one of:
+     :action pattern
+     :all-of (addition)...
+     :initially pattern value
+     :task task-schema-name
+     :time-window from-node-end to-node-end min max
+
+   The from-node-end in a :time-window addition can be :zero
+   to indicate an "absolute" constraint.
+
+(:check-plan)                      <= (:checked error-count)
+(:check-plan :get-plan-statistics) <= (:checked :statistics a-list)
+
+(:eval-plan)                       <= (:evaluation a-list)
+
+(:get :plan-view)                  <= (:plan-view node-descriptions)
+(:get :world-view node-id)         <= (:world-view node-id pv-pairs)
+
+(:get :action-levels)              <= (:action-levels a-list)
+
+
+(:get :plan-view viewer-arg...)    <= (:finished-view)
+(:get :world-view node-id
+      viewer-arg...)               <= (:finished-view)
+
+
+Authority
+
+(:authority :level value)          <= (:authority :level value)
+(:what-authority :level)           <= (:authority :level value)
+
+
+Planning parameters
+
+(:set-parameters name value ...)   <= (:ok)
+(:get-parameters name...)          <= (:values (name value ...))
+
+
+Options
+
+(:make-option &key name)           <= (:option name)
+(:get-option)                      <= (:option name)
+(:set-option name)                 <= (:option name)
+(:push-option)                     <= (:option name)
+(:pop-option)                      <= (:option name)
+(:twin-option &key name)           <= (:option name)
+(:clear-option)                    <= (:option name)
+
+(:get-option-tree)                 <= (:option tree)
+
+
+
+Node descriptions
+-----------------
+
+ (node-name             ;e.g. node-1
+  begin-predecessors    ;e.g. ((node-1 :end) (node-3-2 :begin))
+  begin-successors      ;
+  end-predecessors      ;
+  end-successors        ;
+  time-bounds           ;(est lst eft lft)
+  node-type             ;e.g. action
+  pattern)              ;e.g. (puton a b)
+
+
+
+Program interface
+-----------------
+
+Planning
+
+(plan-for domain-name task-name)   -> t or nil
+(replan)                           -> t or nil
+
+(generate-plans domain-name task-name
+                &optional (how-many :all)
+                          (thunk #'(lambda () nil)))
+
+(generate-plans-as-options domain-name task-name &optional (how-many :all))
+   -> list-of-option-names
+
+(plan-by-levels domain-name task-name) -> t or nil
+
+
+Authority
+
+(set-authority what value)
+
+
+Requests for plan information
+
+(request-plan-statistics-list)     -> a-list
+(request-plan-view-list)           -> node-descriptions
+(request-world-view-list node-id)  -> pv-pairs
+
+(request-plan-view &rest viewer-args)
+(request-psgraph format &rest viewer-args)
+(request-world-view node-id &rest viewer-args)
+
+(request-action-level-alist)       -> a-list
+(request-time-bounds end-tag)      -> (min max)
+
+
+Component output
+
+(output-off)
+(redirect-component-output component file-name)
+(set-component-output-stream component stream)
+(set-component-debug-level component-or-:all level)
+
+
+Sending and receiving
+
+(send-to-oplan id &rest args)
+(receive-from-oplan pattern &key succeed fail)
+(receive-else-error pattern &optional succeed)
+
+(ask-oplan id &rest args)
+
+
+Timeouts
+
+(define-condition timeout (simple-condition) ())
+(define-condition timeout-not-handled (simple-error) ())
+
+(set-timeout seconds)
+(cancel-timeout)
+(with-timeout seconds &body forms)
+(call-with-timeout seconds thunk)
+
+
+Etc
+
+(pprocess-main-loop)
+(exit-oplan)
+(add-exit-action thunk)
+(go-faster)

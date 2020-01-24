@@ -1,0 +1,301 @@
+// A bubble display for tweets.
+// Author: Jeff Dalton
+// Last Modified 9-Aug-2011 by Ai Austin; Modified 15-Oct-2009 by Ai Austin
+// Copyright (C) 2009-11, AIAI, The University of Edinburgh
+
+// Based on http://sl-devcorner.blogspot.com/2007/03/second-life-twitter.html
+
+// was string QUERY_URL="http://www.aiai.ed.ac.uk/~jeff/ix/cgi/get-tagged-tweets.cgi";
+string QUERY_URL="http://openvce.net/services/feeds/twitter/get-tweets.php";
+
+//  9-Aug-2011 http_response list length computation changed from integer n = (tweets != []);
+
+string QUERY="#openvce";
+
+integer COMMAND_CHANNEL = 1;
+
+integer N_BUBBLES = 6;
+vector BUBBLE_COLOR = <0.75, 0.5, 0.0>; // == their initial color
+float BUBBLE_SEPARATION = 0.9;
+
+vector TEXT_COLOR = <0.75, 0.5, 0.0>; // for the floating text
+
+integer UPDATE_FREQUENCY = 60; // seconds
+integer LINE_WRAP_LENGTH = 50;
+
+key http_request_id = NULL_KEY;
+
+string current_text = ""; // just a way to remember it.
+
+string normal_text = ""; // the text we usually display
+
+string tweet_hash = ""; // lets us see when we have new tweets
+
+debugSay(string message) {
+    llSay(DEBUG_CHANNEL, message);
+}
+
+traceSay(string message) {
+    // llSay(DEBUG_CHANNEL, message);
+}
+
+set_text(string text) {
+    llSetText(text, TEXT_COLOR, 1.0);
+    current_text = text;
+}
+
+set_text_if_different(string text) {
+    if (text != current_text) {
+        set_text(text);
+    }
+}
+
+get_update() {
+    string url = QUERY_URL + "?q=" + llEscapeURL(QUERY);
+    http_request_id = llHTTPRequest(url, [HTTP_METHOD, "GET"], "");
+    if (http_request_id == NULL_KEY) {
+        debugSay("Request throttled?");
+    }
+}
+
+integer get_number_of_prims() {
+    return llGetObjectPrimCount(llGetKey());
+}
+
+integer link_number_for_bubble(integer i) {
+    // Bubbles are numbered from 0.  Child link numbers start at 2.
+    // The bubble furthest from the base has the lowest link number (2)
+    // and was created last.  It has the highest bubble number, N_BUBBLES - 1.
+    //   0   ==> n + 1
+    //   1   ==> n
+    //  ...
+    //   i   ==> 2 + (n - (i + 1))
+    //  ...
+    //   n-2 ==> 3
+    //   n-1 ==> 2
+    return 2 + (N_BUBBLES - (i + 1));
+}
+
+set_decreasing_bubble_alphas() {
+    // Set bubble alphas so they are increasingly transparant as we go up.
+    // Divide up part of the 0.0 .. 1.0 alpha range, because we don't
+    // want any bubble to be too close to invisible (0.0);
+    float alpha_delta = 0.75 / (N_BUBBLES - 1);
+    integer i = 0;
+    for (; i < N_BUBBLES; i++) {
+        integer link_number = link_number_for_bubble(i);
+        float alpha = 1.0 - (i * alpha_delta);
+        traceSay("bubble " + (string)i + " = link " + (string)link_number +
+                 ": alpha = " + (string)alpha);
+        llSetLinkAlpha(link_number, alpha, ALL_SIDES);
+    }
+}
+
+briefly_brighten_bubbles() {
+    // Show brightness moving up.
+    traceSay("Briefly brightening bubbles");
+    float alpha_delta = 0.75 / (N_BUBBLES - 1);
+    integer i = 0;
+    for (; i < N_BUBBLES; i++) {
+        integer link_number = link_number_for_bubble(i);
+        float alpha = 1.0 - (i * alpha_delta);
+        // First make it bright (fully opaque), sleep a bit, then set it back.
+        llSetLinkAlpha(link_number, 1.0, ALL_SIDES);
+        llSleep(0.2);
+        llSetLinkAlpha(link_number, alpha, ALL_SIDES);
+    }
+}
+
+integer tweets_are_different(string tweets) {
+    // It's only this function that knows what method is used.
+    string hash = llSHA1String(tweets);
+    if (hash == tweet_hash) {
+        return FALSE;
+    }
+    else {
+        tweet_hash = hash;
+        return TRUE;
+    }
+}
+
+// WrapText from http://wiki.secondlife.com/wiki/WrapText
+
+string WrapText(string pcText, integer piWidth) {
+    list     laLines  = [];
+    integer  liIndex;
+    integer  liKeep;  // Specifies if we keep the char pointed at or not
+    integer  liLen    = llStringLength(pcText);
+    list     llSearch = [" ", "\n"];
+ 
+    while (liLen > 0) {
+        liIndex = piWidth;
+        if (!(liKeep = (liLen <= piWidth))) {
+            while ((liIndex >= 0) &&
+                   (-1 == llListFindList(llSearch,
+                                         (list)llGetSubString(pcText, liIndex, liIndex))))
+                --liIndex;
+            if (liIndex <= 0) {
+                liIndex = piWidth;
+                liKeep = 1;
+            }
+        }
+        laLines += llGetSubString(pcText, 0, liIndex - 1);
+        pcText = llDeleteSubString(pcText, 0, liIndex - liKeep);
+        liLen -= (1 + liIndex - liKeep);
+    }
+    return llDumpList2String(laLines,"\n");
+}
+
+default
+{
+    state_entry()
+    {
+        set_text("Twitter feed on " + QUERY);
+        normal_text = current_text;
+    }
+
+    touch_start(integer total_number)
+    {
+        // Set permissions so the prim is able to link the objects.
+        // We also need this to unlink.
+        llRequestPermissions(llGetOwner(), PERMISSION_CHANGE_LINKS);
+    }
+    
+    run_time_permissions(integer perm)
+    {
+        if (PERMISSION_CHANGE_LINKS & perm) {
+            state make_bubbles;
+        }
+    }
+
+}
+
+state make_bubbles
+{
+    
+    state_entry()
+    {
+        // Don't make the bubbles if we've already made them.
+        if (get_number_of_prims() > 1) {
+            traceSay("Seems bubbles already exist");
+            state working;
+        }
+        else {
+            // Generate the bubbles
+            traceSay("Generating bubbles");
+            float boxPosition = 1;
+            integer i;
+            for (i = 0; i < N_BUBBLES; i++) {
+                // traceSay("Rez bubble " + (string)i);
+                llRezObject("Tweet Bubble", llGetPos() + <0, 0, boxPosition>,
+                            ZERO_VECTOR, ZERO_ROTATION, i);
+                boxPosition+= BUBBLE_SEPARATION;
+            }
+        }
+    }
+    
+    on_rez(integer start_param)
+    {
+        llResetScript(); 
+    }
+    
+    object_rez(key id)
+    {
+        llCreateLink(id, 1); // make new object a child of this one
+    }
+    
+    changed(integer change)
+    {
+        if (change & CHANGED_LINK) {
+            if (get_number_of_prims() > N_BUBBLES)
+                state working;
+        }
+    }
+
+}
+
+state working
+{
+    
+    state_entry()
+    {
+        // Arrange to hear a distress call.
+        llListen(999, "", NULL_KEY, "destroy bubbles");
+        
+        // Set bubble color.
+        traceSay("Setting bubble color");
+        llSetLinkColor(LINK_ALL_CHILDREN, BUBBLE_COLOR, ALL_SIDES);
+        
+        // Set bubble alphas.
+        set_decreasing_bubble_alphas();
+        
+        // Start getting updates.
+        llSetTimerEvent(UPDATE_FREQUENCY);
+        get_update();
+    }
+    
+    on_rez(integer start_param)
+    {
+        // llResetScript();
+        
+        // Does the old timer survive being rez'd?  /\/
+        llSetTimerEvent(UPDATE_FREQUENCY);
+        get_update();
+    }
+    
+    http_response(key request_id, integer status, list metadata, string body)
+    {
+        if (request_id != http_request_id) {
+            return;
+        }
+        http_request_id = NULL_KEY; // we're through with that id
+        if (status != 200) {
+            debugSay("Twitter search request failed, status = " +
+                     (string)status);
+            set_text("Update failed, status = " + (string)status);
+            return;
+        }
+        // We've successfully received an update.
+        set_text_if_different(normal_text);
+        // traceSay("Received: " + body);
+        if (tweets_are_different(body)) {
+            // There's been some change in the tweets.  Usually, that means
+            // there's at least one new tweet.  However, there are occasionally
+            // fewer tweets than we received last time.
+            list tweets = llParseString2List(body, ["\n"], []);
+            // Changed for OS/SL Compatbility - was originally in SL - integer n = (tweets != []);
+            integer n = llGetListLength(tweets);
+            // traceSay((string)n + " tweets");
+            integer i = 0;
+            for (; i < N_BUBBLES; i++) {
+                string tweet = "";
+                if (i < n) {
+                    tweet = llList2String(tweets, i);
+                    tweet = WrapText(tweet, LINE_WRAP_LENGTH);
+                }
+                // traceSay((string)i + " -- " + line);
+                llMessageLinked(LINK_ALL_CHILDREN, i, tweet, NULL_KEY);
+            }
+            // Try to make it visible that tweets have changed.
+            // /\/: Might be better to do this as we change the texts.
+            briefly_brighten_bubbles();
+        }
+    }
+    
+    timer()
+    {
+        // llSetTimerEvent(0.0); // disable timer
+        get_update();
+    }
+    
+    listen(integer channel, string name, key id, string message)
+    {
+        if (channel = 999 & message == "destroy bubbles") {
+            debugSay("Breaking all links");
+            llBreakAllLinks();
+            debugSay("Resetting script");
+            llResetScript();
+        }
+    }
+
+}

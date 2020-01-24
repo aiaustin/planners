@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>I-Serve</title>
+  <link rel="stylesheet" href="note-style.css" />
+</head>
+
+<!-- Updated: Fri Feb 22 13:08:20 2008 by Jeff Dalton
+-->
+
+<body bgcolor="#ffffff">
+
+<h1>I-Serve</h1>
+
+
+<p><b>Main-program class:</b> <tt>ix.iserve.IServe</tt></p>
+
+
+<p><b>Command-line arguments:</b></p>
+
+<dl>
+
+<dt><tt>-http-server-port=</tt><i>int</i></dt>
+<dd>
+  <p>Tells I-Serve what port to listen on for the requests it serves.
+  If no port is specified, I-Serve asks for OS for a free port, and
+  the number will be included in "Help" -&gt; "About I-X Server".</p>
+</dd>
+
+<dt><tt>-http-root-directory=</tt><i>pathname</i></dt>
+<dd>
+  <p>Specifies the root directory of a file tree that I-Serve will
+  serve as "static content".  (You can, of course, put new files
+  there while I-Serve is running, but the content is in the files
+  rather than generated when a request is received.)
+  The URLs look like this:
+  <blockquote>
+    <tt>http://<i>iserveHost</i>:<i>iservePort</i>/files/<i>...</i></tt>
+  </blockquote>
+  where <i>iserveHost</i> and <i>iservePort</i> are replaced by the
+  name of the machine that is running I-Serve and the port that I-Serve
+  is using.
+  </p>
+</dd>
+
+</dl>
+
+
+<p><b>Description:</b></p>
+
+<p>I-Serve is an I-X Process Panel (I-P2) that contains an HTTP
+server.  The HTTP server can be used independently, in other agents.
+For that, see the documentation for the
+<a href="../javadoc/index.html?ix/util/http/package-summary.html"
+>ix.util.http</a> package.   It is also used by some communication
+strategies.</p>
+
+<p><b>Additional handlers:</b></p>
+
+<dl>
+
+<dt>
+  <tt>add-servlet <i>class-name</i> (<i>parameter</i> ...)
+                  <i>pathSpec</i></tt></dt>
+<dd>
+  <p>Constructs an instance of the specified servlet class by calling
+  the most specific public constructor that is applicable to the
+  specified parameters, and then adds that servlet to the HTTP server
+  so that it will be invoked for requests that match the <i>pathSpec</i>.</p>
+</dd>
+
+</dl>
+
+
+<hr/>
+<small><address>Jeff Dalton &lt;J.Dalton@ed.ac.uk&gt;</address></small>
+</body>
+</html>

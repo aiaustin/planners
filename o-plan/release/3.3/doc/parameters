@@ -1,0 +1,273 @@
+Parameters
+----------
+A number of parameters that affect the operation of O-Plan can be
+set via command-line arguments or in the user's oplan-init file.
+Some can also be set from Unix environment variables.  A few are
+set by O-Plan to provide information to the user or to itself,
+and they should not be set by the user at all.
+
+The full sequence of events that affect parameter values when O-Plan
+starts up is as follows.  At each step, parameter values assigned in
+earlier steps can be changed.
+
+  1. Assign any non-NIL default values.
+  2. Assign values from Unix environment variables.
+  3. Process the command-line arguments.
+  4. Load the oplan-init file.
+
+All of this happens before the config file is read and before the
+component processes (IM, AM, etc) are created.
+
+In this section, we describe all parameters that are of use to the
+user and the procedures used to set and inspect parameters from 
+within Lisp.  These procedures can be used in an oplan-init file,
+in the Lisp-interaction window, and in code loaded into O-Plan.
+They are also used by the O-Plan system itself.
+
+Within Lisp, parameters are represented by keywords.  The default
+value for most parameters is the symbol NIL.  Exceptions will be noted
+explicitly.  Values obtained from the command line or from environment
+variables are strings.
+
+For a discussion of command-line arguments, how they're used to 
+set parameters, and the distinction between parameters and other
+command-line arguments, see the "Command-line arguments" section.
+
+The "in Lisp" functions for dealing with parameters can be used
+in "oplan-init" files.
+
+
+Getting and setting parameter values in Lisp
+--------------------------------------------
+
+(get-parameter parameter) -> value
+
+   Returns the value of the indicated parameter.  The parameter
+   should be a keyword.
+
+(set-parameter parameter value) -> value
+
+   Assigns a value to the indicated parameter, replacing any
+   previously assigned value.  The parameter should be a keyword.
+   The value can be any Lisp object but will typically be a string.
+
+(parameter-set-p parameter) -> true or false
+
+   Returns true if the parameter has ever been assigned a value
+   (including any non-nil default) and false otherwise.  This allows
+   you to distinguish between an assigned value of nil and the nil
+   default.  The parameter should be a keyword.
+
+(parameter-alist) -> alist
+
+   Returns an association list containing a (parameter . value) pair
+   for every parameter that has been given a value, even if the value
+   is NIL.  Parameters that have not been given a value still have
+   their default value NIL, but are not listed.
+
+
+Non-nil defaults
+----------------
+
+  Parameter-name   Default-value
+  --------------   -------------
+  :menu-geometry   "+100+150"
+  :interactive     t
+  :windows         t
+  :patches         t
+  :run-lights      t
+  :ps-printer      "lpr"
+  :ps-viewer       "ghostview -landscape"
+  :new-psgraph     t
+
+Think of "t" as meaning "true".
+
+
+Parameters
+----------
+Whenever a command-line argument is explicitly mentioned, a more
+complete account can be found in the "Command-line arguments" section.
+Other parameters can also be set by command-line arguments.  For a
+parameter :name, use the argument "-name value".
+
+ :allow-exec
+
+    Tells the Task Assigner whether to enable the "Execute Plan"
+    menu option.  If this parameter has been set, it is always obeyed.
+    If it has not been set, execution is allowed only if a "micro-Exec"
+    has been specified by the configuration file.  (You specify a
+    configuration file by using the "-config" command-line argument.
+    Configuration files that include an Exec will have "planner-exec"
+    in their name.)
+
+ :browser
+
+    The name of the Web browser to be used in HTTP mode.
+
+ :config
+
+    The name of the configuration file to use.  Set by the command-line
+    argument "-config filename".
+
+ :connect
+
+    True if O-Plan is running in "connected mode" and false otherwise.
+    The parameter is set to T by the "-connect" command-line argument
+    and should not be set by using "-connect t".
+
+ :do
+
+    Specifies an expression to evaluate when running in "subroutine
+    mode".
+
+ :http
+
+    Indicates whether or not O-Plan is running in "HTTP mode".
+    True if O-Plan was run directly as an HTTP server false otherwise.
+    This parameter is set to T by the "-http" command-line argument;
+    it will not work to use "-http t".  "-http" also sets the
+    :windows, :interactive, :subr, and :do parameters.
+
+ :image-name
+
+    The name of the executable image being run as O-Plan.  The image
+    name can be given explicitly on the command-line.  However, it is
+    recorded as the value of this parameter even if the default image
+    name is used.  Note that it doesn't work to use "-image" as a
+    command-line argument.
+
+ :interactive
+
+    Specifies whether there's a user who can answer questions.
+
+ :loaded-patches
+
+    A list of the patch files that have been (automatically) loaded.
+    See also :patches.
+
+ :menu-geometry
+
+    A string of the form +x+y.  When this parameter has a non-NIL
+    value, it will be used as a default position when displaying
+    (most) menus that are used to ask questions of the user.
+    The default value of :menu-geometry is "+100+150".
+
+ :new-psgraph
+
+    True to use the new version of the PostScript viewer which can
+    eliminate dummy nodes when drawing the plan.  The new viewer,
+    but not the old one, obeys the :psgraph-all-nodes and 
+    :psgraph-all-links parameters.
+
+    The default value of :new-psgraph is T.
+
+ :oplan-dir            The root directory for O-Plan.
+ :oplan-tmp-dir	       Temp file directory for O-Plan.
+ :oplan-tf-dir	       Directory containing TF files.
+
+    Strings that name directories used by O-Plan.  They are normally
+    initialized from the corresponding environment variables.  To find
+    the corresponding environment variable, delete the colon and the
+    dashes and convert to upper case; for example, :oplan-dir becomes
+    OPLANDIR.
+
+    O-Plan is normally run via a shell script that sets up the 
+    environment variables automatically.  However, if for some reason
+    they aren't defined, O-Plan will ask the user to type in values
+    for OPLANDIR and OPLANTMPDIR and will provide a default value for
+    :oplan-tf-dir based on :oplan-dir.  The environment variables
+    are examined, and missing values requested, before command-line
+    arguments are processed.  However, command-line arguments can
+    still be used to override any values established earlier.  So,
+    for instance, it works to do this:
+
+       oplan -oplan-tf-dir ./test-tf
+
+ :patches
+
+    True if patches should be loaded from the source "patch" directories.
+    The default value is T.  See also :loaded-patches.
+
+ :port
+
+    The port number to be used in HTTP and server modes.  The value
+    can be a number or a string.
+
+ :process-model
+
+    A keyword that indicates which "process model" is being used
+    in this invocation of O-Plan.  At present, it's not possible
+    to tell O-Plan which model to use by setting this parameter.
+    Instead, the model is determined when O-Plan is built; and this
+    parameter is simply an easy way to see what model it was.
+    Some possible value (not all yet available) are:
+
+       :single-process
+       :lw-process
+       :fork
+
+ :ps-printer
+
+    A unix command that can be used to print PostScript files.
+    It is used when making "Hardcopy" PostScript views of a plan.
+    The default value is "lpr".
+
+ :ps-viewer
+
+    A Unix command that can be used to display a one-page PostScript
+    graph of the nodes in a plan.  When this parameter has a non-NIL
+    value, a "Viewer one page" option will appear in the "Output format"
+    menu that appears when you select "PostScript graph" as the plan display
+    mode.  Selecting this option will cause the viewer to be run.
+    The default value is "ghostview -landscape".
+
+    If "gv" is available, it is better than ghostview.
+
+ :psgraph-all-links
+
+    True if the PostScript viewer should draw redundant links when
+    they exist in the internal representation of the plan, false if it
+    should eliminate them.  This affects only the Plan View "PostScript
+    graph" option.
+
+    A link from graphed entities (typically nodes or node-ends) A to B
+    is considered redundant if there is also an indirect path from A to B.
+
+ :psgraph-all-nodes
+
+    True if the PostScript viewer should keep dummy nodes, false if it
+    should eliminate them.  This affects only the Plan View "PostScript
+    graph" option.
+
+    Note that dummy nodes are eliminated only if it does not require
+    adding extra links (i.e. only if it would simplify the graph).
+
+ :run-lights
+
+    True if the "run lights" window should be created.  When :run-lights
+    is false, the window will not be created even when the config file
+    defines arguments for the window.  O-Plan runs about twice as quickly
+    without this window or if the run lights are turned off.  The default
+    value for :run-lights is T.
+
+ :subr
+
+    If true, O-Plan will be callable as a subroutine through the 
+    programmatic interface and will not be in overall control.
+    This parameter should be set by the "-subr" command-line argument
+    rather than by "-subr t" (which will not work).
+
+ :test-ta-questions
+
+    Used to test the "TA questions" mechanism.  See doc/ta-interface.
+
+ :windows
+
+    True to allow O-Plan to create windows.  When it's false, no window
+    will be created for the TA, IM, AM, etc, and there will no control
+    panel.  However, menus will still appear in the usual way for user
+    interventions via KS-USER, Single Step mode, the DM Developer's
+    menu, and so on.  There will be no REPL (read-eval-print loop)
+    process.
+
+    The default value for :windows is T.

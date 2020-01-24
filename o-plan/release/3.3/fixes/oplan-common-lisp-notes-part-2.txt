@@ -1,0 +1,392 @@
+Date: Tue, 04 Feb 2014 17:47:21 +0000
+From: Miles Gould
+
+After some further investigation, it turns out that the prebuilt binaries segfault because they're trying to load libnss_compat.so.1. This was removed from Debian way back in version 3.0 (from 2002), which by an odd coincidence is as far back as Debian's archives of CD installers goes. I poked around a bit and eventually found a working VM image of Debian 2.2, and unpacked the O-Plan tree on it. And it doesn't segfault!
+
+Of course, it doesn't exactly work, either. Here's the output:
+
+
+$ bin/oplan -connect -no -windows
+Warning: No OPLANTMPDIR; using current directory
+
+
+Error: Child exec: No such file or directory
+
+
+Error signalled by FORK:PROCESS.
+Broken at SYSTEM::BREAK-LEVEL. Type :H for Help
+
+OPLAN>>
+
+
+Typing :H for Help didn't bring up anything obviously useful - did I mention that I have only very limited knowledge of Lisp? Anyway, I now have the following questions:
+
+
+1) It looks to me like O-Plan is trying to execute some external program that's missing - how can I find out which one?
+2) What can I expect to see when it's running correctly?
+3) What simple sample input can I give it as a "Hello, World" test?
+
+
+If you want to have a play around yourselves, the VM image is at https://www.dropbox.com/s/4i3n4xf8vk5baiu/oplan.img. To run it, do the following:
+
+
+1) Install qemu using your preferred package manager (I was unable to get it to run under VirtualBox).
+2) Run `qemu-system-i386 oplan.img`.
+3) Log in with the username is "potato" and password "debian". The root password is also "debian".
+4) `cd oplan-3.3`
+5) `bin/oplan -connect -no -windows`
+
+
+
+-----------------
+
+Date: Tue, 4 Feb 2014 19:50:42 +0000
+Subject: Re: Common Lisp we use on Linux
+From: J Dalton
+
+
+
+1. is more the other way around.  O-Plan is written to use features of
+ASNI CL, and since GCL  was until recently only CLtL1, those things
+had to be added to GCL in the ways I described.  Recent GCLs can be
+built as ANSI or not; I'm not sure which, if either, is the default.
+
+
+2. GCL has drifted, but 2.2.2 is just a version that was used at some
+point in the past.  GCL has drifted further since then, and a more
+recent version should be used.  I'm currently using 2.6.10.
+
+
+The 2nd 2. The multi-window interface used xterms as the windows and
+communicated with them via pseudo-terminals.  That probably can be
+made to work on Linux -- it's worked on Linux in the past -- but it's
+always been tricky to get working.
+
+
+3. The free port facility does exist on Linux, but it's not always
+configured in, and I don't remember quite what the support people had
+to do to make it work.  (I think two different things had to be done.)
+
+
+However, the O-Plan http server is written in C, and it calls C
+library routines that aren't in GCL.  It used to be possible to load C
+code into a Lisp in a way that brought in such routines too, but
+various unix-like systems stopped supporting that.  If GCL were
+rebuilt to include those routines, the http server might work.  Or
+perhaps the people who are working on GCL have found some other way to
+implement that feature.  (I haven't checked in the past few years.)
+
+
+The way O-Plan was run as an http server started with a  CGI script
+(accessed in the usual way via Apache and port 80).  The script ran
+O-Plan; O-Plan obtained a port; and the CGI script redirected the user
+to a URL that included that port.
+
+
+Re connect and subroutine modes, look at the documentation on the
+ta-interface which is ...  here:
+
+
+http://www.aiai.ed.ac.uk/project/oplan/release/3.3/doc/ta-interface
+
+
+It matters whether you put "-connect" or "-no -windows" first.  Put
+"-no -windows" first.  (It's explained in the documentation.  Putting
+"-connect" first will still try to create one window.)
+
+
+
+Re 2) What can I expect to see when it's running correctly? --
+
+
+There's an example in the ta-interface documentation mentioned in my
+previous message.  Also look at the part about the "ready" message.
+Anyway, if you run O-Plan -no -windows -connect, you should see
+something like this:
+
+
+<<<Ready>>>
+
+
+Then you type
+(:init)
+
+
+You should get back (:init-ok).  Then type
+(:domain "house-1")
+
+
+And get back:
+(:domain ("house-1" "task_build_house"))
+
+
+Then type:
+(:set-task "task_build_house")
+
+
+Note dash in the domain name; underscore in the task name.
+
+
+You should get back:
+(:finished)
+
+
+Then you can look at the plan in various ways, described in the
+ta-interface doc.
+
+
+ A simple one is to type
+(:check-plan :get-plan-statistics)
+
+
+Which should get this reply:
+(:checked :statistics ((:am-cycles . 62) (:n-alts-chosen . 0)
+(:n-alts-remaining . 1) (:n-poisons . 0)))
+
+
+If you type
+(:eval-plan)
+
+
+You should get:
+(:evaluation ((:number-of-nodes . 27) (:plan-length . 26) (:duration 0
+= "") (:psv-object-types) (:psv-values) (:n-psv-object-types . 0)
+(:n-psv-values . 0)))
+
+
+Are there any more plans?  (No.) Type:
+(:replan)
+
+
+You should get
+(:no-more-alternatives)
+
+
+To exit, type
+(:kill)
+
+
+In addition to the ta-interface doc linked earlier, there is a quick reference:
+
+
+http://www.aiai.ed.ac.uk/project/oplan/release/3.3/doc/ta-interface-quick-reference
+
+
+Re subroutine mode, which is also described in the ta-interface doc --
+
+
+Run O-Plan with "-lisp" or "-no windows -subr"
+
+
+You should see "Loading" messages about any patches that are loaded,
+and then something like this:
+
+
+Break: Subr mode
+Broken at SYSTEM::BREAK-LEVEL.  Type :H for Help.
+OPLAN>>
+
+
+"OPLAN>>" is a prompt produced by Lisp.
+
+
+Now here's the same example as before, but done at a higher level.
+(It's also possible to do it one message at a time, as is done using
+connect mode)
+
+
+Type:
+(plan-for "house-1" "task_build_house")
+
+
+You should see output about AM (agenda manager) cycles and then "t" (for true).
+
+
+You can turn off output such as those AM messages -- see the ta-interface doc.
+
+
+Type:
+(request-plan-statistics-list)
+
+
+You should see:
+
+
+am: Cycle 61: Processing ae-61/0,-1
+((:am-cycles . 60) (:n-alts-chosen . 0) (:n-alts-remaining . 1)
+ (:n-poisons . 0))
+OPLAN>>
+
+
+Now let's look at a world view: what's true at the end of the plan, if
+it were executed?
+
+
+The end is node-2, while we'll identify as "2".  Type:
+
+
+(request-world-view-list "2")
+
+
+You should see:
+
+
+am: Cycle 62: Processing ae-62/0,-1
+(((air conditioning installed) true) ((basement floor laid) true)
+ ((brickwork done) true) ((carpentry finished) true)
+ ((drains installed) true) ((electrical work finished) true)
+ ((flooring finished) true) ((floors finished) true)
+ ((footers poured) true) ((foundations laid) true)
+ ((frame and roof erected) true) ((grading done) true)
+ ((gutters etc fastened) true) ((installed services 1) true)
+ ((kitchen equipment installed) true) ((landscaping done) true)
+ ((painted) true) ((plastering finished) true)
+ ((plumbing finished) true) ((roofing finished) true)
+ ((rough plumbing installed) true) ((rough wiring installed) true)
+ ((storm drains laid) true))
+
+
+---------------------------------------------------
+
+At 22:57 04/02/2014, Miles Gould wrote:
+
+I just tried this on the VM image I linked to earlier. It didn't work as stated (it crashed with the message '(:fatal-error simple-error "Caught fatal error [memory may be damaged]")'. However, when invoked with the command
+
+
+bin/oplan -no -windows -connect -noinit
+
+
+then the interactive session Jeff listed worked exactly as described. When invoked with
+
+
+bin/oplan -lisp -noinit
+
+
+the subroutine-interface session also worked as described.
+
+
+So, I think we can count this as a success! If students want to try running O-Plan on their own machines, they can do so using the VM and qemu. The VM image is based on a bare Debian Potato image produced by Jamie Strandboge and licensed under the GPL v3.0, which means we should be legally fine to distribute it. The "source code" requirement of the GPL should be achievable by adding the extra steps I took to Jamie's INSTALL file. See http://people.canonical.com/~jamie/DebianArchives/images/.
+
+---------------------------------------------------------
+
+Jeff Dalton again:
+
+Are you using the prebuilt O-Plan?  Because, if so, I think I know
+what the problem is.
+
+
+Way back in one of my earlier messages I said this:
+
+
+There was a time, and going by file dates it was 2002-2003, which puts
+it a few years after the prebuilt release file from 2000, when there
+was a minor problem on Linux that could be fixed by a bit of Lisp
+code.
+
+
+Your problem jogged my memory a bit further, and I think you've run
+into the same thing we did back then.  For some reason I can no longer
+remember, on Linux the GCL built-in function probe-file would cause an
+error like the one you described; and the problem could be worked
+around by redefining probe-file.
+
+
+It turns out that O-Plan has provision for "patch" files to be loaded
+when it starts up, as a way to fix problems without creating a new
+release.  So: in the directory source/patch, create a file called
+probe-file-patch.lsp (the exact name doesn't matter), and put this in
+it:
+
+
+(let ((*error-output* (make-broadcast-stream))) ; discard redef warning
+  (defun lisp:probe-file (x) (si:stat x)))
+
+
+Then see if you still need to say -noinit.
+
+
+(The reason -noinit avoids the problem is that probe-file is called
+when O-Plan is looking to see if there is an "oplan-init" file.)
+
+
+Recent versions of GCL most likely no longer have the problem.
+
+-----------------------------------------------------------------
+At 17:59 05/02/2014, J Dalton wrote:
+
+I think that in the longer term using a VM and qemu in order to run
+O-Plan might give us too many dependencies, but it's a very neat way
+to get the existing system to run.
+
+Anyway, I've had O-Plan
+working in connect and subroutine modes on my machine at home for a
+little while now, using a recent GCL; and I've just tried compiling
+and building one using Allegro CL on a DICE machine.  With a few
+changes in the code, that seems to be working too -- at least in
+simple cases.
+
+With a few more Allegro-related changes, I'm able to run the full
+planning test sequence, with sanity checks.  It creates 97 plans using
+24 domains including the web demo gpdt3 domain, and so is a pretty
+good check (assuming there aren't bugs hiding bugs, which so far there
+don't seem to be.)
+
+The changes from 3.3 are all low-level, technical ones such as dealing
+with differences between the way Allegro now complies with the ANSI
+standard and how it used to behave.
+
+-------------------------------------------------------------------
+
+At 17:27 07/02/2014, J Dalton wrote:
+I've made some promising progress in two areas:
+
+* Http mode, explained further below.  The problem with having only
+connect and subroutine modes is that they're intended for programs and
+aren't very nice as user interfaces.  But what if people could use the
+matrix interface that the web demos provide?  That's what http mode
+lets them do, and I was able to get it working by making a simpler
+version of the O-Plan http server that used only socket facilities
+that are built into GCL.
+
+This is not enough to let web demos be used from remote locations; but
+it does let an individual use the same interface on their own machine.
+
+It's also much more portable.  The few things it used in GCL are
+available in one form or another in most other Common Lisps.
+
+* GCL on DICE.  I took a copy of the version of GCL I've been using on
+my own machine and built it on a DICE machine.  The built completed
+successfully, and the resulting GCL seems to work, though I haven't
+tested it extensively.
+
+Http mode:
+
+I don't know whether you remember this, but in addition to connect and
+subroutine modes, we have an "http" mode that lets you run the matrix
+server interface on your own machine and use a browser to interact
+with it.
+
+It's described in documentation here:
+
+http://www.aiai.ed.ac.uk/project/oplan/release/3.3/doc/http-mode
+
+Although it's not a way to let people out on the internet use the
+matrix server demos, it does let an individual use them by running
+O-Plan in http mode, then pointing a browser at the URL O-Plan says to
+use.
+
+By having that more limited aim, it avoids the whole problem of
+needing to ask the OS for  free port and all the problems of arranging
+for such ports to be accessible from outside.  Also, the code that's
+needed only for such "remote" use doesn't need to work, and some other
+code doesn't need to work as "robustly", because it doesn't have to
+run unattended and figure out what happened in so many cases.
+
+So by simplifying http mode (not everything in the doc linked above
+will work), making a cut-down http server, and using a few things that
+are now in GCL, I was able to get a working http mode.
+
+I have so far tried only a few cases using the "Any TF" version, but
+I'm hoping the more specialised and sophisticated gpdt3 and mout1
+interfaces can be got working too without too much trouble.
+

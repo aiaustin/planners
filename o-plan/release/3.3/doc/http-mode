@@ -1,0 +1,159 @@
+HTTP mode
+---- ----
+O-Plan can be run as an HTTP server that provides an HTML interface
+to the planner in the form of a "COA evaluation matrix".  Note that
+this is a very specialised HTTP server - it supports only a single
+planning session with a single user and exits when that user is done.
+
+The interface is essentially the same as that provided by the "Generic
+COA Evaluation Matrix" interactive demonstration available via
+http://www.aiai.ed.ac.uk/~oplan/web-demos/, but it is also possible
+to get the more specialised interfaces of the "Pacifica Non-combatant
+Evacuation Operations (NEO)" and "US Army Small Unit Operations"
+demonstrations by loading a file.  (See below.)
+
+If you regularly use certain command-line arguments, you may find it
+helpful to write a short shell script that supplies them automatically.
+Some examples are given below.
+
+HTTP mode is available only when O-Plan was built using GNU Common
+Lisp (GCL).
+
+
+Command-line arguments for HTTP mode
+------------------------------------
+The relevant command-line arguments are:
+
+   -http
+
+   -oplan-tf-dir directory-name
+
+   -domain tf-file-name
+
+   -port number
+
+   -browser name
+
+   -netscape
+      Equivalent to "-http -browser netscape"
+
+   -server-host hostname
+
+      Defaults to localhost.
+
+   -interface-class class-name
+
+      Defaults to any-tf-http-server.
+
+Examples:
+
+  oplan -netscape -domain house-4
+
+  oplan -http -server-host oplan.aiai.ed.ac.uk \
+        -oplan-tf-dir my-tf -domain my-house-4
+
+Only -http (or -netscape) and -domain must be specified; the rest
+are optional.
+
+When O-Plan starts up in HTTP mode, it always prints the URL to use
+for the initial connection to O-Plan.  It will typically look something
+like this:
+
+  http://localhost:1025/any-tf-http-server/
+
+If you specify a browser using -browser or -netscape, O-Plan may attempt
+to start the browser for you or to redirect the browser if it is already
+running.  In that case, the start URL will be used automatically.
+Otherwise, you'll have to give it to the browser manually.
+
+If you do not specify a -port, one will be chosen by the operating
+system.
+
+-server-host is used when the browser may be on a separate machine
+so that URLs created by the server will refer to the server's machine
+rather than the browser's.  (The default, "localhost", would get
+this the wrong way around then the URLs are used in the browser.)
+
+Note that it may also be necessary to use -load and -load-system,
+e.g. to define the interface class.  However, a system that has the
+same name as the class will be loaded automatically, if such a
+system has been defined.
+
+
+Specialized interfaces
+----------------------
+As mentioned above, it is possible to get the specialised versions of
+the COA matrix interfaces that go with the "Pacifica Non-combatant
+Evacuation Operations (NEO)" and "US Army Small Unit Operations"
+demonstrations, by loading a file when you run O-Plan.  That can be
+done by using the "-load" command-line argument:
+
+  oplan -http -load source/help/gpdt3-http-server-setup.lsp
+
+    The Pacifica Non-combatant Evacuation Operations (NEO) demonstration.
+
+  oplan -http -load source/help/mout1-http-server-setup.lsp
+
+    The "US Army Small Unit Operations" demonstration.
+
+The "-load" takes the place of any specification of -domain or
+-interface-class.
+
+Note that the commands above assume your current directory is the
+one containing the O-Plan distribution.  If you want to be able to
+work in other directories, a good solution may be to specify the
+full pathname in a shell script.
+
+
+Writing shell scripts
+---------------------
+Here is a simple example:
+
+#!/bin/sh
+exec oplan -http -browser netscape -domain house-4 "$@"
+
+The "$@" is used to pass along any command-line arguments given
+when the script is run.
+
+Or you could allow the user to specify the domain:
+
+#!/bin/sh
+domain=$1
+shift
+exec oplan -http -browser netscape -domain $domain "$@"
+
+
+The specialized interfaces above might be handled as follows:
+
+#!/bin/sh
+oplan_base=/home/oplan-3.3
+oplan -http -browser netscape \
+      -load $oplan_base/source/help/gpdt3-http-server-setup.lsp
+
+#!/bin/sh
+oplan_base=/home/oplan-3.3
+oplan -http -browser netscape \
+      -load $oplan_base/source/help/mout1-http-server-setup.lsp
+
+Of course the "oplan_base" definition should contain the name of
+the actual directory in which you have installed O-Plan.
+
+
+Restrictions in the current release
+-----------------------------------
+The -domain must be a plain name, without a directory component and
+without ".tf" on the end.  To specify a ".tf" file in a directory other
+than the default, use the -oplan-tf-dir command-line argument together
+with -domain.
+
+The -interface-class is actually a "demonstration name".  The actual
+class name is obtained by suffixing "-demo".
+
+O-Plan writes a log file in which it records information about each
+HTTP request.  To accommodate this, source/web/demo/tmp in the installed
+O-Plan file tree must be a directory, or a link to a directory, that
+can be written by all users who will use O-Plan in HTTP mode.
+
+Netscape is the only browser that O-Plan knows how to start or
+redirect automatically.
+

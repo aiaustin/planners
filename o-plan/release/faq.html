@@ -1,0 +1,176 @@
+<html>
+<head>
+<title>O-Plan - Release Frequently Asked Questions</title>
+</head>
+
+<body bgcolor=#ffffff>
+
+<center>
+<img width=172 height=77 src="../IMG/LOGO/aiai-standard.gif" alt="AIAI" align=center>
+<img width=68 height=23 src="../IMG/LOGO/oplan.gif" alt="O-Plan" align=center>
+</center>
+<p>
+
+<center>
+<h2>O-Plan - Release Frequently Asked Questions</h2>
+</center>
+<p>
+<br>
+
+<table border=1 cellspacing=0 cellpadding=2 width=100%>
+<tr>
+<td align=center valign=center bgcolor=#ffcc99>
+<font size=-1>
+<a href="#general"><nobr>General</nobr></a> |
+<a href="#solaris"><nobr>Sun/Solaris</nobr></a> |
+<a href="#linux"><nobr>PC/Linux</nobr></a> |
+<a href="#others"><nobr>Others</nobr></a>
+</font>
+</td>
+</tr>
+</table>
+<p>
+
+This page supports O-Plan releases by providing some advice on
+Frequently Asked Questions. Note that instructions for obtaining
+and installing O-Plan are provided via the main
+<a href="index.html">O-Plan Release Page</a>.
+<p>
+
+
+<font face=Arial><b><a name="general">General</a></b></font><p>
+
+
+<ul>
+<li><b>When I run O-Plan, why do I get a message "Warning: No
+OPLANTMPDIR; using current directory"?</b>
+
+<p>O-Plan looks for an environment variable OPLANTMPDIR to use as the
+directory for temporary files.  If no variable is specifically set,
+O-Plan will use the current directory you are in when you start
+O-Plan.
+<p>
+
+<li><b>When I run O-Plan in its web-server (HTTP) mode, why do I get an
+error message saying it cannot create a file?</b>
+
+<p>When O-Plan is run in HTTP mode, it creates a log file in which
+it records information about each HTTP request.  Part of the O-Plan
+installation procedure is to create a directory to contain the log
+files.  This directory is not provided automatically to ensure that you
+are made aware that it exists and can determine its location.
+The most likely source of your problem is either that the
+log file directory does not exist or that it does not grant you
+write permission.
+
+<p>Create a directory called "web-tmp" at the top level of the directory
+in which you installed O-Plan, and make it writable by everyone who will be
+using O-Plan.  If you would like the directory to be in a different
+place, change the symbolic link source/web/demo/tmp.<p>
+
+<p>See the file <a href="3.3/doc/http-mode">source/doc/http-mode</a>
+for instructions on using O-Plan in HTTP mode.
+<p>
+
+<li><b>Can you give me a simple script to run O-Plan?</b>
+
+<p>O-Plan should be installed in such a way that "oplan" can be
+used as a shell command that invokes the "oplan" script provided
+by the O-Plan distribution.
+
+<p>If there are some combinations of command-line arguments that you
+repeatedly use, a convenient way to avoid specifying them each time is
+to create a short shell script that supplies them automatically while
+still allowing other parameters to be specified on the command line.
+For example:
+
+<pre>
+#!/bin/sh
+exec oplan -http -browser netscape -domain house-4 "$@"
+</pre>
+
+<p>The <tt>"$@"</tt> is used to pass along any command-line arguments
+given when the script is run.
+
+<p>For further examples, see the files
+<a href="3.3/doc/ta-interface">source/doc/ta-interface</a>
+and <a href="3.3/doc/http-mode">source/doc/http-mode</a>.
+<p>
+
+
+<li><b>What is a good demonstration setup for O-Plan on a laptop?</b>
+
+<p>You can get a a stand-alone O-Plan planning system with a Web
+interface by running O-Plan in its HTTP server mode (see the file <a
+href="3.3/doc/http-mode">source/doc/http-mode</a>).  This provides
+an HTML interface to the planner in a form suitable for use with
+a Web browser.   When O-Plan has successfully started in HTTP
+mode, it prints a URL.  You can then direct a browser to that URL.
+<p>
+
+<li><b>How can I get <tt>foreach</tt> to work with anything but an
+explicit set?  For example i would like to have a team move schema
+that would move each member of the team, where the particular team is
+given by a variable of the schema.</b>
+
+<p>The <a href="3.3/tf-manual.ps">Task Formalism Manual</a> (pages 51-52)
+explains that iteration sets are expanded while planning and hence
+may be read from an external source or instantiated through variables.
+However, the values of all variables involved must be known at the
+time the schema containing the iteration is selected for expansion.
+For a fuller explanation of the issues involved, plus examples,
+see <a href="faq/iterated-nodes-and-variables.html"
+>faq/iterated-nodes-and-variables.html</a>.
+<p>
+
+</ul>
+
+<font face=Arial><b><a name="solaris">Sun/Solaris</a></b></font><p>
+
+<ul>
+<li>
+</ul>
+
+<font face=Arial><b><a name="linux">PC/Linux</a></b></font><p>
+
+<ul>
+
+<li><b>When I run O-Plan, why do I get an error message that says
+"error stat'ing /dev/ttydirs/xxx/xxxxxxxxxxxxp1: No such file or
+directory"?</b>
+
+<p>The error message is written by "xterm" when O-Plan runs it to
+create a window.  This happens on some Linux installations, but not
+on others, and there does not appear to be any effect on how the
+windows work after they've appeared.
+<p>
+
+</ul>
+
+<font face=Arial><b><a name="others">Others</a></b></font><p>
+
+<ul>
+<li>
+</ul>
+
+<p>
+<table border=1 cellspacing=0 cellpadding=2 width=100%>
+<tr>
+<td align=center valign=center bgcolor=#ffcc99>
+<font size=-1>
+<a href="../index.html">O-Plan Index</a>
+</font>
+</td>
+</tr>
+</table>
+
+<a href="http://www.aiai.ed.ac.uk"><img width=82 height=37 alt="AIAI" align=right border=0
+src="../IMG/LOGO/aiai-small.gif"></a>
+
+<font size="-2">
+Page maintained by <a href="mailto:oplan@ed.ac.uk">oplan@ed.ac.uk</a>,
+Last updated: Thu Jul  6 17:12:07 2000
+</font><p>
+
+</body>
+</html>

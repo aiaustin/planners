@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Notes on writing a world-state viewer</title>
+  <link rel="stylesheet" href="note-style.css" />
+</head>
+
+<!-- Updated: Fri Sep 21 00:35:46 2007 by Jeff Dalton
+-->
+
+<body bgcolor="#ffffff">
+
+<h1>Notes on writing a world-state viewer</h1>
+
+Author: Jeff Dalton
+
+
+<h2>What does the viewer do?</h2>
+
+<p>A world-state viewer is responsible for displaying the panel's
+model of the current state of the world.  The state is a set of
+pattern-value pairs.  For example, using one possible textual
+notation:
+<pre>
+   colour block-1 = red
+   size block-1 = small
+   position block-2 = (10 30)
+   position robot = (100 10)
+</pre></p>
+
+<p>To the left of the "=" is the "pattern", to the right, the "value".
+This is mere terminology.</p>
+
+<p>The default value is "true".  Anything not specified in the state is
+unknown.  There is no closed-world assumption that says everything not
+specified is false.</p>
+
+<p>The viewer is told about changes in the state.  It isn't (in 2.2) ever
+given a whole state to display, although the first change it sees will
+be the entire state at that time.  This means that most world-state
+viewers will have to maintain their own record of the whole state.</p>
+
+<p>The viewer must also be able to "reset" - to clear any record or
+display of what the state is.</p>
+
+
+<h2>How do I change the viewer used by I-P2?</h2>
+
+<p>Define a subclass of ix.ip2.Ip2 that redefines the following method:
+<pre>
+    /**
+     * Called to create the state viewer.  This method can be
+     * redefined in subclasses that want to instantiate a different
+     * viewer class.
+     */
+    protected StateViewer makeStateViewer() {
+        return new StateViewTable(this);
+    }
+</pre></p>
+
+<p>Instantiate whatever viewer class you desire instead of StateViewTable.</p>
+
+
+<b>How do I define a new viewer class?</b>
+
+<p>The class ix.ip2.StateViewTable may be used as an example.  It
+corresponds to file java/ix/ip2/StateViewTable.java in the I-X
+distribution.</p>
+
+<p>The class must:
+<ul>
+  <li>implement the StateViewer interface;</li>
+
+  <li>be a subclass of java.awt.Component;</li>
+
+  <li>
+    have a 1-argument constructor that takes an instance of Ip2 as a
+    parameter.  (In the constructor declaration, a superclass of Ip2,
+    such as IXAgent, may be specified instead.)
+  </li>
+</ul></p>
+
+<p>In I-X 2.2, the StateViewer interface extends the ProcessStatusListener
+interface.  This is may change.  Until it does, however, you must
+define some methods that will never actually be called.  Here are
+the ones that WILL be called:
+<pre>
+    public void reset();
+
+    public void stateChange(ProcessStatusEvent e, Map delta);
+</pre></p>
+
+<p>The ones that will not be called are:
+<pre>
+    public void statusUpdate(ProcessStatusEvent e);
+
+    public void newBindings(ProcessStatusEvent e, Map bindings);
+</pre></p>
+
+Here is an outline viewer based on the above:
+<pre>
+package ix.ip2;         // or whatever package you desire
+
+import java.util.*;
+import javax.swing.*;
+import ix.icore.process.event.*;
+import ix.util.*;
+import ix.util.lisp.*;
+
+public class MyStateViewer extends JPanel implements StateViewer {
+
+    /**
+     * Constructs a viewer for the indicated agent.
+     */
+    public MyStateViewer(IXAgent ip2) {
+        super();
+    }
+
+    /**
+     * Sets the viewer back to something approximating its initial state.
+     */
+    public void reset() {
+        // Clear state data    
+    }
+
+    /*
+     * Methods in ProcessStatusListener interface
+     */
+
+    /** Ignored by this viewer. */
+    public void statusUpdate(ProcessStatusEvent event) { }
+
+    /** Ignored by this viewer. */
+    public void newBindings(ProcessStatusEvent event, Map bindings) { }
+
+    public void stateChange(ProcessStatusEvent event, Map delta) {
+        for (Iterator i = delta.entrySet().iterator(); i.hasNext();) {
+            Map.Entry e = (Map.Entry)i.next();
+            LList pattern = (LList)e.getKey();
+            Object value = e.getValue();
+            recordNewValue(pattern, value);
+        }
+    }
+
+    protected void recordNewValue(LList pattern, Object value) {
+        Debug.noteln("State viewer sees " + pattern + " = " + value);
+        // ...
+    }
+
+}
+</pre>
+
+
+<h2>How are patterns and values represented?</h2>
+
+<p>As you can see in the code above, a pattern is an LList and a value
+can be any Object.  An LList is a class of singly-linked, "Lisp-like"
+lists.  In the viewer, you can usually ignore the fact that that
+particular class is used and use the java.util interface List in
+declarations instead.  But when constructing a pattern, or a
+pattern-element that is a List, an LList must be used.</p>
+
+<p>Although values and pattern-elements can be any Object, they will in
+practice always come from a restricted set of classes:
+<ul>
+  <li>Symbols - instances of ix.util.lisp.Symbol.</li>
+  <li>Strings - instances of the class String.</li>
+  <li>Numbers - instances of classes Long, Double, etc.</li>
+  <li>Variables - instances of ix.util.lisp.ItemVar.</li>
+  <li>Lists - instances of ix.util.lisp.LList</li>
+</ul>
+</p>
+
+<p>Variables will not appear in any pattern or value in the world state.</p>
+
+<p>To create a Symbol, call Symbol.intern(String name).  If a Symbol
+of that name already exists, it is returned; otherwise a new Symbol
+is constructed.  This ensures that there is only one Symbol per
+name and hence that they can be compared with ==.</p>
+
+<p>For example:
+<pre>
+   static final Symbol S_REQUEST = Symbol.intern("request");
+
+   ...
+
+      if (pattern.get(0) == S_REQUEST) ...
+</pre></p>
+
+<p>An ItemVar is obtained by using a name that begins with "?".</p>
+
+<p>There are a number of ways to construct LLists.  Here are some of
+the most common:
+<pre>
+  Lisp.NIL                       // the empty LList
+  Lisp.cons(Object, LList)       // for recursive construction
+  Lisp.list(Object)
+  Lisp.list(Object, Object)
+  Lisp.list(Object, Object, Object)
+  Lisp.list(Object, Object, Object, Object)
+  ... up to 5 arguments ...
+
+  LList.newLList(Collection)
+
+  <i>N.B. new LList(Collection) does NOT work.</i>
+
+  (LList)Lisp.readFromString(String),
+      where the String is a list in Lisp-like syntax.
+</pre></p>
+
+<p>The Lisp class is ix.util.lisp.Lisp.</p>
+
+<p>You can also match against patterns (treated as data) by constructing
+a pattern that contains ItemVars.  For example:
+<pre>
+  import ix.util.lisp.*;
+  import ix.util.match.*;
+
+  static final Symbol
+      Q_AGENT = Symbol.intern("?agent"),
+      Q_CONTENTS = Symbol.intern("?contents");
+
+  LList syntax = Lisp.readFromString("(send_to ?agent ?contents)");
+
+  LList data = ...;
+
+  MatchEnv env = SimpleMatcher.match(syntax, data);
+
+  ...
+  if (env != null) {
+      Symbol agentName = (Symbol)env.get(Q_AGENT);
+      Object messageContents = env.get(Q_CONTENTS);
+      ...
+  }
+</pre></p>
+
+<p>There are more spohisticated ways to do this kind of thing, but they
+are "beyond the scope of this document" (as they say).</p>
+
+
+<hr/>
+<small><address>Jeff Dalton &lt;J.Dalton@ed.ac.uk&gt;</address></small>
+</body>
+</html>

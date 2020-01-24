@@ -1,0 +1,28 @@
+Going faster
+------------
+There are times when you'll want to run O-Plan as quickly as possible,
+or at least to speed it up.  Here we describe the steps to take.
+
+It turns out that much of O-Plan's time is spent producing "tracing"
+output of various sorts as it runs.  Each component (IM, AM, etc) has
+a window in which it prints descriptions of significant events as
+thet occur, and then there's the list of running processes (the 
+"run lights") and the "whats-going-on" file.  The "whats-going-on"
+file is used only by developers and is off by default, but the
+running process display and the component output are normally on,
+and each accounts for roughly a factor of 2 in run-time.
+
+Yes, that's right: O-Plan will run about 4 times faster if you turn
+them off.
+
+ * To turn off the trace / debug output, using the control panel
+   to set the "Diagnostic Level" to "Nothing" in all components.
+
+ * To turn off the "run lights", evaluate (run-lights-off) by typing
+   it in the Lisp-interaction window (which is normally the window
+   you used to run O-Plan).
+
+ * In KCL, also evaluate (use-fast-links t).
+
+All of the above can be done by evaluating (go-faster).
+

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+         ns="http://www.aiai.ed.ac.uk/project/ix/"
+         datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+
+  <!-- Hand-written grammar that has patterns for known constraints -->
+
+  <include href="plan.rng">
+
+    <!-- Redefine constraint to allow any type except "world-state" -->
+
+    <define name="constraint">
+      <element name="constraint">
+	<optional>
+	  <attribute name="type">
+            <data type="string">
+              <except>
+                <value>world-state</value>
+              </except>
+            </data>
+	  </attribute>
+	</optional>
+	<optional>
+	  <attribute name="relation">
+	    <ref name="symbol-value" />
+	  </attribute>
+	</optional>
+	<optional>
+	  <attribute name="sender-id">
+	    <ref name="name-value" />
+	  </attribute>
+	</optional>
+	<interleave>
+	  <optional>
+	    <element name="parameters">
+	      <ref name="list" />
+	    </element>
+	  </optional>
+	  <optional>
+	    <element name="annotations">
+	      <ref name="map" />
+	    </element>
+	  </optional>
+	</interleave>
+      </element>
+    </define>
+
+  </include>
+
+  <define name="constraint" combine="choice">
+    <ref name="known-constraint" />
+  </define>
+
+  <!-- world-state condition consraint -->
+
+  <define name="known-constraint" combine="choice">
+    <element name="constraint">
+      <attribute name="type">
+        <value>world-state</value>
+      </attribute>
+      <attribute name="relation">
+        <value>condition</value>
+      </attribute>
+      <optional>
+        <attribute name="sender-id">
+          <ref name="name-value" />
+        </attribute>
+      </optional>
+      <interleave>
+        <element name="parameters">
+          <element name="list">
+            <ref name="pattern-assignment" />
+          </element>
+        </element>
+        <optional>
+          <element name="annotations">
+            <ref name="map" />
+          </element>
+        </optional>
+      </interleave>
+    </element>
+  </define>
+
+  <!-- world-state effect consraint -->
+
+  <define name="known-constraint" combine="choice">
+    <element name="constraint">
+      <attribute name="type">
+        <value>world-state</value>
+      </attribute>
+      <attribute name="relation">
+        <value>effect</value>
+      </attribute>
+      <optional>
+        <attribute name="sender-id">
+          <ref name="name-value" />
+        </attribute>
+      </optional>
+      <interleave>
+        <element name="parameters">
+          <element name="list">
+            <ref name="pattern-assignment" />
+          </element>
+        </element>
+        <optional>
+          <element name="annotations">
+            <ref name="map" />
+          </element>
+        </optional>
+      </interleave>
+    </element>
+  </define>
+
+</grammar>
