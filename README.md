@@ -4,7 +4,7 @@ A repository of AI planning systems from the work of Prof. Austin Tate and his P
 
 http://www.aiai.ed.ac.uk/project/plan/
 
-## Traverser: (1971-2)
+## Traverser: (1971-72)
 Traverser (also called Graph Traverser 4 - GT4) was created during 1971-1972 in an undergraduate student project in Computer Studies at the University of Lancaster. It built on the work of Donald Michie and his colleagues at the Department of Machine Intelligence and Perception at the University of Edinburgh. Written in POP-2.
 
 http://www.aiai.ed.ac.uk/project/early-planners/
@@ -24,7 +24,7 @@ An AI planning , execution and plan repair system with extensive representations
 
 http://www.aiai.ed.ac.uk/project/oplan/
 
-## I-X/I-Plan: (2000-present)
+## I-X/I-Plan: (2000-2012)
 A portable cross-platform Java-based planning and collaboration support environment. Aid to multi-agent cooperative work and external services use. Plan representation based on the &lt;I-N-C-A&gt; conceptual model.  Written in Java.
 
 http://www.aiai.ed.ac.uk/project/ix/
