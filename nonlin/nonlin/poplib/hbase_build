@@ -1,0 +1,20 @@
+vars libprefix libpostfix;
+'' -> libprefix; '.p' -> libpostfix;
+
+;;; Harry Barrow originals
+compile('hbase.p');
+compile('hbcontext.p');
+compile('hbactor.p');
+
+;;; Austin Tates add on bits for NONLIN
+compile('hbnonlin.p');
+
+define title ();
+  2.nl; pr('HBASE with Actors, Contexts and Logical Variables ready.'); 1.nl;
+enddefine;
+
+compile('saver.p');
+
+;;; now do a
+;;;    saver hb.psv
+;;;

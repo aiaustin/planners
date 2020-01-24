@@ -1,0 +1,137 @@
+Review of Nonlin
+----------------
+
+From: Subbarao Kambhampati <rao@asu.edu> 
+Date: Tue, 26 Nov 2002 11:53:08 -0700 
+To: planning@asu.edu 
+Subject: Rao's "Reminiscences of Influential Papers in Planning" 
+
+Paper:  Austin Tate: Generating Project Networks. IJCAI 1977: 888-893
+
+Also the companion TR:
+Austin Tate "Project Planning using a Hierarchic Nonlinear Planner"
+Research Report 25. Dept of AI. Edinburgh Univeristy. 1976.  
+
+The time was 1988. David Chapman's cassandric predictions about death
+of planning was among the AIJ best sellers. Drew McDermott, having
+pretty much solved all the problems of planning from expressiveness
+point of view, has turned his attention to "critiques" of pure
+reason. David Smith was co-publishing possible (world) papers here and
+there. Dan Weld was singing praises of exaggeration.  Hector was still
+in grad(e) school working hard towards his eventual ascension to
+planning.  David Wilkins was working on SIPE. The Timberline workshop
+on planning just got concluded, and Austin is writing papers on
+"Clouds" (I am not kidding--there are actual pictures of clouds in
+his Timberline paper). 
+
+I was a (not so) young but impressionable graduate student at UMD,
+angling for a dissertation in EBL (the big fad then in learning
+community), while JimH was trying to steer me into planning (these
+were his pre-OILy days). After several marathon meetings, I have
+already made significant progress towards the dissertation in that we
+hammered out a name for the plan-reuse system I was going to
+write. With a name like "PRIAR" there was clearly no turning back and
+I had to actually implement it. Having got exclusive rights to an
+explorer lisp machine over at the SRC, I was all set to write my plan
+reuse system, when I realized that in order to do reuse, I actually
+have to have a planner that can support from-scratch planning.
+
+Not to worry. There are tons of planning systems out there, I was
+sure, and I just had to pick one and get going. My obvious first
+choice was David Chapman's TWEAK--which is on prime-time planning news
+those days. Oh those NP-hardness proofs, that hi-fi jargon
+--"white-knights valiantly saving damsels in distress by posting
+non-codesignation constraints"--it is clearly *the* planner to base
+your work on. Plus the whole TWEAK project got started becaused David
+Chapman had trouble running NOAH on non-published examples and clearly
+TWEAK will be a blazingly fast portable user-friendly planner. So I
+wrote to David Chapman, who despite being an obvious celebrity,
+replied promptly, and explained to me, in effect, that he "proved" the
+planner to be complete and slow, but didn't actually have a
+distributable implementation. The way he phrased his mail, I wasn't
+sure if there ever was a TWEAK in non-vaporware form (some 8 years
+later, brother Qiang Yang repaired the situation by implementing not
+only Tweak, but also AbTweak).
+
+What to do now? NOAH was already in soup, and TWEAK is apparently
+vaporware. JimH then told me to look up Nonlin--a planner written by
+Tate circa 1977. Yeah sure, I thought.. imagine anything written a
+decade back making anysense. Being a dutiful graduate student I did go
+and copy the 6-page paper from IJCAI 1977 proceedings--and it turned
+out to be so different from all the narrative-style planning papers
+that I had read until that point.
+
+Review:
+
+Tate's 1977 paper is about the NONLIN implementation. It clearly
+states the problem of reasoning about truth of conditions over
+partially ordered actions. It provides a procedure (innovatively
+called the Q&A procedure) that can tell you whether or not a
+precondition will hold at some point over partially ordered sequence
+of actions. Q&A operates on GOST--Goal Structure Table--which is
+Nonlin's way of capturing causal structure of a partially ordered
+plan. It also provides, as part of this process, the constraints that
+can be added to _make_ the condition hold (if it does not already
+hold). Although it wasn't proven to be so, the procedure is complete,
+and not only shows that both promotion and demotion are to be
+considered (in contrast to NOAH's airy--"oh just pick one and be done
+with it" recipe), but even handles the "white-knight" clause (10 years
+before the colorful phrase got introduced into our jargon).  It then
+shows how the Q&A procedure is used as the backbone for plan synthesis
+in Nonlin.
+
+The companion technical report (Edinburgh TR # 25) provides a
+thorough--algorithmic/data-structure level--description of how Nonlin
+is implemented around the Q&A procedure. Among other things, it gives
+a clear syntactic description of the task reduction schemas, and
+brings out several problematic issues that need to be handled when a
+partial plan is being refined both by reduction and by task addition
+(years before colorful terms such as "Hierarchical Promiscuity" were
+used to describe these problems). 
+
+The TR description is thorough enough to allow me to _reimplement_
+Nonlin in lisp (which I believe is still distributed as UM-NONLIN
+http://www.cs.umd.edu/projects/plus/Nonlin ). About the only part that
+didn't get proper coverage was the control of backtracking (original
+nonlin used a language that has support for context switching--which
+made chronological backtracking easy to implement) and lack of search
+control. The latter, while a gaping hole, was pretty much standard
+fare until the post-Graphplan/UnPOP era. As McDermott remarked with his
+customary turn of phrase in his UnPOP paper:  "Search is usually given
+little attention in this field, relegated to a footnote about how
+"Backtracking was used when the heuristics didn't work"" 
+
+I sometimes think that a lot of planning work could have taken quite a
+different tack if these two papers were paid more attention. If you
+read Tate's 1977 paper, Chapman's 1987 paper seems much less novel and
+hardly ominous (replace Q&A for MTC, and you will see what I mean).
+If you knew Tate's 1977 paper, McAllester's 1991 paper will just be a
+textbook summary of partial order planning (a sub-part of the HTN
+planning that Nonlin already almost cleanly explains), rather than the
+beginning of partial order planning (as has become its de facto
+current status).  In particular the causal links that everyone seems
+to be so smitten with are but GOSTs (I mean GOST--Goal Structure
+Tables) from Nonlin. If you knew Nonlin, you will see Tom Dean's later
+work on reasoning with event databases as a worthy continuation rather
+than a completely new beginning on reasoning over partially ordered
+events. If you knew Nonlin, you will at least empathize (if not
+sympathize) with the criticisms sometimes levelled by some old-timers,
+during the boom-days of "Propositional planning", that planning
+community may be watering down the problem to make it easy to solve.
+
+Being someone who not only knew, but scribbled the heck out of his
+copies of the paper and TR, and spent many a cozy night staring into
+the TI explorer and cursing Tate for his devious algorithms, I was
+clearly influenced by that work.  The influence shows through in the
+PRIAR work, the multi-contributor causal structures work, the
+foundations of refinement planning work, as well as the much more
+recent RePOP work (which came *this* close to being ReNonlin--we had to
+abandon it as I couldn't find the nifty graphic for ReNonlin--plus it
+sounded suspiciously like Ritalin).
+
+Subbarao Kambhampati 
+Professor, Dept. of Comp Sci. and Engg. Arizona State University, 
+Tempe, AZ 85287-5406  rao@asu.edu (email)
+480-965-0113 (Phone)                         
+480-965-2751 (FAX)                                                             
+WWW: http://rakaposhi.eas.asu.edu                                             

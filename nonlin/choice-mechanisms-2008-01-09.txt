@@ -1,0 +1,103 @@
+Choice Mechanisms in AI Planners
+
+At 22:54 08/01/2008, Sheila McIlraith wrote:
+I was wondering whether you knew whether anyone had used heuristic search in HTN planning.  
+
+Any pointers you can suggest would
+be appreciated.  One of my students, Shirin Sohrabi, has
+extended SHOP2 to do HTN planning with user preferences.  In doing
+this she has reimplemented SHOP2 using a heuristic search and we
+wanted to make sure that we compared it adequately to any other
+existing heuristic search mechanisms for HTN.
+
+
+Response from Austin Tate 9-Jan-2008:
+
+All our planners that use HTN methods use heuristic search to select between the alternatives that are open at each stage of plan refinement.  A single page with link to all our planning system, project and collaborative resources is at
+http://www.aiai.ed.ac.uk/project/plan/
+
+Nonlin
+---------
+
+Nonlin (1975-6) used a graph traverser (like A*) style search across its alternative space.  
+
+The Nonlin (and even earlier system) papers are at:
+http://www.aiai.ed.ac.uk/project/early-planners/
+
+Try this paper...
+
+Tate, A., (1976) "Project planning using a hierarchic non-linear planner" Research Report No. 25, Edinburgh: Department of Artificial Intelligence, August 1976.
+http://www.aiai.ed.ac.uk/project/oplan/documents/1990-PRE/1976-dai-memo25-tate-nonlin.pdf
+
+See around pages 26-28.  The decision graph mentioned was implemented to do dependency directed backtracking.. and the mechanism (Hayes, 1975) was the forerunner of Jon Doyle's later Truth maintenance systems.
+
+I also had students in the early 1980s who explored choice mechanism characterisation and choice making.  E.g. Dave Croft.  All work done prior to the archiving of good on-line materials I am afraid, and I lost all my physical materials and documents I had from these earlier times in the big Edinburgh fire in December 2002.  All I recovered I had scanned to PDF for the "early planner" web site above, so I would not lose the final copies of some papers I had kept at home.
+
+
+O-Plan
+----------
+
+O-Plan papers are at
+http://www.aiai.ed.ac.uk/project/oplan/documents/
+
+The opportunistic choice selection mechanism in O-Plan (1983-1999) was more comprehensive. The evaluation function in O-Plan was based on types of refinement, branching ratios (immediately and likely deeper ones - using a principle we called "Branch-1/Branch-N", where there was also an attempt to characterise the likely fringe of the development tree out beyond that for the immediate selection). 
+
+Try this one as a relevant example paper...
+
+Tate, A. and Drabble, B. (1990) O-Plan2: Choice Ordering Mechanisms in an AI Planning Architecture, Innovative Approaches to Planning,
+Scheduling and Control, November 1990, Morgan-Kaufmann.
+
+http://www.aiai.ed.ac.uk/project/oplan/documents/1990-PRE/90-darpa-choice-mech.pdf
+
+Though the use of search mechanisms is also in the main O-Plan reference in AIJ...
+
+http://www.aiai.ed.ac.uk/project/oplan/documents/1991/91-aij-oplan-as-published.pdf
+
+Look around pages 55 and 56 as a start.  But this paper has a lot fo features described in the small space we had.  Its important to realise that the practical planning systems like Nonlin. O-Plan and I-X/I-Plan work well because they take a wholistic approach and incorporate rich representations and mechanisms, not just focusing on a single technique.
+
+See also some examples of experiments performed to evaluate O-Plan.  See several parts of this, but most obvioulsy section 4.8.
+
+Drabble, B., Tate, A. and Dalton, J.(1995) OPlan Project Evaluation Experiments and Results. ARPA-RL/OPlan/TR/23 Version 2, AIAI, University of Edinburgh
+
+http://www.aiai.ed.ac.uk/project/oplan/documents/LIMITED-DISTRIB/1995/95-tr-23-experiments.pdf
+
+One more relevant paper I spotted by Googling ourselves 
+This one would not be easy to find as its a planning initiative deliverable O-Plan project tech report from 1995.
+
+See also some examples of experiments performed to evaluate O-Plan.  See several parts of this, but most obviously section 4.8.
+
+Drabble, B., Tate, A. and Dalton, J.(1995) OPlan Project Evaluation Experiments and Results. ARPA-RL/OPlan/TR/23 Version 2, AIAI, University of Edinburgh
+
+http://www.aiai.ed.ac.uk/project/oplan/documents/LIMITED-DISTRIB/1995/95-tr-23-experiments.pdf
+
+
+I-X/I-Plan
+------------
+
+Has O-Plan like mechanism for its choice making system.
+
+I-X/I-Plan papers are all at:
+http://www.aiai.ed.ac.uk/project/ix/documents/
+
+
+------------------------------------------------------
+
+
+At 19:27 09/01/2008, Stuart Russell wrote:
+The strategy we have followed to make hierarchical planning precise is to say true things about abstract actions - which are, after all, constraints on any final sequence of primitive actions just like partially ordered plans. So far, we've said true things about abstract actions under total ordering. The question is, can anything true but non-vacuous be said about abstract actions when partial ordering and interleaving are allowed?
+
+One point made in the paper is that this may still be possible because we care about states reachable under *some* resolution of all the remaining choices;
+
+
+
+
+Response from Austin Tate 9-Jan-2008:
+
+Absolutely.. there are many constraints that can be stated and that are useful, including the statement of disjunctions in some cases that strongly limit the search if you do reasoning over the and/or trees that are produced to restrict the space of partial plans as you go along. O-Plan did that.  As did Molgen and OPM (Rick Hayes Roth).
+
+You have no need to determine a specific plan to determine that one of a potential set of plans remains in the space described.  Its all about partial commitment as you go along.
+
+What I can tell you is that this approach work in real life 
+
+It would be nice to see stronger work on real rich semantics for a comprehensive approach rather than stripping out all the important p[ractical rich representation stuff which folks like me thinks makes planning EASIER.. due to the wealth of constraints on the space of plans described.. even if a system might not be able to reason about it.. the human/system combination sometimes can!
+

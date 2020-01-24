@@ -1,0 +1,12 @@
+
+Nonlin Alert
+
+        Version for Poplog 15.5 and onwards.
+
+        Note that there is an error in the CPM package when used with
+        domains including a schema with over 20 nodes.  This has not
+        been investigated yet.  Either use Nonlin without the CPM package
+        (e.g. for the "space" domain) or use schemas with less than 20 nodes.
+
+	type prinfo or tfinfo to begin...
+

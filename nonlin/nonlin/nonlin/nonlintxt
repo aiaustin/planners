@@ -1,0 +1,293 @@
+
+HOW TO USE THE NONLIN PLANNING SYSTEM ON UNIX POPLOG
+AUSTIN TATE                             17 Sept 1985
+Updated: Sun Dec 01 19:49:51 2002
+URL: http://www.aiai.ed.ac.uk/project/nonlin/
+----------------------------------------------------
+
+0. Quick Start
+   -----------
+
+I am a double click and wait for the instructions person these days:-)
+So to get Nonlin up quickly do the following...
+
+Start POP-11 on your system as usual.  Then do:
+
+cd <nonlin directory containing load_nonlin.p>
+load 'load_nonlin.p';
+tfinfo
+
+choose option 1 to load a sample tf domain name:
+       b0 for nonlin/tf/b0/tf for example:
+choose option 2 to set up a task requirement
+       plan goal {on a b} goal {on b c};
+
+There you are you should just have solved the Sussman anomoly block
+stacking problem.
+
+1. Introduction
+   ------------
+
+This note describes how to use the NONLIN planning system on the
+POPLOG POP-11 system on UNIX.  NONLIN is a hierarchic non-linear
+planner based on the NOAH planner developed at SRI by Sacerdoti
+(1975). NONLIN was developed as a vehicle for research on the
+"Planning: a joint AI/OR approach" SRC project (Daniel and Tate,
+1976).  It forms the first attempt at an interactive program which can
+aid a user in the construction of project networks suitable for the
+application of Operational Research optimization strategies.  However,
+it is not specialized to any particular task domain and can be used as
+a general planning system.
+
+The user communicates to the system through a declarative Task
+Formalism (TF) and through other interactive facilities.  NONLIN and a
+full BNF description of TF are documented in DAI Research Memo 25
+(Tate, 1976).  This report should be consulted along with comments in
+the source listings as documentation of the program.
+
+This present note also serves to indicate additions to the facilities
+provided in the current implementation. New facilities not documented
+in memo 25 will be indicated as such here.
+
+     New Form                Old Form
+
+     USEWHEN                 HOLDS
+     {  ...  }               << ... >>
+     {% ... %}               </ ... />
+     <: ... :>               <: ... :>  (no  change)
+     <| ... |>               <^ ... ^>
+     ===                     ==
+     @@x                     $$x
+     @>x                     $>x
+     @*x                     $*x
+     @@@x                    \\x
+     @@>x                    \\>x
+
+All these changes are to fit in better with the standard POPLOG item
+reading defaults.
+
+2. To run NONLIN
+   -------------
+
+Make sure that you have poplog set up so that the pop11 command works.
+How this is done will vary from system to system, and is not documented
+here.
+
+The rest of this file assumes that you are working in the directory
+where nonlin is held. If necessary:
+     cd <directory where nonlin source is held>
+
+e.g. that could be
+	 cd $poplocal/user/nonlin
+
+Then
+     pop11
+     <message printed by POPLOG system>
+     load load_nonlin.p
+
+The planner will print out messages as it compiles the HBASE data base
+system (Barrow, 1975).  HBASE primitives are available for use
+independently if needed by a user.  
+
+The system then asks if you wish to compile the critical path routines
+(type Y or N). The planner is then available.
+
+A single user interface routine to simplify interaction is available by
+typing:
+     prinfo
+
+Other user interface aids are available as macros newdomain, tf and
+plan. At present the interface aids do not work well with Ved as they
+attempt to control the screen, as does Ved. It should be possible to
+produce a new ved-based interface which will have the advantage that
+you can edit and recompile commands given previously.
+
+3. Modes of use of NONLIN
+   ----------------------
+
+The system can be used in 2 different ways, by compiling tf files or
+by incremental specification of tf.
+
+3.1 Compiling TF
+    ------------
+
+TF code can be typed directly to the system or can be compiled from a
+file.  If all relevant information for a task is given beforehand and
+then planning requests typed at the system, no extra information will
+be sought by NONLIN and it will produce the answers (if possible)
+without user interaction.
+
+E.g., if a file for a house building domain is in file HOUSE1 and
+it gives all relevant information to plan to do the action {build house}
+we could do:
+
+     newdomain;   ;;; reset for a new problem
+     tf house1;   ;;; equivalent of compile('nonlin/tf/house1.tf');
+     plan action {build house};
+
+The system will then expand the ACTION using the TF forms given and
+will correct for any interactions found.  Typing PRINFO after a
+plan has been found will allow the plan and other information to be
+printed out.  In printing the nodes of a network the following format
+is used:-
+
+<node no.> <node type> <previous nodes> <successor nodes> <node pattern>
+
+Some TF domain descriptions which can be used in this way are
+available as examples:-
+
+B0           Sacerdoti (1975) block stacking domain. Can give goals of
+             {on x y} and {cleartop x}.
+             E.g. plan goal {on a b} goal {on b c};
+
+BC3          A block stacking domain with a lower level of detail to
+             generate actions such as {movehand {x y z} }.  Useful as an
+             example of how to use COMPUTE conditions.
+
+HOUSE1       a house building domain which can be used to
+             plan action {build house};
+             It generates a network with 29 nodes.
+
+HOUSE2       As above for a project network of 48 nodes.
+
+HOUSEC       HOUSE1 domain with durations on activities - must have
+             the critical path package available.
+
+SPACE        A space station assembly domain used with an AutoCAD 3-D
+             plan and state visualisation display. Do not use the
+             CPM package when loading the space.tf domain.
+             plan action {build large_platform};
+
+See DAI Memo 25 for how to give your own problem in TF and the general
+form of PLAN statements.  You may find the above examples of use in
+this also.  Since memo 25 was written the PLAN statement has been
+extended to allow protect <pattern> ...  ; to be written after the
+GOAL or ACTION statements for patterns which must be kept true
+throughout the plan.
+
+E.g.,  plan goal {on a b} protect {on e d} {cleartop e};
+
+If a user wishes to delete existing TF descriptions to describe a new
+domain he should first type:
+     newdomain
+
+A macro TF is provided to make a newdomain and to compile a nominated TF
+file.  It uses variables tfprefix and tfpostfix to add to the start of
+TF file names and to add to their end.  By default the prefix is
+'nonlin/tf/' and the postfix is '.tf'.  So putting TF files in a
+directory nonlin/tf will allow them to be compiled by:-
+     tf house2
+
+3.2 Incremental Use
+    ---------------
+
+Facilities have been added since memo 25 to allow a top-down approach
+to the generation of the TF descriptions. If the full details of a
+domain are not available when some task is given to the planner, the
+system will prompt a user to provide extra information as it is found
+to be needed.  The facilities in the present planner are only a weak
+form of the interactive facilities it is hoped will be provided in a
+more complete system at some stage.
+
+The facilities provided allow a task to be planned completely
+top-down, the system prompting when lower level detail is needed, down
+to some level which a user indicates can be considered primitive.
+More usually, lower level detail will be provided as a library of
+preplanned tasks or primitives and only the top level task must be
+broken down.
+
+When a schema cannot be found to expand some pattern, the system will
+ask if you wish to
+
+1. ABORT        type A
+
+2. CARRY ON     type C
+                Fail to expand the pattern and hence choose an
+                alternative in the search space of the planner.
+
+3. DEFINE EXTRA TF FORMS
+                type D
+                Give ACTSCHEMAs, OPSCHEMAs, PRIMITIVE,
+                PRIMITIVE ... WITH EFFECTS ... or MAINEFFECTS
+                declarations only.
+
+		The system will go into POP-11 ready mode to enable this
+		to be done. When you have given the information the
+		system can use, press <ctrl>/Z and the planer will continue.
+
+To aid in such interactive use, the system gives diagnostic
+information if it fails on any sub-task and considers alternatives.
+One error not described in memo 25 is
+
+UNSUPERVISED CONDITION NOT SATISFIED AT NODE n  <pattern>
+
+This error could indicate an error in describing a condition (check
+spelling) or indicate that the task which should have established this
+condition failed to advertise that fact.  It may also be that the
+system has linearized the network in such a way that the condition
+could not be satisfied.  For that reason after giving the error report
+the planner thus goes on to consider alternatives.
+
+After a top-down approach to generating a network, it may be useful to
+read back the TF description so that it may be reused.  This can be
+done for each <schema> in the list ALLFNS by:
+
+     OPEXPANSION(<schema>) -> ALLNODES; LENGTH(ALLNODES) -> NUMNODES;
+     PRNET();                               to print the expansion.
+     GENPR(OPPATTERN(<schema>));            to get its PATTERN
+     APPLIST(OPCONDITIONS(<schema>),GENPR); to print the conditions.
+
+The list of PRIMITIVES can be printed from the list PRIMLIST.
+The list of MAINEFFECTS can be printed from the list MAINEFFLIST.
+
+4. Getting further solutions
+   -------------------------
+
+If a task is successfully solved, it may be possible to get other
+solutions from the choice points generated by the search
+     replan
+reenters the planner to get further solutions.  It can be done
+until no further solutions are given.
+
+5.  Diagnostics and other interactive facilities.
+    ---------------------------------------------
+
+Detected errors at TF definition time and at PLAN time are described
+in Tate (1976).  Also in that paper is a list of functions which can
+be used to examine a project network after an error or during user
+interaction.  These have been brought together into a single menu driven
+printing facility which may be called with:-
+     prinfo
+Various switches can be set to give extra diagnostics and trace
+information, e.g. bugexpand is one of the most useful for the
+general user.  See Tate (1976) for these switches and their effects.
+
+Since memo 25 appeared a function to print the critical path data at
+any stage of network construction has been provided (it can be accessed
+via prinfo):
+     prcpdata()
+gives information for each node in the network in the form:-
+
+**  <node no.> <node pattern> <duration> <early finish> <late finish>
+
+Note that <slack> = <late finish> - <early finish> = 0 for critical nodes.
+          Such nodes are indicated by a ** on their line when printed.
+
+6. References
+   ----------
+
+Barrow, H.G. (1975)  HBASE: POP-2 library documentation DAI.
+
+Daniel, L and Tate, A (1976) Planning: a joint AI/OR approach
+      AISB newsletter
+
+Sacerdoti, E.D. (1975) The nonlinear nature of plans  IJCAI-75
+
+Tate, A. (1976) Project planning using a hierarchic non-linear planner
+      DAI research memo no. 25, University of Edinburgh.
+
+Tate, A. (1977) "Generating Project Networks", Proceedings of the
+      Fifth International Joint Conference on Artificial Intelligence
+      (IJCAI-77) pp. 888-893, Boston, Mass. USA, August 1977.
+      Reprinted in "Readings in Planning" (eds. Allen, J., Hendler, J.
+      and Tate, A.), Morgan-Kaufmann, 1990.

@@ -1,0 +1,94 @@
+Date: Thu, 30 Jan 2014 01:39:58 GMT
+From: Aaron Sloman <A.Sloman@cs.bham.ac.uk>
+Subject: MOOC, Nonlin, Poplog
+
+I thought you might be interested to know that someone who is on the MOOC decided
+to explore Poplog. He managed to get an old 64 bit version of poplog partially
+running on 64-bit gentoo, and wrote to tell me.
+
+
+I have advised him that the 64 bit poplog has not been maintained and will probably
+not work properly and that it's better to install 32 bit poplog on 64 bit linux (if
+you don't need 64-bit integers, pointers, etc.)
+
+
+I still have your old version of nonlin here:
+
+
+        http://www.cs.bham.ac.uk/research/projects/poplog/nonlin/
+
+
+If you have a newer version I'll be happy to install it.
+
+
+I did once start trying to convert the demos to work inside Ved (or XVed), which
+would make interaction more comfortable, but it turned out to be a much more
+complex task than I had anticipated, though I can't remember why!
+
+
+Probably because the nonlin demos interacted with low level xterm mechanisms
+which would have to be emulated in Ved or replaced with Ved mechanisms?
+
+
+If anyone asks explicitly about getting and using poplog you can try pointing them
+at my (very amateurish) collection of video tutorials, all unscripted and messy.
+
+
+        http://www.cs.bham.ac.uk/research/projects/poplog/cas-ai/vid.html
+
+
+That includes a demo of me installing poplog on fedora, which an experienced
+linux user may be able to generalise to other versions of linux, though
+there are now get-and-install scripts for fedora, ubuntu and arch linux
+(though I've only tested the fedora one on both 32bit and 64bit fedora,
+and the ubuntu script on 32 bit ubuntu):
+
+
+http://www.cs.bham.ac.uk/research/projects/poplog/latest-poplog/get-arch-poplog
+        (tested by a couple of Arch users, but not recently)
+
+
+http://www.cs.bham.ac.uk/research/projects/poplog/latest-poplog/get-fedora-poplog
+
+
+http://www.cs.bham.ac.uk/research/projects/poplog/latest-poplog/get-ubuntu-poplog
+
+
+They all install libraries for their systems, then fetch and run this one:
+
+
+http://www.cs.bham.ac.uk/research/projects/poplog/latest-poplog/get-and-install-v15.65-poplog
+
+
+So the last script can be used by knowledgable users of other versions of linux
+who look at the get-X-poplog scripts and generalise.
+
+
+Poplog Mailing Lists
+
+For Poplog users there is an old-style email forum anyone can join
+which can be used to ask for help:
+
+
+    https://mailman.cs.bham.ac.uk/mailman/listinfo/pop-forum
+
+
+and another for anyone interested in poplog development
+
+
+    https://mailman.cs.bham.ac.uk/mailman/listinfo/poplog-dev
+
+Aaron
+
+PS
+I've tried, and failed, to find an ARM expert who might be interested in porting
+Poplog to ARM+linux, so that it can run on a Raspberry Pi. I expect it would be
+a significant addition to the other teaching materials being developed and it
+is very non-resource-hungry for what it provides, having previously been developed
+and used for teaching on machines with much less memory and cpu power !
+Suggestions welcome, if you know someone. I would be willing to help, but I can't
+do it myself. Someone did suggest first porting it to a machine-independent VM
+(I forget the name of the package) and then using that but I am pretty sure that
+will take much longer because of the difficulties of making a truly machine
+independent VM that supports everything necessary on each physical machine.
+After all, that's what the core of poplog does for the rest of poplog.

@@ -1,0 +1,152 @@
+<html>
+<body>
+<h2><b>
+AREADME FILE FOR nonlin
+<br/>
+<a href="http://www.cs.bham.ac.uk/research/poplog/nonlin/AREADME.html">http://www.cs.bham.ac.uk/research/poplog/nonlin/AREADME.html</a>
+</b></h2>
+<pre><b>
+Austin Tate's Nonlin planning system
+------------------------------------</b>
+
+The influential Nonlin hierarchical partial order planning system,
+developed by Austin Tate (<a href="http://www.aiai.ed.ac.uk/~bat/">http://www.aiai.ed.ac.uk/~bat/</a>) in the
+University of Edinburgh is available in a browsable and
+downloadable form here (this web site):
+
+    <a href="http://www.cs.bham.ac.uk/research/poplog/nonlin">http://www.cs.bham.ac.uk/research/poplog/nonlin</a>
+
+For more information and background please see this web site:
+    <a href="http://www.aiai.ed.ac.uk/project/nonlin/">http://www.aiai.ed.ac.uk/project/nonlin/</a>
+    Austin Tate's Nonlin Planning System
+
+<b>NOTE ADDED: 30 Jan 2014</b>
+The nonlin package is demonstrated in the Coursera online course on
+
+    Artificial Intelligence Planning
+        <a href="https://www.coursera.org/course/aiplan">https://www.coursera.org/course/aiplan</a>
+
+    Presented by
+    Gerhard Wickler, The University of Edinburgh
+        <a href="https://www.coursera.org/instructor/gwickler">https://www.coursera.org/instructor/gwickler</a>
+    and
+    Austin Tate, The University of Edinburgh
+        <a href="https://www.coursera.org/instructor/austintate">https://www.coursera.org/instructor/austintate</a>
+
+Students registered on that course, or anyone else, wanting to run
+the nonlin planner can either install linux poplog, as recommended here:
+
+    <a href="http://www.cs.bham.ac.uk/research/projects/poplog/latest-poplog">http://www.cs.bham.ac.uk/research/projects/poplog/latest-poplog</a>
+
+or install windows poplog, as recommended here:
+
+    <a href="http://www.cs.bham.ac.uk/research/projects/poplog/winpop">http://www.cs.bham.ac.uk/research/projects/poplog/winpop</a>
+        (The information here may be out of date, as I am not a windows
+        user!)
+
+There is a mailing list that can be used to ask for help on poplog or pop11
+
+     <a href="https://mailman.cs.bham.ac.uk/mailman/listinfo/pop-forum">https://mailman.cs.bham.ac.uk/mailman/listinfo/pop-forum</a>
+
+ and another for anyone interested in poplog development or ports:
+
+    <a href="https://mailman.cs.bham.ac.uk/mailman/listinfo/poplog-dev">https://mailman.cs.bham.ac.uk/mailman/listinfo/poplog-dev</a>
+
+PLEASE DO NOT USE EITHER MAILING LIST FOR ADVERTISEMENTS OR ANNOUNCEMENTS
+NOT RELATED TO POPLOG/POP11/PROLOG/LISP/ML
+
+<b>Running Nonlin</b>
+
+Austin put a lot of effort into making nonlin run as it used to in a much
+earlier version of Poplog, so that it works in both Windows poplog and
+Linux/Unix poplog.
+
+He has produced a video demo of the nonlin planner in use, which you should
+be able to copy if you have installed either windows poplog or linux poplog.
+The video is here:
+
+    <a href="http://www.youtube.com/watch?v=yF3s_Nb_FyE">http://www.youtube.com/watch?v=yF3s_Nb_FyE</a>
+    Demonstrations of the University of Edinburgh Nonlin AI Planner
+    using Hierarchical Task Network (HTN) and Partial-Order Planning (POP)
+    methods.
+    More details at <a href="http://www.aiai.ed.ac.uk/project/nonlin/">http://www.aiai.ed.ac.uk/project/nonlin/</a>
+
+<a name="instructions"><b>TO RUN NONLIN</b></a>
+
+After installing poplog, fetch the file
+
+    <a href="http://www.cs.bham.ac.uk/research/poplog/nonlin/nonlin-2002-11-28.zip">http://www.cs.bham.ac.uk/research/poplog/nonlin/nonlin-2002-11-28.zip</a>
+
+unzip it. E.g. if you unzip it in the $poplocal/local/ directory
+it will create a directory
+
+    $poplocal/local/nonlin/
+
+containing instructions, a nonlin sub-directory with code and examples,
+and a load_nonlin.p file, used to start nonlin interactively in pop11.
+
+Note that at present the package works only with a normal terminal
+interface: it has not been converted to be run from inside Ved or XVed,
+so there is no point trying to compile it in Ved.
+
+(If anyone alters it to work with Ved so that a task can be specified
+in a Ved buffer and Nonlin run from Ved, please submit your changes
+to the Poplog repository via <a href="http://www.cs.bham.ac.uk/~axs">Aaron Sloman</a>.)
+
+<b>FURTHER INFORMATION</b>
+
+Instructions and historical information regarding Nonlin, including a
+review of the package, are in the file:
+    <a href="http://www.cs.bham.ac.uk/research/poplog/nonlin/readme.txt">http://www.cs.bham.ac.uk/research/poplog/nonlin/readme.txt</a>
+
+A version formatted for Windows users is here:
+    <a href="http://www.cs.bham.ac.uk/research/poplog/nonlin/readme-win.txt">http://www.cs.bham.ac.uk/research/poplog/nonlin/readme-win.txt</a>
+
+Further information, including sample problem domain definitions using
+the Nonlin task formalism (TF) can be found in these directories:
+
+    <a href="http://www.cs.bham.ac.uk/research/poplog/nonlin/nonlin/">http://www.cs.bham.ac.uk/research/poplog/nonlin/nonlin/</a>
+
+    <a href="http://www.cs.bham.ac.uk/research/poplog/nonlin/nonlin/tf/">http://www.cs.bham.ac.uk/research/poplog/nonlin/nonlin/tf/</a>
+
+Nonlin is also available in Edinburgh here:
+    <a href="http://www.aiai.ed.ac.uk/project/nonlin/">http://www.aiai.ed.ac.uk/project/nonlin/</a>
+
+The original 1976 technical report defining Nonlin has been scanned in
+and is now available as a PDF file (6.75Mbytes) at both the Edinburgh
+and Birmingham sites.
+
+    <a href="http://www.aiai.ed.ac.uk/project/nonlin/1976-tate-nonlin-dai-memo-25.pdf">http://www.aiai.ed.ac.uk/project/nonlin/1976-tate-nonlin-dai-memo-25.pdf</a>
+    <a href="http://www.cs.bham.ac.uk/research/poplog/nonlin/1976-tate-nonlin-dai-memo-25.pdf">http://www.cs.bham.ac.uk/research/poplog/nonlin/1976-tate-nonlin-dai-memo-25.pdf</a>
+
+    Tate, A. (1976) "Project Planning Using a Hierarchic Non-linear
+    Planner", D.A.I. Research Report No. 25, August 1976, Department of
+    Artificial Intelligence, University of Edinburgh.
+
+Further information can be found by giving "nonlin+planner" to
+google, or other search engines.
+
+<b>Conditions of use</b>
+Nonlin is released as is for academic and research purposes.  It is a
+research prototype created in the mid 1970s and released to people
+interested in experimenting with an early AI planner.
+
+Nonlin is subject to the same copyright notice as the Poplog copyright
+notice:
+    <a href="http://www.cs.bham.ac.uk/research/poplog/copyright.html">http://www.cs.bham.ac.uk/research/poplog/copyright.html</a>
+
+I.e. you can use, copy, alter these files, and re-distribute them, but
+you do so at your own risk. Neither the author nor the University
+of Birmingham, which hosts the Free Poplog web site
+    <a href="http://www.cs.bham.ac.uk/research/poplog/freepoplog.html">http://www.cs.bham.ac.uk/research/poplog/freepoplog.html</a>
+is responsible in any way. Both make no warranties of any sort.
+
+<b>Maintained by</b>
+Aaron Sloman
+<a href="http://www.cs.bham.ac.uk/~axs/">http://www.cs.bham.ac.uk/~axs/</a>
+25 Oct 2004
+Updated: 30 Jan 2014
+(With thanks to Austin Tate.)
+</pre>
+</body>
+</html>
