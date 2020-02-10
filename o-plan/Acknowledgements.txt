@@ -1,0 +1,24 @@
+Acknowledgements
+
+The O-Plan project began in 1983. Since that time the following people have participated: 
+Stuart Aitken, Howard Beck, Colin Bell, Ken Currie, Jeff Dalton, Roberto Desimone, Brian Drabble, Mark Drummond, Anja Haman, Peter Jarvis, Ken Johnson, John Kingston, Richard Kirby, John Levine, Eva Onaindia, Steve Polyak, Glen Reece, Arthur Seaton, Judith Secker, Austin Tate, Richard Tobin and Gerhard Wickler.
+
+Prior to 1983, work on Interplan (1972-4) and Nonlin (1975-6) was funded by the UK Science and Engineering Research Council and provided technical input to the design of O-Plan.
+
+From 1984 to 1988, the O-Plan project was funded by the UK Science and Engineering Research Council on grant numbers GR/C/59178 and GR/D/58987 (UK Alvey Programme project number IKBS/151). The work was also supported by a fellowship from SD-Scicon (with the encouragement of Geoff Holmes and David Shorter) for Austin Tate from 1984 to 1985. 
+
+From 1989 to 1992, the UK Science and Engineering Research Council (grant number GR/F36545 - UK Information Engineering Directorate project number IED 4/1/1320) funded a collaborative project with ICL, Imperial College and other partners in which the O-Plan architecture was used to guide the design and development of a planner with a flexible temporal logic representation of the plan state.
+
+From 1989 to 1992, the O-Plan project was supported by the US Air Force Rome Laboratory through the Air Force Office of Scientific Research (AFOSR) and their European Office of Aerospace Research and Development by contract number F49620-89-C-0081 (EOARD/88-0044) monitored by Northrup Fowler III at the USAF Rome Laboratory. 
+
+From 1989 to 1993, research on scheduling applications of the O-Plan architecture was funded by Hitachi Europe Ltd which led to the TOSCA (The Open SCheduling Architecture) prototypes. A number of other research and development contracts placed with AIAI have led to research progress on the O-Plan prototype.
+
+From 1992 to 1998, the O-Plan project was supported by the US Planning Initiative - Defense Advanced Researchj Projects Agents (DARPA, formerly ARPA) and Air Force Research Laboratory (AFRL, formerly Rome Laboratory) Knowledge Based Planning and Scheduling Initiative (ARPI) through the Air Force Research Laboratory at Rome, the Air Force Office of Scientific Research (AFOSR) and the European Office of Aerospace Research and Development (EOARD) by contract numbers F49620-92-C-0042 (EOARD/92-0001) and F30602-95-1-0022 monitored by Northrup Fowler III at the USAF Rome Laboratory.
+
+For the period 1994-1999, support to students was provided by Augmentation Awards for Science and Engineering Research Training (AASERT) provided by the Air Force Office of Scientific Research (AFOSR) under grant numbers F49620-93-1-0436 (Glen Reece) and F49620-96-1-0348 (Steve Polyak) monitored by Abe Waksman and Neal Glassman at AFOSR.
+
+From 1998 to 2000, the O-Plan project was supported by the the US Planning Initiative/Planning and Decision Aids Program (ARPI/PDA), the US Army Small Unit Operations Program (SUO), and the Cooperating Agent Based Systems Program (CoABS) - with funding through the Defense Advanced Resaerch Projects Agency (DARPA) and the Air Force Research Laboratory (AFRL) by contract number F30602-99-1-0024 monitored by Wayne Bosco at AFRL.
+
+Additional resources for the O-Plan project have been provided by the Artificial Intelligence Applications Institute in the Division of Informatics, part of the Faculty of Science and Engineering at the University of Edinburgh through the EUROPA (Edinburgh University Research on Planning Architectures) institute development project.
+
+O-Plan is a valuable asset of the Artificial Intelligence Applications Institute and must not be used without the prior permission of a rights holder. Please contact AIAI for more information.
