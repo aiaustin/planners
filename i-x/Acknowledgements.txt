@@ -1,0 +1,21 @@
+I-X: Acknolwedgements 
+ 
+The I-X project began in 2000. Since that time the following people have participated: 
+Stuart Aitken, Jessica Chen-Burger, Jeff Dalton, John Levine, Natasha Lino, Clauirton de Siebra, Stephen Potter, Jussi Stader, Austin Tate, Gerhard Wickler and Helen Wollan
+
+Prior to 2000, work on Interplan (1972-4), Nonlin (1975-6) and O-Plan provided technical input to the design of I-X. Detailed acknowledgements for this earlier work is at http://www.aiai.ed.ac.uk/project/oplan/oplan/ack.html.
+From 2000-2001, work on I-X was partly funded by the UK Defence Evaluation Research Agency (Malvern) under the I-Con project.
+
+From 2000-2001, work on I-X was partly funded by the DARPA CoABS Program.
+
+From 2001-2004, work on I-X was partly funded by the DARPA DAML Program.
+
+From 2004-2005, work on I-X was partly funded through the IM-PACs project. The IM-PACs project is funded by Scottish Enterprise, the European Research Development Fund (ERDF) and AIAI at the University of Edinburgh. The project has received assistance from the Proof of Concept Fund managed by Scottish Enterprise. The Proof of Concept Fund supports the pre-commercialisation of leading-edge technologies emerging from Scotland's Universities, Research Institutes and National Health Service Trusts. [ Project Reference: 5-SEB-004 ] 
+
+From 2004-2005, work on I-X was partly funded by the DARPA Advanced Technology Office.
+
+For the period 2001-2005, support to students was provided by the Brazilian Government.
+
+Additional resources for the I-X project have been provided by the Artificial Intelligence Applications Institute in the Centre for Intelligent Systems and their Applications, School of Informatics, part of the College of Science and Engineering at the University of Edinburgh.
+
+I-X is a valuable asset of the Artificial Intelligence Applications Institute and must not be used without the prior permission of a rights holder. Please contact AIAI for more information.
