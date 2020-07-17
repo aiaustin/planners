@@ -1,6 +1,6 @@
 # planners - Artificial Intelligence Planning Systems
 
-A repository of AI planning systems from the work of Prof. Austin Tate and his Planning and Activity research group at the University of Edinburgh in the Artificial Intelligence and its Applications Institute (AIAI) - previously the Artificial Intelligence Applications Institute (1984-2019).
+A repository of AI planning systems from the work of Prof. Austin Tate and his Planning and Activity research group at the University of Edinburgh in the Artificial Intelligence and its Applications Institute (AIAI) - previously the Artificial Intelligence Applications Institute (1983-2019).
 
 http://www.aiai.ed.ac.uk/project/plan/
 
